@@ -1,4 +1,8 @@
 name: HoleInTheWall
 version: '${project.version}'
-main: com.articreep.untitled.HoleInTheWall
+main: com.articreep.holeinthewall.HoleInTheWall
 api-version: '1.20'
+commands:
+  holeinthewall:
+    description: test
+    usage: /holeinthewall
