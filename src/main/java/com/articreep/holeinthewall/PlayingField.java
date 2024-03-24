@@ -77,8 +77,24 @@ public class PlayingField implements Listener {
 
         int score = correctBlocks.size() - extraBlocks.size();
         addScore(score);
-        player.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
-        player.sendTitle("", ChatColor.GREEN + "+" + score + " points", 0, 10, 5);
+
+        double percent = (double) score / wall.getHoles().size();
+        String title = "";
+        ChatColor color = ChatColor.GREEN;
+        if (percent == 1) {
+            player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+            color = ChatColor.GOLD;
+            title = ChatColor.BOLD + "PERFECT!";
+        } else {
+            player.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+        }
+        if (percent < 1 && percent > 0.5) {
+            title = "Cool!";
+        } else if (percent < 0.5) {
+            title = "Meh..";
+            color = ChatColor.RED;
+        }
+        player.sendTitle(color + title, color + "+" + score + " points", 0, 10, 5);
     }
 
     private void fillField(Material material) {
