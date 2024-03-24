@@ -24,7 +24,8 @@ public class WallQueue {
     private List<Wall> hiddenWalls;
     private Wall animatingWall;
     private List<Wall> visibleWalls;
-    private boolean allowMultipleWalls = false;
+    private boolean rushEnabled = false;
+    private Rush rush = null;
     private int pauseLoop = 0;
 
     public WallQueue(PlayingField field) {
@@ -39,7 +40,10 @@ public class WallQueue {
     public void addWall(Wall wall) {
         hiddenWalls.add(wall);
         wall.spawnWall(field, this, field.getPlayer());
-        wall.setTimeRemaining(timeToFill);
+        if (wall.getTimeRemaining() == -1) {
+            // default wall speed
+            wall.setTimeRemaining(timeToFill);
+        }
     }
 
     public void animateNextWall() {
@@ -74,6 +78,27 @@ public class WallQueue {
                 // Animate the next wall when possible
                 if (visibleWalls.isEmpty() && !hiddenWalls.isEmpty()) {
                     animateNextWall();
+                } else if (!hiddenWalls.isEmpty() && rushEnabled) {
+                    // Multiple walls can be on if rush is active
+                    animateNextWall();
+                }
+
+                // Tick rush (if active)
+                if (rush != null) {
+                    if (rush.getTicksRemaining() <= 0) {
+                        rush = null;
+                        rushEnabled = false;
+                        endRush();
+                    } else {
+                        rush.tick();
+                        if (visibleWalls.isEmpty()) {
+                            if (animatingWall == null) {
+                                addWall(rush.deploy());
+                            }
+                        } else if (rush.getNextSpawn() == 0) {
+                            addWall(rush.deploy());
+                        }
+                    }
                 }
 
                 // Tick all visible walls
@@ -85,6 +110,9 @@ public class WallQueue {
                         wall.despawn();
                         field.matchAndScore(wall);
                         it.remove();
+                        if (rushEnabled) {
+                            endRush();
+                        }
                         pauseLoop = 10;
                     } else if (!wall.hasSpawned()) {
                         Bukkit.broadcastMessage(ChatColor.RED + "Attempted to tick wall before spawned..");
@@ -117,5 +145,33 @@ public class WallQueue {
 
     public void stop() {
         task.cancel();
+    }
+
+    public void activateRush() {
+        rushEnabled = true;
+        rush = new Rush();
+    }
+
+    public void endRush() {
+        rushEnabled = false;
+        rush = null;
+        for (Wall wall : visibleWalls) {
+            wall.despawn();
+        }
+        visibleWalls.clear();
+        if (animatingWall != null) {
+            animatingWall.despawn();
+            animatingWall = null;
+        }
+        hiddenWalls.clear();
+        field.endRush();
+    }
+
+    public Rush getRush() {
+        return rush;
+    }
+
+    public boolean isRushEnabled() {
+        return rushEnabled;
     }
 }

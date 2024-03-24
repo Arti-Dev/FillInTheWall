@@ -63,6 +63,8 @@ public class PlayingField implements Listener {
         Map<Pair<Integer, Integer>, Block> correctBlocks = wall.getCorrectBlocks(this);
         Map<Pair<Integer, Integer>, Block> missingBlocks = wall.getMissingBlocks(this);
         // Visually display this information
+        int pauseTime = 10;
+        if (queue.isRushEnabled()) pauseTime = 5;
         fillField(wall.getMaterial());
         for (Block block : extraBlocks.values()) {
             block.setType(Material.RED_WOOL);
@@ -73,28 +75,47 @@ public class PlayingField implements Listener {
         for (Block block : missingBlocks.values()) {
             block.setType(Material.AIR);
         }
-        Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), this::clearField, 10);
+        Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), () -> {
+            clearField();
+            if (getQueue().isRushEnabled()) {
+                for (Pair<Integer, Integer> hole : wall.getHoles()) {
+                    coordinatesToBlock(hole).setType(Material.TINTED_GLASS);
+                }
+            }
+        }, pauseTime);
 
-        int score = correctBlocks.size() - extraBlocks.size();
-        addScore(score);
+        if (!queue.isRushEnabled()) {
+            int score = correctBlocks.size() - extraBlocks.size();
+            addScore(score);
 
-        double percent = (double) score / wall.getHoles().size();
-        String title = "";
-        ChatColor color = ChatColor.GREEN;
-        if (percent == 1) {
-            player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
-            color = ChatColor.GOLD;
-            title = ChatColor.BOLD + "PERFECT!";
+            double percent = (double) score / wall.getHoles().size();
+            String title = "";
+            ChatColor color = ChatColor.GREEN;
+            if (percent == 1) {
+                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+                color = ChatColor.GOLD;
+                title = ChatColor.BOLD + "PERFECT!";
+            } else {
+                player.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+            }
+            if (percent < 1 && percent > 0.5) {
+                title = "Cool!";
+            } else if (percent < 0.5) {
+                title = "Meh..";
+                color = ChatColor.RED;
+            }
+            player.sendTitle(color + title, color + "+" + score + " points", 0, 10, 5);
         } else {
-            player.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+            int score = correctBlocks.size() - extraBlocks.size();
+            double percent = (double) score / wall.getHoles().size();
+            if (percent == 1) {
+                // todo make this higher pitched over time
+                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+                queue.getRush().increaseBoardsCleared();
+            } else {
+                player.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+            }
         }
-        if (percent < 1 && percent > 0.5) {
-            title = "Cool!";
-        } else if (percent < 0.5) {
-            title = "Meh..";
-            color = ChatColor.RED;
-        }
-        player.sendTitle(color + title, color + "+" + score + " points", 0, 10, 5);
     }
 
     private void fillField(Material material) {
@@ -144,5 +165,16 @@ public class PlayingField implements Listener {
 
     public WallQueue getQueue() {
         return queue;
+    }
+
+    public void activateRush() {
+        player.sendTitle(ChatColor.RED + "RUSH!", ChatColor.RED + "Clear as many walls as you can!", 0, 40, 10);
+        queue.activateRush();
+    }
+
+    public void endRush() {
+        clearField();
+        player.getWorld().spawnParticle(Particle.EXPLOSION_HUGE, player.getLocation(), 1);
+        player.sendTitle(ChatColor.GREEN + "RUSH OVER!", ChatColor.GREEN + "", 0, 40, 10);
     }
 }

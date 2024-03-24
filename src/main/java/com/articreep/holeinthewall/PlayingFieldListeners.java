@@ -70,18 +70,20 @@ public class PlayingFieldListeners implements Listener {
                 new Location(player.getWorld(), -261, -58, -301), new Vector(-1, 0, 0),
                 new Vector(0, 0, -1));
         WallQueue queue = new WallQueue(field);
-        Wall wall1 = new Wall();
-        wall1.insertHoles(new Pair<>(2, 1), new Pair<>(2, 3), new Pair<>(3, 1), new Pair<>(5, 1));
-        queue.addWall(wall1);
-        Wall wall2 = new Wall();
-        wall2.insertHoles(new Pair<>(0, 0), new Pair<>(0, 1), new Pair<>(1, 1));
-        Wall wall3 = new Wall();
-        wall3.insertHoles(new Pair<>(0, 0), new Pair<>(0, 1), new Pair<>(1, 1), new Pair<>(1, 0));
-        queue.addWall(wall2);
-        queue.addWall(wall3);
-        Wall wall4 = new Wall();
-        wall4.insertHoles(new Pair<>(0, 0), new Pair<>(0, 1), new Pair<>(1, 1), new Pair<>(1, 0), new Pair<>(2, 0));
-        queue.addWall(wall4);
+//        Wall wall1 = new Wall();
+//        wall1.insertHoles(new Pair<>(2, 1), new Pair<>(2, 3), new Pair<>(3, 1), new Pair<>(5, 1));
+//        queue.addWall(wall1);
+//        Wall wall2 = new Wall();
+//        wall2.insertHoles(new Pair<>(0, 0), new Pair<>(0, 1), new Pair<>(1, 1));
+//        Wall wall3 = new Wall();
+//        wall3.insertHoles(new Pair<>(0, 0), new Pair<>(0, 1), new Pair<>(1, 1), new Pair<>(1, 0));
+//        queue.addWall(wall2);
+//        queue.addWall(wall3);
+//        Wall wall4 = new Wall();
+//        wall4.insertHoles(new Pair<>(0, 0), new Pair<>(0, 1), new Pair<>(1, 1), new Pair<>(1, 0), new Pair<>(2, 0));
+//        queue.addWall(wall4);
+
+        field.activateRush();
 
         playingFields.put(player, field);
     }

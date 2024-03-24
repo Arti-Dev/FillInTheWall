@@ -43,8 +43,21 @@ public class Wall {
         this(new HashSet<>(), Material.BLUE_CONCRETE);
     }
 
+    public Wall(Material material) {
+        this(new HashSet<>(), material);
+    }
+
     public HashSet<Pair<Integer, Integer>> getHoles() {
         return holes;
+    }
+
+    public boolean hasHole(Pair<Integer, Integer> hole) {
+        for (Pair<Integer, Integer> h : holes) {
+            if (h.equals(hole)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Material getMaterial() {
@@ -168,7 +181,6 @@ public class Wall {
     }
 
     public void despawn() {
-        if (!spawned) return;
         for (BlockDisplay entity : entities) {
             entity.remove();
         }
@@ -178,6 +190,34 @@ public class Wall {
 
     public void insertHoles(Pair<Integer, Integer>... holes) {
         this.holes.addAll(List.of(holes));
+    }
+
+    public void insertHole(Pair<Integer, Integer> hole) {
+        if (hole == null) return;
+        this.holes.add(hole);
+    }
+
+    public void removeHole(Pair<Integer, Integer> hole) {
+        for (Pair<Integer, Integer> h : holes) {
+            if (h.equals(hole)) {
+                holes.remove(h);
+                break;
+            }
+        }
+    }
+
+    public Pair<Integer, Integer> randomHole() {
+        if (holes.isEmpty()) return null;
+        // Choose a random hole in the provided wall
+        int randomIndex = (int) (Math.random() * getHoles().size());
+        int i = 0;
+        for (Pair<Integer, Integer> hole : getHoles()) {
+            if (i == randomIndex) {
+                return hole;
+            }
+            i++;
+        }
+        return null;
     }
 
     public int getTimeRemaining() {
