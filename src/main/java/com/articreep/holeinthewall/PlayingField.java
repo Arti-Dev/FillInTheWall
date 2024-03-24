@@ -15,7 +15,9 @@ import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 import org.javatuples.Pair;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class PlayingField implements Listener {
@@ -32,6 +34,8 @@ public class PlayingField implements Listener {
     private WallQueue queue = null;
     private double bonus = 0;
     private BukkitTask task = null;
+    private List<Block> borderBlocks = new ArrayList<>();
+    private final Material defaultBorderMaterial = Material.GRAY_CONCRETE;
 
     public PlayingField(Player player, Location referencePoint, Vector direction, Vector incomingDirection) {
         // define playing field in a very scuffed way
@@ -40,6 +44,21 @@ public class PlayingField implements Listener {
         this.incomingDirection = incomingDirection;
         this.player = player;
         task = tickLoop();
+
+        for (int x = 0; x < length + 2; x++) {
+            for (int y = 0; y < height + 1; y++) {
+                Location loc = getFieldReferencePoint().clone()
+                        // Move to the block right to the left of the reference block
+                        .subtract(fieldDirection)
+                        .add(fieldDirection.clone().multiply(x))
+                        .add(0, y, 0);
+                // exclude corners
+                if ((x == 0 || x == length + 1 || y == height) &&
+                        !((x == 0 || x == length + 1) && y == height)) {
+                    borderBlocks.add(loc.getBlock());
+                }
+            }
+        }
     }
 
     /**
@@ -85,6 +104,7 @@ public class PlayingField implements Listener {
         boolean rushEnabledBeforehand = getQueue().isRushEnabled();
         Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), () -> {
             clearField();
+            resetBorder();
             if (rushEnabledBeforehand && queue.isRushEnabled()) {
                 for (Pair<Integer, Integer> hole : wall.getHoles()) {
                     coordinatesToBlock(hole).setType(Material.TINTED_GLASS);
@@ -99,20 +119,26 @@ public class PlayingField implements Listener {
             double percent = (double) score / wall.getHoles().size();
             String title = "";
             ChatColor color = ChatColor.GREEN;
+            Material border = Material.GRAY_CONCRETE;
             if (percent == 1) {
                 player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
                 color = ChatColor.GOLD;
                 title = ChatColor.BOLD + "PERFECT!";
+                border = Material.GLOWSTONE;
             } else {
                 player.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
             }
             if (percent < 1 && percent > 0.5) {
                 title = "Cool!";
+                border = Material.LIME_CONCRETE;
             } else if (percent < 0.5) {
                 title = "Meh..";
                 color = ChatColor.RED;
+                border = Material.REDSTONE_BLOCK;
             }
+
             player.sendTitle(color + title, color + "+" + score + " points", 0, 10, 5);
+            changeBorderBlocks(border);
 
             // Add/subtract to bonus and maybe even trigger rush
             if (percent >= 0.5) {
@@ -214,5 +240,16 @@ public class PlayingField implements Listener {
                         new TextComponent(color + "Rush Meter: " + String.format("%.2f", bonus) + "/10"));
             }
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
+    }
+
+    public void changeBorderBlocks(Material material) {
+        for (Block block : borderBlocks) {
+            block.setType(material);
+        }
+
+    }
+
+    public void resetBorder() {
+        changeBorderBlocks(defaultBorderMaterial);
     }
 }
