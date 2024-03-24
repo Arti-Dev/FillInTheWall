@@ -57,6 +57,7 @@ public class WallQueue {
                 // fix possible race condition: only add to visible walls if the wall has spawned
                 // (finished spawn animation)
                 // todo this task/conditional might not be necessary
+                if (animatingWall == null) return;
                 if (animatingWall.hasSpawned()) {
                     visibleWalls.add(animatingWall);
                     animatingWall = null;
@@ -75,6 +76,14 @@ public class WallQueue {
                     return;
                 }
 
+                if (hiddenWalls.isEmpty() && !rushEnabled) {
+                    // todo messy way to make a new wall but whatevs
+                    Random random = new Random();
+                    Wall newWall = new Wall();
+                    newWall.generateHoles(2, random.nextInt(1,5));
+                    addWall(newWall);
+                }
+
                 // Animate the next wall when possible
                 if (visibleWalls.isEmpty() && !hiddenWalls.isEmpty()) {
                     animateNextWall();
@@ -86,8 +95,6 @@ public class WallQueue {
                 // Tick rush (if active)
                 if (rush != null) {
                     if (rush.getTicksRemaining() <= 0) {
-                        rush = null;
-                        rushEnabled = false;
                         endRush();
                     } else {
                         rush.tick();
@@ -150,9 +157,19 @@ public class WallQueue {
     public void activateRush() {
         rushEnabled = true;
         rush = new Rush();
+        for (Wall wall : visibleWalls) {
+            wall.despawn();
+        }
+        visibleWalls.clear();
+        if (animatingWall != null) {
+            animatingWall.despawn();
+            animatingWall = null;
+        }
+        hiddenWalls.clear();
     }
 
     public void endRush() {
+        field.endRush();
         rushEnabled = false;
         rush = null;
         for (Wall wall : visibleWalls) {
@@ -164,7 +181,6 @@ public class WallQueue {
             animatingWall = null;
         }
         hiddenWalls.clear();
-        field.endRush();
     }
 
     public Rush getRush() {

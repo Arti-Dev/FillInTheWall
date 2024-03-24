@@ -1,5 +1,7 @@
 package com.articreep.holeinthewall;
 
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -8,6 +10,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 import org.javatuples.Pair;
 
@@ -26,6 +30,8 @@ public class PlayingField implements Listener {
     private final int height = 4;
     private final int length = 7;
     private WallQueue queue = null;
+    private double bonus = 0;
+    private BukkitTask task = null;
 
     public PlayingField(Player player, Location referencePoint, Vector direction, Vector incomingDirection) {
         // define playing field in a very scuffed way
@@ -33,6 +39,7 @@ public class PlayingField implements Listener {
         this.fieldDirection = direction;
         this.incomingDirection = incomingDirection;
         this.player = player;
+        task = tickLoop();
     }
 
     /**
@@ -75,17 +82,18 @@ public class PlayingField implements Listener {
         for (Block block : missingBlocks.values()) {
             block.setType(Material.AIR);
         }
+        boolean rushEnabledBeforehand = getQueue().isRushEnabled();
         Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), () -> {
             clearField();
-            if (getQueue().isRushEnabled()) {
+            if (rushEnabledBeforehand && queue.isRushEnabled()) {
                 for (Pair<Integer, Integer> hole : wall.getHoles()) {
                     coordinatesToBlock(hole).setType(Material.TINTED_GLASS);
                 }
             }
         }, pauseTime);
 
+        int score = correctBlocks.size() - extraBlocks.size();
         if (!queue.isRushEnabled()) {
-            int score = correctBlocks.size() - extraBlocks.size();
             addScore(score);
 
             double percent = (double) score / wall.getHoles().size();
@@ -105,8 +113,19 @@ public class PlayingField implements Listener {
                 color = ChatColor.RED;
             }
             player.sendTitle(color + title, color + "+" + score + " points", 0, 10, 5);
+
+            // Add/subtract to bonus and maybe even trigger rush
+            if (percent >= 0.5) {
+                bonus += percent;
+                if (bonus >= 10) {
+                    bonus = 0;
+                    activateRush();
+                }
+            } else {
+                bonus -= 2;
+                if (bonus < 0) bonus = 0;
+            }
         } else {
-            int score = correctBlocks.size() - extraBlocks.size();
             double percent = (double) score / wall.getHoles().size();
             if (percent == 1) {
                 // todo make this higher pitched over time
@@ -169,12 +188,31 @@ public class PlayingField implements Listener {
 
     public void activateRush() {
         player.sendTitle(ChatColor.RED + "RUSH!", ChatColor.RED + "Clear as many walls as you can!", 0, 40, 10);
+        clearField();
         queue.activateRush();
     }
 
     public void endRush() {
         clearField();
         player.getWorld().spawnParticle(Particle.EXPLOSION_HUGE, player.getLocation(), 1);
-        player.sendTitle(ChatColor.GREEN + "RUSH OVER!", ChatColor.GREEN + "", 0, 40, 10);
+        addScore(queue.getRush().getBoardsCleared() * 4);
+        player.sendTitle(ChatColor.GREEN + "RUSH OVER!", ChatColor.GREEN + "" +
+                queue.getRush().getBoardsCleared() + " walls cleared", 0, 40, 10);
+    }
+
+    public BukkitTask tickLoop() {
+        return new BukkitRunnable() {
+            @Override
+            public void run() {
+                ChatColor color = ChatColor.GRAY;
+                if (bonus > 3 && bonus < 7) {
+                    color = ChatColor.YELLOW;
+                } else {
+                    color = ChatColor.GREEN;
+                }
+                player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                        new TextComponent(color + "Rush Meter: " + String.format("%.2f", bonus) + "/10"));
+            }
+        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
     }
 }

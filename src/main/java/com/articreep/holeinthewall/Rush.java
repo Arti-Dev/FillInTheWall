@@ -61,11 +61,11 @@ public class Rush {
 
 
 
-    private Pair<Integer, Integer> randomHole() {
+    public static Pair<Integer, Integer> randomHole() {
         return Pair.with((int) (Math.random() * 7), (int) (Math.random() * 4));
     }
 
-    private Pair<Integer, Integer> randomConnectedHole(Wall wall) {
+    public static Pair<Integer, Integer> randomConnectedHole(Wall wall) {
         int attempts = 0;
         while (attempts < 10) {
             // Choose a random hole in the provided wall
@@ -89,7 +89,7 @@ public class Rush {
         return null;
     }
 
-    private Material randomMaterial() {
+    private static Material randomMaterial() {
         Material[] materials = {Material.BLUE_GLAZED_TERRACOTTA, Material.LIME_GLAZED_TERRACOTTA,
         Material.MAGENTA_GLAZED_TERRACOTTA, Material.WHITE_GLAZED_TERRACOTTA,
         Material.REDSTONE_BLOCK, Material.DIAMOND_BLOCK, Material.PURPUR_BLOCK, Material.EMERALD_BLOCK,
@@ -116,5 +116,9 @@ public class Rush {
 
     public void increaseBoardsCleared() {
         boardsCleared++;
+    }
+
+    public int getBoardsCleared() {
+        return boardsCleared;
     }
 }

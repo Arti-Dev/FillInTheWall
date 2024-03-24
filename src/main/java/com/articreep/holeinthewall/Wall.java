@@ -189,11 +189,14 @@ public class Wall {
     }
 
     public void insertHoles(Pair<Integer, Integer>... holes) {
-        this.holes.addAll(List.of(holes));
+        for (Pair<Integer, Integer> hole : holes) {
+            if (hole == null || this.holes.contains(hole)) continue;
+            this.holes.add(hole);
+        }
     }
 
     public void insertHole(Pair<Integer, Integer> hole) {
-        if (hole == null) return;
+        if (hole == null || this.holes.contains(hole)) return;
         this.holes.add(hole);
     }
 
@@ -206,6 +209,7 @@ public class Wall {
         }
     }
 
+    /* Some code taken from https://www.baeldung.com/java-set-draw-sample */
     public Pair<Integer, Integer> randomHole() {
         if (holes.isEmpty()) return null;
         // Choose a random hole in the provided wall
@@ -226,5 +230,19 @@ public class Wall {
 
     public boolean hasSpawned() {
         return spawned;
+    }
+
+    public void generateHoles(int random, int cluster) {
+        for (int i = 0; i < random; i++) {
+            Pair<Integer, Integer> hole = Rush.randomHole();
+            insertHole(hole);
+        }
+
+        for (int i = 0; i < cluster; i++) {
+            Pair<Integer, Integer> hole = (Rush.randomConnectedHole(this));
+            if (hole != null) {
+                insertHole(hole);
+            }
+        }
     }
 }

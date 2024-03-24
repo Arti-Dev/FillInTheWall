@@ -83,8 +83,6 @@ public class PlayingFieldListeners implements Listener {
 //        wall4.insertHoles(new Pair<>(0, 0), new Pair<>(0, 1), new Pair<>(1, 1), new Pair<>(1, 0), new Pair<>(2, 0));
 //        queue.addWall(wall4);
 
-        field.activateRush();
-
         playingFields.put(player, field);
     }
 }
