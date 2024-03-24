@@ -12,7 +12,7 @@ public class WallQueue {
     /**
      * This is in ticks.
      */
-    private final int timeToFill = 80;
+    private final int timeToFill = 160;
     private BukkitTask task = null;
     private PlayingField field = null;
     // todo this number is arbitrary

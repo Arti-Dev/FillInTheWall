@@ -3,17 +3,14 @@ package com.articreep.holeinthewall;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.material.Lever;
 import org.bukkit.util.Vector;
 import org.javatuples.Pair;
 
@@ -49,6 +46,20 @@ public class PlayingFieldListeners implements Listener {
         }
     }
 
+    @EventHandler
+    public void onCrackedStoneClick(PlayerInteractEvent event) {
+        if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            if (event.getClickedBlock().getType() == Material.CRACKED_STONE_BRICKS) {
+                PlayingField field = playingFields.get(event.getPlayer());
+                if (field != null) {
+                    // todo spawn particles
+                    Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
+                            () -> event.getClickedBlock().breakNaturally(new ItemStack(Material.LEAD)));
+                }
+            }
+        }
+    }
+
     public static void newGame(Player player) {
         PlayingField field = playingFields.get(player);
         if (field != null) {
@@ -60,7 +71,7 @@ public class PlayingFieldListeners implements Listener {
                 new Vector(0, 0, -1));
         WallQueue queue = new WallQueue(field);
         Wall wall1 = new Wall();
-        wall1.insertHoles(new Pair<>(0, 0));
+        wall1.insertHoles(new Pair<>(2, 1), new Pair<>(2, 3), new Pair<>(3, 1), new Pair<>(5, 1));
         queue.addWall(wall1);
         Wall wall2 = new Wall();
         wall2.insertHoles(new Pair<>(0, 0), new Pair<>(0, 1), new Pair<>(1, 1));
