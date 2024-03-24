@@ -25,12 +25,14 @@ public class WallQueue {
     private Wall animatingWall;
     private List<Wall> visibleWalls;
     private boolean allowMultipleWalls = false;
+    private int pauseLoop = 0;
 
     public WallQueue(PlayingField field) {
         hiddenWalls = new LinkedList<>();
         animatingWall = null;
         visibleWalls = new ArrayList<>();
         this.field = field;
+        this.field.setQueue(this);
         task = tickLoop();
     }
 
@@ -62,11 +64,10 @@ public class WallQueue {
 
     public BukkitTask tickLoop() {
         return new BukkitRunnable() {
-            int pause = 0;
             @Override
             public void run() {
-                if (pause > 0) {
-                    pause--;
+                if (pauseLoop > 0) {
+                    pauseLoop--;
                     return;
                 }
 
@@ -84,7 +85,7 @@ public class WallQueue {
                         wall.despawn();
                         field.matchAndScore(wall);
                         it.remove();
-                        pause = 10;
+                        pauseLoop = 10;
                     } else if (!wall.hasSpawned()) {
                         Bukkit.broadcastMessage(ChatColor.RED + "Attempted to tick wall before spawned..");
                         this.cancel();
@@ -99,8 +100,8 @@ public class WallQueue {
      */
     public void instantSend() {
         // todo closest wall will ALWAYS be the first element for now.
+        if (visibleWalls.isEmpty()) return;
         Wall wall = visibleWalls.get(0);
-        wall.setTimeRemaining(0);
         field.matchAndScore(wall);
         visibleWalls.remove(wall);
         wall.despawn();
@@ -112,5 +113,9 @@ public class WallQueue {
 
     public PlayingField getField() {
         return field;
+    }
+
+    public void stop() {
+        task.cancel();
     }
 }

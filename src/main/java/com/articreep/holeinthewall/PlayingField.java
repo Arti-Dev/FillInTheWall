@@ -3,13 +3,18 @@ package com.articreep.holeinthewall;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockRedstoneEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 import org.javatuples.Pair;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class PlayingField {
+public class PlayingField implements Listener {
     Player player;
     /**
      * Must be the bottom left corner of the playing field (NOT including the border blocks)
@@ -20,6 +25,7 @@ public class PlayingField {
     private int score = 0;
     private final int height = 4;
     private final int length = 7;
+    private WallQueue queue = null;
 
     public PlayingField(Player player, Location referencePoint, Vector direction, Vector incomingDirection) {
         // define playing field in a very scuffed way
@@ -68,7 +74,7 @@ public class PlayingField {
             block.setType(Material.AIR);
         }
         Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), this::clearField, 10);
-        // todo include judgement
+
         int score = correctBlocks.size() - extraBlocks.size();
         addScore(score);
         player.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
@@ -114,5 +120,13 @@ public class PlayingField {
                 .multiply(coordinates.getValue0())).add(0, coordinates.getValue1(), 0)
                 .getBlock();
 
+    }
+
+    public void setQueue(WallQueue queue) {
+        this.queue = queue;
+    }
+
+    public WallQueue getQueue() {
+        return queue;
     }
 }
