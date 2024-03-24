@@ -153,7 +153,8 @@ public class Wall {
                 for (BlockDisplay display : toRemove) {
                     display.remove();
                     entities.remove(display);
-                    player.getWorld().spawnParticle(Particle.BLOCK_CRACK, display.getLocation(), 10, 0.5, 0.5, 0.5, 0.1, material.createBlockData());
+                    player.getWorld().spawnParticle(Particle.BLOCK_CRACK, display.getLocation(), 10,
+                            0.5, 0.5, 0.5, 0.1, material.createBlockData());
                     player.playSound(player, Sound.BLOCK_STONE_BREAK, 1, 1);
                 }
             }

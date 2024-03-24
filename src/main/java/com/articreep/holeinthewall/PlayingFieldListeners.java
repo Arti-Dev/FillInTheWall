@@ -1,8 +1,6 @@
 package com.articreep.holeinthewall;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -11,6 +9,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.Vector;
 import org.javatuples.Pair;
 
@@ -38,8 +37,7 @@ public class PlayingFieldListeners implements Listener {
             field.getQueue().instantSend();
             PlayerInventory inventory = event.getPlayer().getInventory();
             ItemStack mainHand = inventory.getItemInMainHand();
-            // todo make this a custom item with custom name
-            inventory.setItemInMainHand(new ItemStack(Material.GREEN_CONCRETE));
+            inventory.setItemInMainHand(confirmItem());
             Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), () -> {
                 inventory.setItemInMainHand(mainHand);
             }, 10);
@@ -52,7 +50,10 @@ public class PlayingFieldListeners implements Listener {
             if (event.getClickedBlock().getType() == Material.CRACKED_STONE_BRICKS) {
                 PlayingField field = playingFields.get(event.getPlayer());
                 if (field != null) {
-                    // todo spawn particles
+                    event.getPlayer().getWorld().spawnParticle(Particle.BLOCK_CRACK,
+                            event.getClickedBlock().getLocation(),
+                            10, 0.5, 0.5, 0.5, 0.1,
+                            Material.CRACKED_STONE_BRICKS.createBlockData());
                     Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
                             () -> event.getClickedBlock().breakNaturally(new ItemStack(Material.LEAD)));
                 }
@@ -63,8 +64,10 @@ public class PlayingFieldListeners implements Listener {
     public static void newGame(Player player) {
         PlayingField field = playingFields.get(player);
         if (field != null) {
-            player.sendMessage("Restarted Hole in the Wall");
-            field.getQueue().stop();
+            player.sendMessage("Stopped Hole in the Wall");
+            field.stop();
+            playingFields.remove(player);
+            return;
         }
         field = new PlayingField(player,
                 new Location(player.getWorld(), -261, -58, -301), new Vector(-1, 0, 0),
@@ -84,5 +87,21 @@ public class PlayingFieldListeners implements Listener {
 //        queue.addWall(wall4);
 
         playingFields.put(player, field);
+    }
+
+    public static void removeGame(Player player) {
+        PlayingField field = playingFields.get(player);
+        if (field != null) {
+            field.getQueue().stop();
+            playingFields.remove(player);
+        }
+    }
+
+    public static ItemStack confirmItem() {
+        ItemStack item = new ItemStack(Material.GREEN_CONCRETE);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "CONFIRM");
+        item.setItemMeta(meta);
+        return item;
     }
 }

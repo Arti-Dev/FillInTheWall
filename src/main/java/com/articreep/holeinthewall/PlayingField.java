@@ -35,7 +35,7 @@ public class PlayingField implements Listener {
     private double bonus = 0;
     private BukkitTask task = null;
     private List<Block> borderBlocks = new ArrayList<>();
-    private final Material defaultBorderMaterial = Material.GRAY_CONCRETE;
+    private Material defaultBorderMaterial = Material.GRAY_CONCRETE;
 
     public PlayingField(Player player, Location referencePoint, Vector direction, Vector incomingDirection) {
         // define playing field in a very scuffed way
@@ -154,11 +154,13 @@ public class PlayingField implements Listener {
         } else {
             double percent = (double) score / wall.getHoles().size();
             if (percent == 1) {
-                // todo make this higher pitched over time
-                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+                double pitch = Math.pow(2, (double) (queue.getRush().getBoardsCleared() - 6) / 12);
+                if (pitch > 2) pitch = 2;
+                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, (float) pitch);
                 queue.getRush().increaseBoardsCleared();
+                critParticles();
             } else {
-                player.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+                player.playSound(player, Sound.BLOCK_NOTE_BLOCK_SNARE, 1, 1);
             }
         }
     }
@@ -214,12 +216,16 @@ public class PlayingField implements Listener {
 
     public void activateRush() {
         player.sendTitle(ChatColor.RED + "RUSH!", ChatColor.RED + "Clear as many walls as you can!", 0, 40, 10);
+        defaultBorderMaterial = Material.MAGMA_BLOCK;
         clearField();
+        player.playSound(player, Sound.ENTITY_ENDER_DRAGON_GROWL, 0.5F, 1);
         queue.activateRush();
     }
 
     public void endRush() {
+        defaultBorderMaterial = Material.GRAY_CONCRETE;
         clearField();
+        player.playSound(player, Sound.ENTITY_GENERIC_EXPLODE, 1, 1);
         player.getWorld().spawnParticle(Particle.EXPLOSION_HUGE, player.getLocation(), 1);
         addScore(queue.getRush().getBoardsCleared() * 4);
         player.sendTitle(ChatColor.GREEN + "RUSH OVER!", ChatColor.GREEN + "" +
@@ -230,14 +236,26 @@ public class PlayingField implements Listener {
         return new BukkitRunnable() {
             @Override
             public void run() {
-                ChatColor color = ChatColor.GRAY;
-                if (bonus > 3 && bonus < 7) {
-                    color = ChatColor.YELLOW;
+                if (!queue.isRushEnabled()) {
+                    ChatColor color = ChatColor.GRAY;
+                    if (bonus > 3 && bonus < 7) {
+                        color = ChatColor.YELLOW;
+                    } else if (bonus <= 10) {
+                        color = ChatColor.GREEN;
+                    }
+                    player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                            new TextComponent(color + "Rush Meter: " + String.format("%.2f", bonus) + "/10"));
                 } else {
-                    color = ChatColor.GREEN;
+                    ChatColor color = ChatColor.GRAY;
+                    int cleared = queue.getRush().getBoardsCleared();
+                    if (cleared > 3 && cleared < 7) {
+                        color = ChatColor.YELLOW;
+                    } else if (cleared <= 10) {
+                        color = ChatColor.GREEN;
+                    }
+                    player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                            new TextComponent(color + "" + ChatColor.BOLD + "Walls Cleared: " + cleared));
                 }
-                player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                        new TextComponent(color + "Rush Meter: " + String.format("%.2f", bonus) + "/10"));
             }
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
     }
@@ -246,10 +264,20 @@ public class PlayingField implements Listener {
         for (Block block : borderBlocks) {
             block.setType(material);
         }
+    }
 
+    public void critParticles() {
+        for (Block block : borderBlocks) {
+           block.getWorld().spawnParticle(Particle.CRIT, block.getLocation(), 7, 0.5, 0.5, 0.5, 0.1);
+        }
     }
 
     public void resetBorder() {
         changeBorderBlocks(defaultBorderMaterial);
+    }
+
+    public void stop() {
+        task.cancel();
+        queue.stop();
     }
 }

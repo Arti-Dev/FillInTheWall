@@ -151,6 +151,15 @@ public class WallQueue {
     }
 
     public void stop() {
+        for (Wall wall : visibleWalls) {
+            wall.despawn();
+        }
+        visibleWalls.clear();
+        if (animatingWall != null) {
+            animatingWall.despawn();
+            animatingWall = null;
+        }
+        hiddenWalls.clear();
         task.cancel();
     }
 
