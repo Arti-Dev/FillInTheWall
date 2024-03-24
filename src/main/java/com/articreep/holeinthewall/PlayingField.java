@@ -4,12 +4,10 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
+import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockRedstoneEvent;
-import org.bukkit.event.player.PlayerSwapHandItemsEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
@@ -36,6 +34,14 @@ public class PlayingField implements Listener {
     private BukkitTask task = null;
     private List<Block> borderBlocks = new ArrayList<>();
     private Material defaultBorderMaterial = Material.GRAY_CONCRETE;
+    private List<TextDisplay> textDisplays = new ArrayList<>();
+    private TextDisplay scoreDisplay = null;
+    private TextDisplay accuracyDisplay = null;
+    private TextDisplay speedDisplay = null;
+    private TextDisplay wallDisplay = null;
+    private int wallsCleared = 0;
+    private int rushResults = 0;
+    private int rushResultsDisplayTime = 0;
 
     public PlayingField(Player player, Location referencePoint, Vector direction, Vector incomingDirection) {
         // define playing field in a very scuffed way
@@ -43,7 +49,7 @@ public class PlayingField implements Listener {
         this.fieldDirection = direction;
         this.incomingDirection = incomingDirection;
         this.player = player;
-        task = tickLoop();
+        spawnTextDisplays();
 
         for (int x = 0; x < length + 2; x++) {
             for (int y = 0; y < height + 1; y++) {
@@ -59,6 +65,8 @@ public class PlayingField implements Listener {
                 }
             }
         }
+
+        task = tickLoop();
     }
 
     /**
@@ -125,6 +133,7 @@ public class PlayingField implements Listener {
                 color = ChatColor.GOLD;
                 title = ChatColor.BOLD + "PERFECT!";
                 border = Material.GLOWSTONE;
+                wallsCleared++;
             } else {
                 player.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
             }
@@ -223,11 +232,13 @@ public class PlayingField implements Listener {
     }
 
     public void endRush() {
+        rushResultsDisplayTime = 80;
         defaultBorderMaterial = Material.GRAY_CONCRETE;
         clearField();
         player.playSound(player, Sound.ENTITY_GENERIC_EXPLODE, 1, 1);
         player.getWorld().spawnParticle(Particle.EXPLOSION_HUGE, player.getLocation(), 1);
-        addScore(queue.getRush().getBoardsCleared() * 4);
+        rushResults = queue.getRush().getBoardsCleared() * 4;
+        addScore(rushResults);
         player.sendTitle(ChatColor.GREEN + "RUSH OVER!", ChatColor.GREEN + "" +
                 queue.getRush().getBoardsCleared() + " walls cleared", 0, 40, 10);
     }
@@ -236,6 +247,19 @@ public class PlayingField implements Listener {
         return new BukkitRunnable() {
             @Override
             public void run() {
+                // todo tick text displays
+                wallDisplay.setText(ChatColor.GOLD + "Perfect Walls: " + wallsCleared);
+                if (rushResultsDisplayTime > 0) {
+                    rushResultsDisplayTime--;
+                    scoreDisplay.setText(ChatColor.RED + "+" + ChatColor.BOLD + rushResults + " points from Rush!!!");
+                } else {
+                    scoreDisplay.setText(ChatColor.GREEN + "Score: " + score);
+                }
+                for (TextDisplay display : textDisplays) {
+                    display.setRotation((player.getLocation().getYaw() + 180) % 360,
+                            -player.getLocation().getPitch());
+                }
+
                 if (!queue.isRushEnabled()) {
                     ChatColor color = ChatColor.GRAY;
                     if (bonus > 3 && bonus < 7) {
@@ -278,6 +302,25 @@ public class PlayingField implements Listener {
 
     public void stop() {
         task.cancel();
+        for (TextDisplay display : textDisplays) {
+            display.remove();
+        }
         queue.stop();
+    }
+
+    public void spawnTextDisplays() {
+        Location playerLoc = player.getLocation();
+        Location loc = getFieldReferencePoint().add(fieldDirection.clone().multiply(-1.5)
+                .add(incomingDirection.clone().multiply(-3)));
+        wallDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
+        wallDisplay.setText(ChatColor.GOLD + "Perfect Walls: " + wallsCleared);
+
+        loc = getFieldReferencePoint().add(fieldDirection.clone().multiply(7.5)
+                .add(incomingDirection.clone().multiply(-3)));
+        scoreDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
+        scoreDisplay.setText(ChatColor.GREEN + "Score: " + score);
+
+        textDisplays.add(wallDisplay);
+        textDisplays.add(scoreDisplay);
     }
 }
