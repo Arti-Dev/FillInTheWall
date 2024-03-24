@@ -1,13 +1,11 @@
 package com.articreep.holeinthewall;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
@@ -155,6 +153,7 @@ public class Wall {
                 for (BlockDisplay display : toRemove) {
                     display.remove();
                     entities.remove(display);
+                    player.getWorld().spawnParticle(Particle.BLOCK_CRACK, display.getLocation(), 10, 0.5, 0.5, 0.5, 0.1, material.createBlockData());
                     player.playSound(player, Sound.BLOCK_STONE_BREAK, 1, 1);
                 }
             }
