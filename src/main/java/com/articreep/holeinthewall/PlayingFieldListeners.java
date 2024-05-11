@@ -50,7 +50,7 @@ public class PlayingFieldListeners implements Listener {
             if (event.getClickedBlock().getType() == Material.CRACKED_STONE_BRICKS) {
                 PlayingField field = playingFields.get(event.getPlayer());
                 if (field != null) {
-                    event.getPlayer().getWorld().spawnParticle(Particle.BLOCK_CRACK,
+                    event.getPlayer().getWorld().spawnParticle(Particle.BLOCK,
                             event.getClickedBlock().getLocation(),
                             10, 0.5, 0.5, 0.5, 0.1,
                             Material.CRACKED_STONE_BRICKS.createBlockData());

@@ -4,14 +4,18 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.Listener;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.javatuples.Pair;
+import org.joml.AxisAngle4f;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,16 +27,16 @@ public class PlayingField implements Listener {
     /**
      * Must be the bottom left corner of the playing field (NOT including the border blocks)
      */
-    private Location fieldReferencePoint;
-    private Vector fieldDirection;
-    private Vector incomingDirection;
+    private final Location fieldReferencePoint;
+    private final Vector fieldDirection; // parallel to the field
+    private final Vector incomingDirection; // normal to the field
     private int score = 0;
     private final int height = 4;
     private final int length = 7;
     private WallQueue queue = null;
     private double bonus = 0;
     private BukkitTask task = null;
-    private List<Block> borderBlocks = new ArrayList<>();
+    private final List<Block> borderBlocks = new ArrayList<>();
     private Material defaultBorderMaterial = Material.GRAY_CONCRETE;
     private List<TextDisplay> textDisplays = new ArrayList<>();
     private TextDisplay scoreDisplay = null;
@@ -92,10 +96,15 @@ public class PlayingField implements Listener {
         return fieldReferencePoint.clone();
     }
 
+    /**
+     * Matches the blocks in the playing field with the blocks in the wall and scores the player
+     * @param wall Wall to check against
+     */
     public void matchAndScore(Wall wall) {
         Map<Pair<Integer, Integer>, Block> extraBlocks = wall.getExtraBlocks(this);
         Map<Pair<Integer, Integer>, Block> correctBlocks = wall.getCorrectBlocks(this);
         Map<Pair<Integer, Integer>, Block> missingBlocks = wall.getMissingBlocks(this);
+
         // Visually display this information
         int pauseTime = 10;
         if (queue.isRushEnabled()) pauseTime = 5;
@@ -120,7 +129,9 @@ public class PlayingField implements Listener {
             }
         }, pauseTime);
 
+        // Check score
         int score = correctBlocks.size() - extraBlocks.size();
+        // todo split this into a separate rush method
         if (!queue.isRushEnabled()) {
             addScore(score);
 
@@ -174,6 +185,15 @@ public class PlayingField implements Listener {
         }
     }
 
+    private void addScore(int score) {
+        this.score += score;
+        player.sendMessage("Current score: " + this.score);
+    }
+
+    /**
+     * Fills the playing field with the given material
+     * @param material the material to fill the field with
+     */
     private void fillField(Material material) {
         for (int x = 0; x < length; x++) {
             for (int y = 0; y < height; y++) {
@@ -185,11 +205,6 @@ public class PlayingField implements Listener {
 
     private void clearField() {
         fillField(Material.AIR);
-    }
-
-    private void addScore(int score) {
-        this.score += score;
-        player.sendMessage("Current score: " + this.score);
     }
 
     public Vector getIncomingDirection() {
@@ -236,7 +251,7 @@ public class PlayingField implements Listener {
         defaultBorderMaterial = Material.GRAY_CONCRETE;
         clearField();
         player.playSound(player, Sound.ENTITY_GENERIC_EXPLODE, 1, 1);
-        player.getWorld().spawnParticle(Particle.EXPLOSION_HUGE, player.getLocation(), 1);
+        player.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, player.getLocation(), 1);
         rushResults = queue.getRush().getBoardsCleared() * 4;
         addScore(rushResults);
         player.sendTitle(ChatColor.GREEN + "RUSH OVER!", ChatColor.GREEN + "" +
@@ -247,17 +262,12 @@ public class PlayingField implements Listener {
         return new BukkitRunnable() {
             @Override
             public void run() {
-                // todo tick text displays
                 wallDisplay.setText(ChatColor.GOLD + "Perfect Walls: " + wallsCleared);
                 if (rushResultsDisplayTime > 0) {
                     rushResultsDisplayTime--;
                     scoreDisplay.setText(ChatColor.RED + "+" + ChatColor.BOLD + rushResults + " points from Rush!!!");
                 } else {
                     scoreDisplay.setText(ChatColor.GREEN + "Score: " + score);
-                }
-                for (TextDisplay display : textDisplays) {
-                    display.setRotation((player.getLocation().getYaw() + 180) % 360,
-                            -player.getLocation().getPitch());
                 }
 
                 if (!queue.isRushEnabled()) {
@@ -309,16 +319,22 @@ public class PlayingField implements Listener {
     }
 
     public void spawnTextDisplays() {
-        Location playerLoc = player.getLocation();
         Location loc = getFieldReferencePoint().add(fieldDirection.clone().multiply(-1.5)
                 .add(incomingDirection.clone().multiply(-3)));
         wallDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
         wallDisplay.setText(ChatColor.GOLD + "Perfect Walls: " + wallsCleared);
+        wallDisplay.setBillboard(Display.Billboard.CENTER);
+        wallDisplay.setTransformation(new Transformation(
+                new Vector3f(0, 0, 0),
+                new AxisAngle4f(0, 0, 0, 1),
+                new Vector3f(1, 1, 1),
+                new AxisAngle4f(0, 0, 0, 1)));
 
         loc = getFieldReferencePoint().add(fieldDirection.clone().multiply(7.5)
                 .add(incomingDirection.clone().multiply(-3)));
         scoreDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
         scoreDisplay.setText(ChatColor.GREEN + "Score: " + score);
+        scoreDisplay.setBillboard(Display.Billboard.CENTER);
 
         textDisplays.add(wallDisplay);
         textDisplays.add(scoreDisplay);
