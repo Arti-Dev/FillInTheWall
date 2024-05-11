@@ -5,7 +5,6 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
@@ -17,13 +16,13 @@ import java.util.*;
 
 public class Wall {
     // The walls will be 7x4 blocks
-    private HashSet<Pair<Integer, Integer>> holes;
-    private Material material;
-    private boolean spawned = false;
+    private final int length = 7;
+    private final int height = 4;
+    private final HashSet<Pair<Integer, Integer>> holes;
+    private final Material material;
+    private WallState state = WallState.HIDDEN;
     private int maxTime = -1;
     private int timeRemaining = -1;
-    private int length = 7;
-    private int height = 4;
     private Vector movementDirection = null;
     private List<BlockDisplay> entities = new ArrayList<>();
     private List<BlockDisplay> toRemove = new ArrayList<>();
@@ -49,6 +48,107 @@ public class Wall {
         return holes;
     }
 
+    public void setTimeRemaining(int timeRemaining) {
+        this.timeRemaining = timeRemaining;
+        this.maxTime = timeRemaining;
+    }
+
+    public Material getMaterial() {
+        return material;
+    }
+
+    public int getTimeRemaining() {
+        return timeRemaining;
+    }
+
+    public WallState getWallState() {
+        return state;
+    }
+
+    public void spawnWall(PlayingField field, WallQueue queue, Player player) {
+        if (state != WallState.HIDDEN) return;
+        // go to the end of the queue
+        // spawn block display entities
+        // break the holes open
+        // store all entities in a list here
+        // interpolate towards the playing field
+        Location spawnReferencePoint = field.getFieldReferencePoint();
+        movementDirection = field.getIncomingDirection();
+        spawnReferencePoint.subtract(movementDirection.clone().multiply(queue.getLength()));
+
+        for (int x = 0; x < length; x++) {
+            for (int y = 0; y < height; y++) {
+                Location loc = spawnReferencePoint.clone()
+                        .add(field.getFieldDirection().multiply(x))
+                        .add(0, y, 0)
+                        // to centralize origin point
+                        .add(0.5, 0.5, 0.5);
+                // spawn block display entity
+                BlockDisplay display = (BlockDisplay) loc.getWorld().spawnEntity(loc, EntityType.BLOCK_DISPLAY);
+                // make invisible for now
+                display.setBlock(Material.AIR.createBlockData());
+                display.setTeleportDuration(1);
+                display.setInterpolationDuration(20);
+                display.setTransformation(new Transformation(
+                       new Vector3f(-0.5f, -0.5f, -0.5f),
+                        new AxisAngle4f(0, 0, 0, 1), new Vector3f(1, 1, 1),
+                        new AxisAngle4f(0, 0, 0, 1)));
+
+                if (holes.contains(Pair.with(x, y))) {
+                    toRemove.add(display);
+                }
+                entities.add(display);
+            }
+        }
+    }
+
+    public void animateWall(WallQueue queue, Player player) {
+        // make them visible immediately
+        for (BlockDisplay display : entities) {
+            display.setBlock(material.createBlockData());
+        }
+
+        // Block break animation
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (BlockDisplay display : toRemove) {
+                    display.remove();
+                    entities.remove(display);
+                    player.getWorld().spawnParticle(Particle.BLOCK, display.getLocation(), 10,
+                            0.5, 0.5, 0.5, 0.1, material.createBlockData());
+                    player.playSound(player, Sound.BLOCK_STONE_BREAK, 1, 1);
+                }
+            }
+        }.runTaskLater(HoleInTheWall.getInstance(), 5);
+
+        Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), () -> state = WallState.VISIBLE, 10);
+    }
+
+    /** Teleports the board and returns time remaining. */
+    public int tick(WallQueue queue) {
+        if (state != WallState.VISIBLE) return -1;
+
+        int length = queue.getLength();
+        for (BlockDisplay display : entities) {
+            display.teleport(display.getLocation().add(movementDirection.clone().multiply((double) length/maxTime)));
+        }
+        if (timeRemaining > 0) {
+            timeRemaining--;
+        }
+        return timeRemaining;
+    }
+
+    public void despawn() {
+        for (BlockDisplay entity : entities) {
+            entity.remove();
+        }
+        entities.clear();
+        state = WallState.HIDDEN;
+    }
+
+    /* SCORING */
+
     public boolean hasHole(Pair<Integer, Integer> hole) {
         for (Pair<Integer, Integer> h : holes) {
             if (h.equals(hole)) {
@@ -56,10 +156,6 @@ public class Wall {
             }
         }
         return false;
-    }
-
-    public Material getMaterial() {
-        return material;
     }
 
     /**
@@ -106,89 +202,10 @@ public class Wall {
         return correctBlocks;
     }
 
-    public void setTimeRemaining(int timeRemaining) {
-        this.timeRemaining = timeRemaining;
-        this.maxTime = timeRemaining;
-    }
+    /* HOLE MANIPULATION */
 
-    public int tick(WallQueue queue) {
-        if (!spawned) return -1;
-        if (timeRemaining > 0) {
-            timeRemaining--;
-        }
-        return timeRemaining;
-    }
-
-    public void spawnWall(PlayingField field, WallQueue queue, Player player) {
-        if (spawned) return;
-        // go to the end of the queue
-        // spawn block display entities
-        // break the holes open
-        // store all entities in a list here
-        // interpolate towards the playing field
-        Location spawnReferencePoint = field.getFieldReferencePoint();
-        movementDirection = field.getIncomingDirection();
-        spawnReferencePoint.subtract(movementDirection.clone().multiply(queue.getLength()));
-
-        for (int x = 0; x < length; x++) {
-            for (int y = 0; y < height; y++) {
-                Location loc = spawnReferencePoint.clone().add(field.getFieldDirection().multiply(x)).add(0, y, 0);
-                // spawn block display entity
-                BlockDisplay display = (BlockDisplay) loc.getWorld().spawnEntity(loc, EntityType.BLOCK_DISPLAY);
-                // make invisible for now
-                display.setBlock(Material.AIR.createBlockData());
-                if (holes.contains(Pair.with(x, y))) {
-                    toRemove.add(display);
-                }
-                entities.add(display);
-            }
-        }
-    }
-
-    public void animateWall(WallQueue queue, Player player) {
-        // Block break animation
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                for (BlockDisplay display : toRemove) {
-                    display.remove();
-                    entities.remove(display);
-                    player.getWorld().spawnParticle(Particle.BLOCK, display.getLocation(), 10,
-                            0.5, 0.5, 0.5, 0.1, material.createBlockData());
-                    player.playSound(player, Sound.BLOCK_STONE_BREAK, 1, 1);
-                }
-            }
-        }.runTaskLater(HoleInTheWall.getInstance(), 5);
-
-        // interpolate towards the playing field
-        for (BlockDisplay display : entities) {
-            // make them visible
-            display.setBlock(material.createBlockData());
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    display.setInterpolationDelay(0);
-                    display.setInterpolationDuration(timeRemaining);
-                    display.setTransformation(new Transformation(
-                            movementDirection.clone().multiply(((double) queue.getLength())).toVector3f(),
-                            new AxisAngle4f(0, 0, 0, 1), new Vector3f(1, 1, 1),
-                            new AxisAngle4f(0, 0, 0, 1)));
-                }
-            }.runTaskLater(HoleInTheWall.getInstance(), 10);
-        }
-
-        Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), () -> spawned = true, 10);
-    }
-
-    public void despawn() {
-        for (BlockDisplay entity : entities) {
-            entity.remove();
-        }
-        entities.clear();
-        spawned = false;
-    }
-
-    public void insertHoles(Pair<Integer, Integer>... holes) {
+    @SafeVarargs
+    public final void insertHoles(Pair<Integer, Integer>... holes) {
         for (Pair<Integer, Integer> hole : holes) {
             if (hole == null || this.holes.contains(hole)) continue;
             this.holes.add(hole);
@@ -222,14 +239,6 @@ public class Wall {
             i++;
         }
         return null;
-    }
-
-    public int getTimeRemaining() {
-        return timeRemaining;
-    }
-
-    public boolean hasSpawned() {
-        return spawned;
     }
 
     public void generateHoles(int random, int cluster) {

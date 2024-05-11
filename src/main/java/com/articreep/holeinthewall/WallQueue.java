@@ -39,7 +39,6 @@ public class WallQueue {
 
     public void addWall(Wall wall) {
         hiddenWalls.add(wall);
-        wall.spawnWall(field, this, field.getPlayer());
         if (wall.getTimeRemaining() == -1) {
             // default wall speed
             wall.setTimeRemaining(timeToFill);
@@ -49,7 +48,8 @@ public class WallQueue {
     public void animateNextWall() {
         if (animatingWall != null) return;
         if (hiddenWalls.isEmpty()) return;
-        animatingWall = hiddenWalls.remove(0);
+        animatingWall = hiddenWalls.removeFirst();
+        animatingWall.spawnWall(field, this, field.getPlayer());
         animatingWall.animateWall(this, field.getPlayer());
         new BukkitRunnable() {
             @Override
@@ -58,7 +58,7 @@ public class WallQueue {
                 // (finished spawn animation)
                 // todo this task/conditional might not be necessary
                 if (animatingWall == null) return;
-                if (animatingWall.hasSpawned()) {
+                if (animatingWall.getWallState() == WallState.VISIBLE) {
                     visibleWalls.add(animatingWall);
                     animatingWall = null;
                     this.cancel();
@@ -113,7 +113,7 @@ public class WallQueue {
                 while (it.hasNext()) {
                     Wall wall = it.next();
                     int remaining = wall.tick(WallQueue.this);
-                    if (remaining <= 0 && wall.hasSpawned()) {
+                    if (remaining <= 0 && wall.getWallState() == WallState.VISIBLE) {
                         wall.despawn();
                         field.matchAndScore(wall);
                         it.remove();
@@ -121,7 +121,7 @@ public class WallQueue {
                             endRush();
                         }
                         pauseLoop = 10;
-                    } else if (!wall.hasSpawned()) {
+                    } else if (wall.getWallState() != WallState.VISIBLE) {
                         Bukkit.broadcastMessage(ChatColor.RED + "Attempted to tick wall before spawned..");
                         this.cancel();
                     }
