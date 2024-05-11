@@ -26,6 +26,7 @@ public class Wall {
     private Vector movementDirection = null;
     private List<BlockDisplay> entities = new ArrayList<>();
     private List<BlockDisplay> toRemove = new ArrayList<>();
+    private Random random = new Random();
 
     public Wall(HashSet<Pair<Integer, Integer>> holes, Material material) {
         this.holes = holes;
@@ -136,6 +137,10 @@ public class Wall {
         if (timeRemaining > 0) {
             timeRemaining--;
         }
+
+        if (timeRemaining == 100) {
+            spin();
+        }
         return timeRemaining;
     }
 
@@ -200,6 +205,22 @@ public class Wall {
             }
         }
         return correctBlocks;
+    }
+
+    public void spin() {
+        new BukkitRunnable() {
+            int i = 0;
+            @Override
+            public void run() {
+                for (BlockDisplay display : entities) {
+                    Location loc = display.getLocation();
+                    loc.setYaw(loc.getYaw() + 10);
+                    display.teleport(loc);
+                }
+                i++;
+                if (i >= 18) cancel();
+            }
+        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
     }
 
     /* HOLE MANIPULATION */

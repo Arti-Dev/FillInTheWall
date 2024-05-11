@@ -157,6 +157,7 @@ public class PlayingField implements Listener {
                 border = Material.REDSTONE_BLOCK;
             }
 
+            // todo sometimes the big title doesn't show for some reason
             player.sendTitle(color + title, color + "+" + score + " points", 0, 10, 5);
             changeBorderBlocks(border);
 
