@@ -294,7 +294,7 @@ public class PlayingField implements Listener {
         wallDisplay.setTransformation(new Transformation(
                 new Vector3f(0, 0, 0),
                 new AxisAngle4f(0, 0, 0, 1),
-                new Vector3f(1, 1, 1),
+                new Vector3f(1.5f, 1.5f, 1.5f),
                 new AxisAngle4f(0, 0, 0, 1)));
 
         loc = getFieldReferencePoint().add(fieldDirection.clone().multiply(7.5)
@@ -302,6 +302,11 @@ public class PlayingField implements Listener {
         scoreDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
         scoreDisplay.setText(ChatColor.GREEN + "Score: " + scorer.getScore());
         scoreDisplay.setBillboard(Display.Billboard.CENTER);
+        scoreDisplay.setTransformation(new Transformation(
+                new Vector3f(0, 0, 0),
+                new AxisAngle4f(0, 0, 0, 1),
+                new Vector3f(1.5f, 1.5f, 1.5f),
+                new AxisAngle4f(0, 0, 0, 1)));
 
         textDisplays.add(wallDisplay);
         textDisplays.add(scoreDisplay);
