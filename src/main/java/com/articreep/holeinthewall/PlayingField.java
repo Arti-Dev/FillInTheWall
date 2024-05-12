@@ -257,6 +257,8 @@ public class PlayingField implements Listener {
                     player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
                             new TextComponent(color + "" + ChatColor.BOLD + "Walls Cleared: " + cleared));
                 }
+
+                queue.tick();
             }
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
     }

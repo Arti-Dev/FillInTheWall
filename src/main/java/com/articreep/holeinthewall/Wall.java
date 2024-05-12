@@ -152,6 +152,22 @@ public class Wall {
         state = WallState.HIDDEN;
     }
 
+    public void spin() {
+        new BukkitRunnable() {
+            int i = 0;
+            @Override
+            public void run() {
+                for (BlockDisplay display : entities) {
+                    Location loc = display.getLocation();
+                    loc.setYaw(loc.getYaw() + 10);
+                    display.teleport(loc);
+                }
+                i++;
+                if (i >= 18) cancel();
+            }
+        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
+    }
+
     /* SCORING */
 
     public boolean hasHole(Pair<Integer, Integer> hole) {
@@ -205,22 +221,6 @@ public class Wall {
             }
         }
         return correctBlocks;
-    }
-
-    public void spin() {
-        new BukkitRunnable() {
-            int i = 0;
-            @Override
-            public void run() {
-                for (BlockDisplay display : entities) {
-                    Location loc = display.getLocation();
-                    loc.setYaw(loc.getYaw() + 10);
-                    display.teleport(loc);
-                }
-                i++;
-                if (i >= 18) cancel();
-            }
-        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
     }
 
     /* HOLE MANIPULATION */
