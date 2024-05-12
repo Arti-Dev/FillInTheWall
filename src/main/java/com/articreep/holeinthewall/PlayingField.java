@@ -30,11 +30,9 @@ public class PlayingField implements Listener {
     private final Location fieldReferencePoint;
     private final Vector fieldDirection; // parallel to the field
     private final Vector incomingDirection; // normal to the field
-    private int score = 0;
     private final int height = 4;
     private final int length = 7;
     private WallQueue queue = null;
-    private double bonus = 0;
     private BukkitTask task = null;
     private final List<Block> borderBlocks = new ArrayList<>();
     private Material defaultBorderMaterial = Material.GRAY_CONCRETE;
@@ -43,9 +41,9 @@ public class PlayingField implements Listener {
     private TextDisplay accuracyDisplay = null;
     private TextDisplay speedDisplay = null;
     private TextDisplay wallDisplay = null;
-    private int wallsCleared = 0;
     private int rushResults = 0;
     private int rushResultsDisplayTime = 0;
+    private PlayingFieldScorer scorer;
 
     public PlayingField(Player player, Location referencePoint, Vector direction, Vector incomingDirection) {
         // define playing field in a very scuffed way
@@ -53,6 +51,7 @@ public class PlayingField implements Listener {
         this.fieldDirection = direction;
         this.incomingDirection = incomingDirection;
         this.player = player;
+        this.scorer = new PlayingFieldScorer(this);
         spawnTextDisplays();
 
         for (int x = 0; x < length + 2; x++) {
@@ -101,6 +100,29 @@ public class PlayingField implements Listener {
      * @param wall Wall to check against
      */
     public void matchAndScore(Wall wall) {
+        // todo very band-aid solution
+        boolean rushEnabledBeforehand = getQueue().isRushEnabled();
+
+        // Check score
+        // todo split this into a separate rush method
+        if (!queue.isRushEnabled()) {
+            PlayingFieldState state = scorer.scoreWall(wall, this);
+            if (state.title != null) {
+                player.sendTitle(state.titleColor + state.title, state.titleColor + "+" + state.score + " points", 0, 10, 5);
+            }
+            changeBorderBlocks(state.borderMaterial);
+        } else {
+            if (scorer.calculatePercent(wall, this) == 1) {
+                double pitch = Math.pow(2, (double) (queue.getRush().getBoardsCleared() - 6) / 12);
+                if (pitch > 2) pitch = 2;
+                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, (float) pitch);
+                queue.getRush().increaseBoardsCleared();
+                critParticles();
+            } else {
+                player.playSound(player, Sound.BLOCK_NOTE_BLOCK_SNARE, 1, 1);
+            }
+        }
+
         Map<Pair<Integer, Integer>, Block> extraBlocks = wall.getExtraBlocks(this);
         Map<Pair<Integer, Integer>, Block> correctBlocks = wall.getCorrectBlocks(this);
         Map<Pair<Integer, Integer>, Block> missingBlocks = wall.getMissingBlocks(this);
@@ -118,7 +140,7 @@ public class PlayingField implements Listener {
         for (Block block : missingBlocks.values()) {
             block.setType(Material.AIR);
         }
-        boolean rushEnabledBeforehand = getQueue().isRushEnabled();
+
         Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), () -> {
             clearField();
             resetBorder();
@@ -128,67 +150,6 @@ public class PlayingField implements Listener {
                 }
             }
         }, pauseTime);
-
-        // Check score
-        int score = correctBlocks.size() - extraBlocks.size();
-        // todo split this into a separate rush method
-        if (!queue.isRushEnabled()) {
-            addScore(score);
-
-            double percent = (double) score / wall.getHoles().size();
-            String title = "";
-            ChatColor color = ChatColor.GREEN;
-            Material border = Material.GRAY_CONCRETE;
-            if (percent == 1) {
-                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
-                color = ChatColor.GOLD;
-                title = ChatColor.BOLD + "PERFECT!";
-                border = Material.GLOWSTONE;
-                wallsCleared++;
-            } else {
-                player.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
-            }
-            if (percent < 1 && percent > 0.5) {
-                title = "Cool!";
-                border = Material.LIME_CONCRETE;
-            } else if (percent < 0.5) {
-                title = "Meh..";
-                color = ChatColor.RED;
-                border = Material.REDSTONE_BLOCK;
-            }
-
-            // todo sometimes the big title doesn't show for some reason
-            player.sendTitle(color + title, color + "+" + score + " points", 0, 10, 5);
-            changeBorderBlocks(border);
-
-            // Add/subtract to bonus and maybe even trigger rush
-            if (percent >= 0.5) {
-                bonus += percent;
-                if (bonus >= 10) {
-                    bonus = 0;
-                    activateRush();
-                }
-            } else {
-                bonus -= 2;
-                if (bonus < 0) bonus = 0;
-            }
-        } else {
-            double percent = (double) score / wall.getHoles().size();
-            if (percent == 1) {
-                double pitch = Math.pow(2, (double) (queue.getRush().getBoardsCleared() - 6) / 12);
-                if (pitch > 2) pitch = 2;
-                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, (float) pitch);
-                queue.getRush().increaseBoardsCleared();
-                critParticles();
-            } else {
-                player.playSound(player, Sound.BLOCK_NOTE_BLOCK_SNARE, 1, 1);
-            }
-        }
-    }
-
-    private void addScore(int score) {
-        this.score += score;
-        player.sendMessage("Current score: " + this.score);
     }
 
     /**
@@ -242,9 +203,9 @@ public class PlayingField implements Listener {
     public void activateRush() {
         player.sendTitle(ChatColor.RED + "RUSH!", ChatColor.RED + "Clear as many walls as you can!", 0, 40, 10);
         defaultBorderMaterial = Material.MAGMA_BLOCK;
-        clearField();
         player.playSound(player, Sound.ENTITY_ENDER_DRAGON_GROWL, 0.5F, 1);
         queue.activateRush();
+        clearField();
     }
 
     public void endRush() {
@@ -254,7 +215,7 @@ public class PlayingField implements Listener {
         player.playSound(player, Sound.ENTITY_GENERIC_EXPLODE, 1, 1);
         player.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, player.getLocation(), 1);
         rushResults = queue.getRush().getBoardsCleared() * 4;
-        addScore(rushResults);
+        scorer.addScore(rushResults);
         player.sendTitle(ChatColor.GREEN + "RUSH OVER!", ChatColor.GREEN + "" +
                 queue.getRush().getBoardsCleared() + " walls cleared", 0, 40, 10);
     }
@@ -263,29 +224,34 @@ public class PlayingField implements Listener {
         return new BukkitRunnable() {
             @Override
             public void run() {
-                wallDisplay.setText(ChatColor.GOLD + "Perfect Walls: " + wallsCleared);
+                wallDisplay.setText(ChatColor.GOLD + "Perfect Walls: " + scorer.getWallsCleared());
                 if (rushResultsDisplayTime > 0) {
                     rushResultsDisplayTime--;
                     scoreDisplay.setText(ChatColor.RED + "+" + ChatColor.BOLD + rushResults + " points from Rush!!!");
                 } else {
-                    scoreDisplay.setText(ChatColor.GREEN + "Score: " + score);
+                    scoreDisplay.setText(ChatColor.GREEN + "Score: " + scorer.getScore());
                 }
 
                 if (!queue.isRushEnabled()) {
-                    ChatColor color = ChatColor.GRAY;
-                    if (bonus > 3 && bonus < 7) {
+                    double bonus = scorer.getBonus();
+                    ChatColor color;
+                    if (bonus <= 3) {
+                        color = ChatColor.GRAY;
+                    } else if (bonus <= 7) {
                         color = ChatColor.YELLOW;
-                    } else if (bonus <= 10) {
+                    } else {
                         color = ChatColor.GREEN;
                     }
                     player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
                             new TextComponent(color + "Rush Meter: " + String.format("%.2f", bonus) + "/10"));
                 } else {
-                    ChatColor color = ChatColor.GRAY;
+                    ChatColor color ;
                     int cleared = queue.getRush().getBoardsCleared();
-                    if (cleared > 3 && cleared < 7) {
+                    if (cleared <= 3) {
+                        color = ChatColor.GRAY;
+                    } else if (cleared <= 7) {
                         color = ChatColor.YELLOW;
-                    } else if (cleared <= 10) {
+                    } else {
                         color = ChatColor.GREEN;
                     }
                     player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
@@ -323,7 +289,7 @@ public class PlayingField implements Listener {
         Location loc = getFieldReferencePoint().add(fieldDirection.clone().multiply(-1.5)
                 .add(incomingDirection.clone().multiply(-3)));
         wallDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
-        wallDisplay.setText(ChatColor.GOLD + "Perfect Walls: " + wallsCleared);
+        wallDisplay.setText(ChatColor.GOLD + "Perfect Walls: " + scorer.getWallsCleared());
         wallDisplay.setBillboard(Display.Billboard.CENTER);
         wallDisplay.setTransformation(new Transformation(
                 new Vector3f(0, 0, 0),
@@ -334,10 +300,14 @@ public class PlayingField implements Listener {
         loc = getFieldReferencePoint().add(fieldDirection.clone().multiply(7.5)
                 .add(incomingDirection.clone().multiply(-3)));
         scoreDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
-        scoreDisplay.setText(ChatColor.GREEN + "Score: " + score);
+        scoreDisplay.setText(ChatColor.GREEN + "Score: " + scorer.getScore());
         scoreDisplay.setBillboard(Display.Billboard.CENTER);
 
         textDisplays.add(wallDisplay);
         textDisplays.add(scoreDisplay);
+    }
+
+    public Material getDefaultBorderMaterial() {
+        return defaultBorderMaterial;
     }
 }
