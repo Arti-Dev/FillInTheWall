@@ -1,5 +1,6 @@
 package com.articreep.holeinthewall;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -58,7 +59,8 @@ public class PlayingFieldScorer {
                 // tell playingfield to not show title
                 // todo temporary
                 title = null;
-                field.activateRush();
+                // activate rush next tick
+                Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(), field::activateRush);
             }
         } else {
             bonus -= 2;
@@ -75,6 +77,14 @@ public class PlayingFieldScorer {
 
         // Check score
         return correctBlocks.size() - extraBlocks.size();
+    }
+
+    public void scoreEvent(ModifierEvent event) {
+        if (event instanceof Rush rush) {
+            int rushResults = rush.getBoardsCleared() * 4;
+            field.overrideScoreDisplay(80, ChatColor.RED + "+" + ChatColor.BOLD + rushResults + " points from Rush!!!");
+            score += rushResults;
+        }
     }
 
     public double calculatePercent(Wall wall, int score) {

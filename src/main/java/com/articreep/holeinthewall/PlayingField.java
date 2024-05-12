@@ -42,8 +42,9 @@ public class PlayingField implements Listener {
     private TextDisplay speedDisplay = null;
     private TextDisplay wallDisplay = null;
     private int rushResults = 0;
-    private int rushResultsDisplayTime = 0;
+    private int scoreDisplayOverride = 0;
     private PlayingFieldScorer scorer;
+    private ModifierEvent event = null;
 
     public PlayingField(Player player, Location referencePoint, Vector direction, Vector incomingDirection) {
         // define playing field in a very scuffed way
@@ -101,22 +102,22 @@ public class PlayingField implements Listener {
      */
     public void matchAndScore(Wall wall) {
         // todo very band-aid solution
-        boolean rushEnabledBeforehand = getQueue().isRushEnabled();
+        boolean rushEnabledBeforehand = eventActive();
 
         // Check score
         // todo split this into a separate rush method
-        if (!queue.isRushEnabled()) {
+        if (!eventActive()) {
             PlayingFieldState state = scorer.scoreWall(wall, this);
             if (state.title != null) {
                 player.sendTitle(state.titleColor + state.title, state.titleColor + "+" + state.score + " points", 0, 10, 5);
             }
             changeBorderBlocks(state.borderMaterial);
-        } else {
+        } else if (event instanceof Rush rush) {
             if (scorer.calculatePercent(wall, this) == 1) {
-                double pitch = Math.pow(2, (double) (queue.getRush().getBoardsCleared() - 6) / 12);
+                double pitch = Math.pow(2, (double) (rush.getBoardsCleared() - 6) / 12);
                 if (pitch > 2) pitch = 2;
                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, (float) pitch);
-                queue.getRush().increaseBoardsCleared();
+                rush.increaseBoardsCleared();
                 critParticles();
             } else {
                 player.playSound(player, Sound.BLOCK_NOTE_BLOCK_SNARE, 1, 1);
@@ -129,7 +130,7 @@ public class PlayingField implements Listener {
 
         // Visually display this information
         int pauseTime = 10;
-        if (queue.isRushEnabled()) pauseTime = 5;
+        if (eventActive()) pauseTime = event.pauseTime;
         fillField(wall.getMaterial());
         for (Block block : extraBlocks.values()) {
             block.setType(Material.RED_WOOL);
@@ -144,7 +145,7 @@ public class PlayingField implements Listener {
         Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), () -> {
             clearField();
             resetBorder();
-            if (rushEnabledBeforehand && queue.isRushEnabled()) {
+            if (rushEnabledBeforehand && event instanceof Rush) {
                 for (Pair<Integer, Integer> hole : wall.getHoles()) {
                     coordinatesToBlock(hole).setType(Material.TINTED_GLASS);
                 }
@@ -165,7 +166,7 @@ public class PlayingField implements Listener {
         }
     }
 
-    private void clearField() {
+    public void clearField() {
         fillField(Material.AIR);
     }
 
@@ -201,23 +202,13 @@ public class PlayingField implements Listener {
     }
 
     public void activateRush() {
-        player.sendTitle(ChatColor.RED + "RUSH!", ChatColor.RED + "Clear as many walls as you can!", 0, 40, 10);
-        defaultBorderMaterial = Material.MAGMA_BLOCK;
-        player.playSound(player, Sound.ENTITY_ENDER_DRAGON_GROWL, 0.5F, 1);
-        queue.activateRush();
-        clearField();
+        event = new Rush(this);
+        event.activate();
     }
 
-    public void endRush() {
-        rushResultsDisplayTime = 80;
-        defaultBorderMaterial = Material.GRAY_CONCRETE;
-        clearField();
-        player.playSound(player, Sound.ENTITY_GENERIC_EXPLODE, 1, 1);
-        player.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, player.getLocation(), 1);
-        rushResults = queue.getRush().getBoardsCleared() * 4;
-        scorer.addScore(rushResults);
-        player.sendTitle(ChatColor.GREEN + "RUSH OVER!", ChatColor.GREEN + "" +
-                queue.getRush().getBoardsCleared() + " walls cleared", 0, 40, 10);
+    public void endEvent() {
+        event.end();
+        event = null;
     }
 
     public BukkitTask tickLoop() {
@@ -225,14 +216,14 @@ public class PlayingField implements Listener {
             @Override
             public void run() {
                 wallDisplay.setText(ChatColor.GOLD + "Perfect Walls: " + scorer.getWallsCleared());
-                if (rushResultsDisplayTime > 0) {
-                    rushResultsDisplayTime--;
-                    scoreDisplay.setText(ChatColor.RED + "+" + ChatColor.BOLD + rushResults + " points from Rush!!!");
+                if (scoreDisplayOverride > 0) {
+                    scoreDisplayOverride--;
                 } else {
                     scoreDisplay.setText(ChatColor.GREEN + "Score: " + scorer.getScore());
                 }
 
-                if (!queue.isRushEnabled()) {
+
+                if (!eventActive() || event.actionBarOverride() == null) {
                     double bonus = scorer.getBonus();
                     ChatColor color;
                     if (bonus <= 3) {
@@ -244,21 +235,14 @@ public class PlayingField implements Listener {
                     }
                     player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
                             new TextComponent(color + "Rush Meter: " + String.format("%.2f", bonus) + "/10"));
-                } else {
-                    ChatColor color ;
-                    int cleared = queue.getRush().getBoardsCleared();
-                    if (cleared <= 3) {
-                        color = ChatColor.GRAY;
-                    } else if (cleared <= 7) {
-                        color = ChatColor.YELLOW;
-                    } else {
-                        color = ChatColor.GREEN;
-                    }
-                    player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                            new TextComponent(color + "" + ChatColor.BOLD + "Walls Cleared: " + cleared));
                 }
-
                 queue.tick();
+                if (eventActive()) {
+                    event.tick();
+                    if (event.ticksRemaining <= 0) {
+                        endEvent();
+                    }
+                }
             }
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
     }
@@ -316,5 +300,22 @@ public class PlayingField implements Listener {
 
     public Material getDefaultBorderMaterial() {
         return defaultBorderMaterial;
+    }
+
+    public PlayingFieldScorer getScorer() {
+        return scorer;
+    }
+
+    public ModifierEvent getEvent() {
+        return event;
+    }
+
+    public boolean eventActive() {
+        return event != null;
+    }
+
+    public void overrideScoreDisplay(int ticks, String message) {
+        scoreDisplayOverride = ticks;
+        scoreDisplay.setText(message);
     }
 }

@@ -3,7 +3,6 @@ package com.articreep.holeinthewall;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
 
@@ -20,11 +19,9 @@ public class WallQueue {
     /**
      * Walls that are spawned but are invisible.
      */
-    private List<Wall> hiddenWalls;
-    private Wall animatingWall;
-    private List<Wall> visibleWalls;
-    private boolean rushEnabled = false;
-    private Rush rush = null;
+    protected List<Wall> hiddenWalls;
+    protected Wall animatingWall;
+    protected List<Wall> visibleWalls;
     private int pauseLoop = 0;
 
     public WallQueue(PlayingField field) {
@@ -71,8 +68,7 @@ public class WallQueue {
             return;
         }
 
-        if (hiddenWalls.isEmpty() && !rushEnabled) {
-            // todo messy way to make a new wall but whatevs
+        if (hiddenWalls.isEmpty() && !field.eventActive()) {
             Random random = new Random();
             Wall newWall = new Wall();
             newWall.generateHoles(2, random.nextInt(1,5));
@@ -82,25 +78,10 @@ public class WallQueue {
         // Animate the next wall when possible
         if (visibleWalls.isEmpty() && !hiddenWalls.isEmpty()) {
             animateNextWall();
-        } else if (!hiddenWalls.isEmpty() && rushEnabled) {
-            // Multiple walls can be on if rush is active
+        } else if (!hiddenWalls.isEmpty() && field.eventActive() && field.getEvent().allowMultipleWalls) {
+            // Multiple walls can be on if an event allows it
+            // todo this does not allow for a cooldown between walls. subject to change
             animateNextWall();
-        }
-
-        // Tick rush (if active)
-        if (rush != null) {
-            if (rush.getTicksRemaining() <= 0) {
-                endRush();
-            } else {
-                rush.tick();
-                if (visibleWalls.isEmpty()) {
-                    if (animatingWall == null) {
-                        addWall(rush.deploy());
-                    }
-                } else if (rush.getNextSpawn() == 0) {
-                    addWall(rush.deploy());
-                }
-            }
         }
 
         // Tick all visible walls
@@ -112,8 +93,8 @@ public class WallQueue {
                 wall.despawn();
                 field.matchAndScore(wall);
                 it.remove();
-                if (rushEnabled) {
-                    endRush();
+                if (field.eventActive() && field.getEvent() instanceof Rush) {
+                    field.endEvent();
                 }
                 pauseLoop = 10;
             } else if (wall.getWallState() != WallState.VISIBLE) {
@@ -154,9 +135,7 @@ public class WallQueue {
         hiddenWalls.clear();
     }
 
-    public void activateRush() {
-        rushEnabled = true;
-        rush = new Rush();
+    public void clearAllWalls() {
         for (Wall wall : visibleWalls) {
             wall.despawn();
         }
@@ -166,28 +145,5 @@ public class WallQueue {
             animatingWall = null;
         }
         hiddenWalls.clear();
-    }
-
-    public void endRush() {
-        field.endRush();
-        rushEnabled = false;
-        rush = null;
-        for (Wall wall : visibleWalls) {
-            wall.despawn();
-        }
-        visibleWalls.clear();
-        if (animatingWall != null) {
-            animatingWall.despawn();
-            animatingWall = null;
-        }
-        hiddenWalls.clear();
-    }
-
-    public Rush getRush() {
-        return rush;
-    }
-
-    public boolean isRushEnabled() {
-        return rushEnabled;
     }
 }

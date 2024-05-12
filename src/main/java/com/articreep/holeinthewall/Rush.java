@@ -1,11 +1,17 @@
 package com.articreep.holeinthewall;
 
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
+import org.bukkit.entity.Player;
 import org.javatuples.Pair;
 
 import java.util.Random;
 
-public class Rush {
+public class Rush extends ModifierEvent {
     /*
     A rush lasts for 30 seconds.
     Boards come at you in quick succession, however the blocks you place do not disappear
@@ -14,18 +20,17 @@ public class Rush {
      */
 
     private Wall nextWall;
-    private int ticksRemaining = 600;
     private int wallSpeed = 200;
     private int spawnSpeed = 30;
     private int nextSpawn = spawnSpeed;
     private int boardsCleared = 0;
-
-    public Rush() {
+    public Rush(PlayingField field) {
+        super(field, 600, 5, true, true);
         nextWall = new Wall(randomMaterial());
         nextWall.insertHoles(randomHole());
     }
 
-    public Wall deploy() {
+    public void deploy() {
         Wall toReturn = nextWall;
         nextWall = generateNextWall(1);
         toReturn.setTimeRemaining(wallSpeed);
@@ -35,7 +40,7 @@ public class Rush {
         wallSpeed -= 5;
 
         nextSpawn = spawnSpeed;
-        return toReturn;
+        queue.addWall(toReturn);
     }
 
     private Wall generateNextWall(int diff) {
@@ -101,17 +106,20 @@ public class Rush {
         return wallSpeed;
     }
 
-    public int getTicksRemaining() {
-        return ticksRemaining;
-    }
-
     public int getNextSpawn() {
         return nextSpawn;
     }
 
+    @Override
     public void tick() {
-        ticksRemaining--;
+        super.tick();
         nextSpawn--;
+
+        if (queue.visibleWalls.isEmpty() && queue.animatingWall == null) {
+            deploy();
+        } else if (nextSpawn == 0) {
+            deploy();
+        }
     }
 
     public void increaseBoardsCleared() {
@@ -120,5 +128,40 @@ public class Rush {
 
     public int getBoardsCleared() {
         return boardsCleared;
+    }
+
+    @Override
+    public void activate() {
+        player.sendTitle(ChatColor.RED + "RUSH!", ChatColor.RED + "Clear as many walls as you can!", 0, 40, 10);
+        player.playSound(player, Sound.ENTITY_ENDER_DRAGON_GROWL, 0.5F, 1);
+        field.clearField();
+
+        queue.clearAllWalls();
+    }
+
+    @Override
+    public void end() {
+        field.clearField();
+        queue.clearAllWalls();
+
+        player.playSound(player, Sound.ENTITY_GENERIC_EXPLODE, 1, 1);
+        player.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, player.getLocation(), 1);
+
+        field.getScorer().scoreEvent(this);
+        player.sendTitle(ChatColor.GREEN + "RUSH OVER!", ChatColor.GREEN + "" + boardsCleared + " walls cleared", 0, 40, 10);
+    }
+
+    @Override
+    public String actionBarOverride() {
+        ChatColor color;
+        int cleared = boardsCleared;
+        if (cleared <= 3) {
+            color = ChatColor.GRAY;
+        } else if (cleared <= 7) {
+            color = ChatColor.YELLOW;
+        } else {
+            color = ChatColor.GREEN;
+        }
+        return color + "" + ChatColor.BOLD + "Walls Cleared: " + cleared;
     }
 }
