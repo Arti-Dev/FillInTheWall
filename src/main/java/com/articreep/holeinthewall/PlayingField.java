@@ -42,7 +42,7 @@ public class PlayingField implements Listener {
     private TextDisplay speedDisplay = null;
     private TextDisplay wallDisplay = null;
     private int rushResults = 0;
-    private int scoreDisplayOverride = 0;
+    private boolean scoreDisplayOverride = false;
     private PlayingFieldScorer scorer;
     private ModifierEvent event = null;
 
@@ -129,34 +129,23 @@ public class PlayingField implements Listener {
      * @param wall Wall to check against
      */
     public void matchAndScore(Wall wall) {
-        // todo very band-aid solution
-        boolean rushEnabledBeforehand = eventActive();
-
         // Check score
-        // todo split this into a separate rush method
-        if (!eventActive()) {
+        // Events can override scoring
+        if (!eventActive() || !event.overrideScoring) {
             PlayingFieldState state = scorer.scoreWall(wall, this);
             if (state.title != null) {
                 player.sendTitle(state.titleColor + state.title, state.titleColor + "+" + state.score + " points", 0, 10, 5);
             }
             changeBorderBlocks(state.borderMaterial);
-        } else if (event instanceof Rush rush) {
-            if (scorer.calculatePercent(wall, this) == 1) {
-                double pitch = Math.pow(2, (double) (rush.getBoardsCleared() - 6) / 12);
-                if (pitch > 2) pitch = 2;
-                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, (float) pitch);
-                rush.increaseBoardsCleared();
-                critParticles();
-            } else {
-                player.playSound(player, Sound.BLOCK_NOTE_BLOCK_SNARE, 1, 1);
-            }
+        } else {
+            event.score(wall);
         }
 
         Map<Pair<Integer, Integer>, Block> extraBlocks = wall.getExtraBlocks(this);
         Map<Pair<Integer, Integer>, Block> correctBlocks = wall.getCorrectBlocks(this);
         Map<Pair<Integer, Integer>, Block> missingBlocks = wall.getMissingBlocks(this);
 
-        // Visually display this information
+        // Visually display what blocks were correct and what were wrong
         int pauseTime = 10;
         if (eventActive()) pauseTime = event.pauseTime;
         fillField(wall.getMaterial());
@@ -170,12 +159,19 @@ public class PlayingField implements Listener {
             block.setType(Material.AIR);
         }
 
+        // Clear the field after the pauseTime
         Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), () -> {
             clearField();
             resetBorder();
-            if (rushEnabledBeforehand && event instanceof Rush) {
-                for (Pair<Integer, Integer> hole : wall.getHoles()) {
-                    coordinatesToBlock(hole).setType(Material.TINTED_GLASS);
+
+            // Rush jank
+            if (eventActive() && event instanceof Rush rush) {
+                if (rush.hasFirstWallCleared()) {
+                    for (Pair<Integer, Integer> hole : wall.getHoles()) {
+                        coordinatesToBlock(hole).setType(Material.TINTED_GLASS);
+                    }
+                } else {
+                    rush.setFirstWallCleared(true);
                 }
             }
         }, pauseTime);
@@ -223,9 +219,7 @@ public class PlayingField implements Listener {
             @Override
             public void run() {
                 wallDisplay.setText(ChatColor.GOLD + "Perfect Walls: " + scorer.getWallsCleared());
-                if (scoreDisplayOverride > 0) {
-                    scoreDisplayOverride--;
-                } else {
+                if (!scoreDisplayOverride) {
                     scoreDisplay.setText(ChatColor.GREEN + "Score: " + scorer.getScore());
                 }
 
@@ -316,7 +310,10 @@ public class PlayingField implements Listener {
     }
 
     public void overrideScoreDisplay(int ticks, String message) {
-        scoreDisplayOverride = ticks;
+        scoreDisplayOverride = true;
         scoreDisplay.setText(message);
+        Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), () -> {
+            scoreDisplayOverride = false;
+        }, 80);
     }
 }

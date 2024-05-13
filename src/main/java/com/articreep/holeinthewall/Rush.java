@@ -13,7 +13,7 @@ public class Rush extends ModifierEvent {
     The walls cascade into the floor when they hit your field.
     The differences from consecutive boards are miniscule (1-2 clicks) but do increase the further you get
      */
-
+    private boolean firstWallCleared = false;
     private Wall nextWall;
     private int wallSpeed = 200;
     private int spawnSpeed = 30;
@@ -128,5 +128,26 @@ public class Rush extends ModifierEvent {
             color = ChatColor.GREEN;
         }
         return color + "" + ChatColor.BOLD + "Walls Cleared: " + cleared;
+    }
+
+    @Override
+    public void score(Wall wall) {
+        if (field.getScorer().calculatePercent(wall, field) == 1) {
+            double pitch = Math.pow(2, (double) (getBoardsCleared() - 6) / 12);
+            if (pitch > 2) pitch = 2;
+            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, (float) pitch);
+            increaseBoardsCleared();
+            field.critParticles();
+        } else {
+            player.playSound(player, Sound.BLOCK_NOTE_BLOCK_SNARE, 1, 1);
+        }
+    }
+
+    public boolean hasFirstWallCleared() {
+        return firstWallCleared;
+    }
+
+    public void setFirstWallCleared(boolean b) {
+        firstWallCleared = b;
     }
 }

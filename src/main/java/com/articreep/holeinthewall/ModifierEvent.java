@@ -4,19 +4,21 @@ import org.bukkit.entity.Player;
 
 /** Represents an event that affects the playing field and/or queue. */
 public abstract class ModifierEvent {
-    public final boolean pauseScoring;
+    public final boolean overrideScoring;
     public final boolean allowMultipleWalls;
-    protected int ticksRemaining;
     public final int pauseTime;
 
     protected WallQueue queue;
+    protected int ticksRemaining;
     protected PlayingField field;
     protected Player player;
 
+
+    // todo this constructor is yucky
     protected ModifierEvent(PlayingField field, int ticks, int pauseTime, boolean pauseScoring, boolean allowMultipleWalls) {
         this.field = field;
         this.queue = field.getQueue();
-        this.pauseScoring = pauseScoring;
+        this.overrideScoring = pauseScoring;
         this.ticksRemaining = ticks;
         this.pauseTime = pauseTime;
         this.allowMultipleWalls = allowMultipleWalls;
@@ -39,4 +41,6 @@ public abstract class ModifierEvent {
     public abstract void activate();
 
     public abstract void end();
+
+    public abstract void score(Wall wall);
 }
