@@ -17,7 +17,9 @@ public final class HoleInTheWall extends JavaPlugin {
 
         saveDefaultConfig();
 
-        PlayingFieldManager.parseConfig(getConfig());
+        Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
+            PlayingFieldManager.parseConfig(getConfig());
+        }, 1);
 
     }
 
