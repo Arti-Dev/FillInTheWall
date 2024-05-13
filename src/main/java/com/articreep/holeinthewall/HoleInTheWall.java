@@ -2,22 +2,22 @@ package com.articreep.holeinthewall;
 
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public final class HoleInTheWall extends JavaPlugin implements CommandExecutor {
+public final class HoleInTheWall extends JavaPlugin {
     private static HoleInTheWall instance = null;
 
     @Override
     public void onEnable() {
         instance = this;
         getCommand("holeinthewall").setExecutor(this);
-        getServer().getPluginManager().registerEvents(new PlayingFieldListeners(), this);
+        getServer().getPluginManager().registerEvents(new PlayingFieldManager(), this);
         Bukkit.getLogger().info(ChatColor.BLUE + "HoleInTheWall has been enabled!");
         System.out.println("lmao");
+
+        saveDefaultConfig();
+
+        PlayingFieldManager.parseConfig(getConfig());
 
     }
 
@@ -28,13 +28,5 @@ public final class HoleInTheWall extends JavaPlugin implements CommandExecutor {
 
     public static HoleInTheWall getInstance() {
         return instance;
-    }
-
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (sender instanceof Player player) {
-            PlayingFieldListeners.newGame(player);
-        }
-        return true;
     }
 }

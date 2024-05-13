@@ -2,6 +2,7 @@ package com.articreep.holeinthewall;
 
 import com.articreep.holeinthewall.modifiers.ModifierEvent;
 import com.articreep.holeinthewall.modifiers.Rush;
+import com.articreep.holeinthewall.utils.WorldBoundingBox;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
@@ -13,6 +14,7 @@ import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.Listener;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.javatuples.Pair;
@@ -30,13 +32,14 @@ public class PlayingField implements Listener {
      * Must be the bottom left corner of the playing field (NOT including the border blocks)
      */
     private final Location fieldReferencePoint;
-    private final Vector fieldDirection; // parallel to the field
+    private final Vector fieldDirection; // parallel to the field, positive x direction
     private final Vector incomingDirection; // normal to the field
     private final int height = 4;
     private final int length = 7;
 
     private final List<Block> borderBlocks = new ArrayList<>();
     private final Material defaultBorderMaterial = Material.GRAY_CONCRETE;
+    private final WorldBoundingBox boundingBox;
 
     private final List<TextDisplay> textDisplays = new ArrayList<>();
     private TextDisplay scoreDisplay = null;
@@ -50,14 +53,14 @@ public class PlayingField implements Listener {
     private WallQueue queue = null;
     private BukkitTask task = null;
 
-    public PlayingField(Player player, Location referencePoint, Vector direction, Vector incomingDirection) {
+    public PlayingField(Player player, Location referencePoint, Vector direction, Vector incomingDirection, WorldBoundingBox boundingBox) {
         // define playing field in a very scuffed way
         this.fieldReferencePoint = referencePoint;
         this.fieldDirection = direction;
         this.incomingDirection = incomingDirection;
         this.player = player;
         this.scorer = new PlayingFieldScorer(this);
-        spawnTextDisplays();
+        this.boundingBox = boundingBox;
 
         for (int x = 0; x < length + 2; x++) {
             for (int y = 0; y < height + 1; y++) {
@@ -73,8 +76,24 @@ public class PlayingField implements Listener {
                 }
             }
         }
+    }
 
+    public void start() {
+        if (player == null) {
+            throw new IllegalStateException("Player is null");
+        }
+        spawnTextDisplays();
         task = tickLoop();
+    }
+
+    public void stop() {
+        task.cancel();
+        for (TextDisplay display : textDisplays) {
+            display.remove();
+        }
+        queue.clearAllWalls();
+        event = null;
+        scorer.reset();
     }
 
     /**
@@ -263,14 +282,6 @@ public class PlayingField implements Listener {
         event = null;
     }
 
-    public void stop() {
-        task.cancel();
-        for (TextDisplay display : textDisplays) {
-            display.remove();
-        }
-        queue.clearAllWalls();
-    }
-
     public void spawnTextDisplays() {
         Location loc = getReferencePoint().add(fieldDirection.clone().multiply(-1.5)
                 .add(incomingDirection.clone().multiply(-3)));
@@ -318,5 +329,9 @@ public class PlayingField implements Listener {
         scoreDisplayOverride = true;
         scoreDisplay.setText(message);
         Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), () -> scoreDisplayOverride = false, ticks);
+    }
+
+    public WorldBoundingBox getBoundingBox() {
+        return boundingBox;
     }
 }

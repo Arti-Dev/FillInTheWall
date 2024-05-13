@@ -13,7 +13,6 @@ import org.javatuples.Pair;
 import java.util.Map;
 
 public class PlayingFieldScorer {
-    Player player;
     PlayingField field;
     private int score = 0;
     private double bonus = 0;
@@ -21,7 +20,6 @@ public class PlayingFieldScorer {
 
     public PlayingFieldScorer(PlayingField field) {
         this.field = field;
-        this.player = field.getPlayer();
     }
 
     public PlayingFieldState scoreWall(Wall wall, PlayingField field) {
@@ -35,13 +33,13 @@ public class PlayingFieldScorer {
         ChatColor color = ChatColor.GREEN;
         Material border = field.getDefaultBorderMaterial();
         if (percent == 1) {
-            player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+            field.getPlayer().playSound(field.getPlayer().getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
             color = ChatColor.GOLD;
             title = ChatColor.BOLD + "PERFECT!";
             border = Material.GLOWSTONE;
             wallsCleared++;
         } else {
-            player.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+            field.getPlayer().playSound(field.getPlayer(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
         }
         if (percent < 1 && percent >= 0.5) {
             title = "Cool!";
@@ -111,5 +109,11 @@ public class PlayingFieldScorer {
 
     public double getBonus() {
         return bonus;
+    }
+
+    public void reset() {
+        score = 0;
+        bonus = 0;
+        wallsCleared = 0;
     }
 }
