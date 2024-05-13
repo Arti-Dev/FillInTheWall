@@ -1,5 +1,5 @@
 field_1:
-  # This is the bottom right corner of the playing field excluding the border.
+  # This is the bottom LEFT corner of the playing field excluding the border.
   location:
     ==: org.bukkit.Location
     world: world
