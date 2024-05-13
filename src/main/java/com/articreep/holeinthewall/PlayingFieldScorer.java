@@ -60,7 +60,9 @@ public class PlayingFieldScorer {
                 // todo temporary
                 title = null;
                 // activate rush next tick
-                Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(), field::activateRush);
+                Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(), () -> {
+                    field.activateEvent(new Rush(field));
+                });
             }
         } else {
             bonus -= 2;

@@ -73,7 +73,7 @@ public class Wall {
         // break the holes open
         // store all entities in a list here
         // interpolate towards the playing field
-        Location spawnReferencePoint = field.getFieldReferencePoint();
+        Location spawnReferencePoint = field.getReferencePoint();
         movementDirection = field.getIncomingDirection();
         spawnReferencePoint.subtract(movementDirection.clone().multiply(queue.getLength()));
 
@@ -262,14 +262,42 @@ public class Wall {
         return null;
     }
 
+    public static Pair<Integer, Integer> randomCoordinates() {
+        return Pair.with((int) (Math.random() * 7), (int) (Math.random() * 4));
+    }
+
+    public Pair<Integer, Integer> randomCoordinatesConnected() {
+        int attempts = 0;
+        while (attempts < 10) {
+            // Choose a random hole in the provided wall
+            Pair<Integer, Integer> existingHole = randomHole();
+            if (existingHole == null) {
+                return Wall.randomCoordinates();
+            }
+            // Choose a random direction to spread the hole to
+            Random random = new Random();
+            int x = random.nextInt(-1, 2);
+            int y = random.nextInt(-1, 2);
+            Pair<Integer, Integer> newHole = Pair.with(existingHole.getValue0() + x, existingHole.getValue1() + y);
+            // If the new hole is in bounds and is not already a hole, return it
+            if (newHole.getValue0() >= 0 && newHole.getValue0() < 7 && newHole.getValue1() >= 0 && newHole.getValue1() < 4
+                    && !hasHole(newHole)) {
+                return newHole;
+            } else {
+                attempts++;
+            }
+        }
+        return null;
+    }
+
     public void generateHoles(int random, int cluster) {
         for (int i = 0; i < random; i++) {
-            Pair<Integer, Integer> hole = Rush.randomHole();
+            Pair<Integer, Integer> hole = randomCoordinates();
             insertHole(hole);
         }
 
         for (int i = 0; i < cluster; i++) {
-            Pair<Integer, Integer> hole = (Rush.randomConnectedHole(this));
+            Pair<Integer, Integer> hole = (randomCoordinatesConnected());
             if (hole != null) {
                 insertHole(hole);
             }

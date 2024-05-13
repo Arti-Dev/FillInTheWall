@@ -1,15 +1,10 @@
 package com.articreep.holeinthewall;
 
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
-import org.bukkit.entity.Player;
 import org.javatuples.Pair;
-
-import java.util.Random;
 
 public class Rush extends ModifierEvent {
     /*
@@ -27,7 +22,7 @@ public class Rush extends ModifierEvent {
     public Rush(PlayingField field) {
         super(field, 600, 5, true, true);
         nextWall = new Wall(randomMaterial());
-        nextWall.insertHoles(randomHole());
+        nextWall.insertHoles(Wall.randomCoordinates());
     }
 
     public void deploy() {
@@ -53,7 +48,7 @@ public class Rush extends ModifierEvent {
         if (wall.getHoles().size() < 2 || (Math.random() < 0.75 && wall.getHoles().size() < 5)) {
             for (int i = 0; i < diff; i++) {
                 // Add a new hole
-                wall.insertHole(randomConnectedHole(wall));
+                wall.insertHole(wall.randomCoordinatesConnected());
             }
         } else {
             for (int i = 0; i < diff; i++) {
@@ -62,36 +57,6 @@ public class Rush extends ModifierEvent {
             }
         }
         return wall;
-    }
-
-
-
-    public static Pair<Integer, Integer> randomHole() {
-        return Pair.with((int) (Math.random() * 7), (int) (Math.random() * 4));
-    }
-
-    public static Pair<Integer, Integer> randomConnectedHole(Wall wall) {
-        int attempts = 0;
-        while (attempts < 10) {
-            // Choose a random hole in the provided wall
-            Pair<Integer, Integer> existingHole = wall.randomHole();
-            if (existingHole == null) {
-                return randomHole();
-            }
-            // Choose a random direction to spread the hole to
-            Random random = new Random();
-            int x = random.nextInt(-1, 2);
-            int y = random.nextInt(-1, 2);
-            Pair<Integer, Integer> newHole = Pair.with(existingHole.getValue0() + x, existingHole.getValue1() + y);
-            // If the new hole is in bounds and is not already a hole, return it
-            if (newHole.getValue0() >= 0 && newHole.getValue0() < 7 && newHole.getValue1() >= 0 && newHole.getValue1() < 4
-                    && !wall.hasHole(newHole)) {
-                return newHole;
-            } else {
-                attempts++;
-            }
-        }
-        return null;
     }
 
     private static Material randomMaterial() {

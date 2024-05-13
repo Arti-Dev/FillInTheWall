@@ -57,7 +57,7 @@ public class PlayingField implements Listener {
 
         for (int x = 0; x < length + 2; x++) {
             for (int y = 0; y < height + 1; y++) {
-                Location loc = getFieldReferencePoint().clone()
+                Location loc = getReferencePoint().clone()
                         // Move to the block right to the left of the reference block
                         .subtract(fieldDirection)
                         .add(fieldDirection.clone().multiply(x))
@@ -81,7 +81,7 @@ public class PlayingField implements Listener {
         HashMap<Pair<Integer, Integer>, Block> blocks = new HashMap<>();
         // y direction loop
         for (int y = 0; y < height; y++) {
-            Location loc = getFieldReferencePoint().add(0, y, 0);
+            Location loc = getReferencePoint().add(0, y, 0);
             for (int x = 0; x < length; x++) {
                 if (!loc.getBlock().isEmpty()) {
                     blocks.put(Pair.with(x, y), loc.getBlock());
@@ -92,8 +92,36 @@ public class PlayingField implements Listener {
         return blocks;
     }
 
-    public Location getFieldReferencePoint() {
+    public Location getReferencePoint() {
         return fieldReferencePoint.clone();
+    }
+
+    public Vector getIncomingDirection() {
+        return incomingDirection.clone();
+    }
+
+    public Vector getFieldDirection() {
+        return fieldDirection.clone();
+    }
+
+    public Block coordinatesToBlock(Pair<Integer, Integer> coordinates) {
+        return fieldReferencePoint.clone().add(fieldDirection.clone()
+                        .multiply(coordinates.getValue0())).add(0, coordinates.getValue1(), 0)
+                .getBlock();
+
+    }
+
+    public Player getPlayer() {
+        return player;
+    }
+
+    public void setQueue(WallQueue queue) {
+        // todo this method might be used for swapping two players' queues in the future
+        this.queue = queue;
+    }
+
+    public WallQueue getQueue() {
+        return queue;
     }
 
     /**
@@ -153,6 +181,8 @@ public class PlayingField implements Listener {
         }, pauseTime);
     }
 
+    // Block-related methods
+
     /**
      * Fills the playing field with the given material
      * @param material the material to fill the field with
@@ -160,7 +190,7 @@ public class PlayingField implements Listener {
     private void fillField(Material material) {
         for (int x = 0; x < length; x++) {
             for (int y = 0; y < height; y++) {
-                Location loc = getFieldReferencePoint().clone().add(fieldDirection.clone().multiply(x)).add(0, y, 0);
+                Location loc = getReferencePoint().clone().add(fieldDirection.clone().multiply(x)).add(0, y, 0);
                 loc.getBlock().setType(material);
             }
         }
@@ -170,46 +200,23 @@ public class PlayingField implements Listener {
         fillField(Material.AIR);
     }
 
-    public Vector getIncomingDirection() {
-        return incomingDirection.clone();
+    public void changeBorderBlocks(Material material) {
+        for (Block block : borderBlocks) {
+            block.setType(material);
+        }
     }
 
-    public Vector getFieldDirection() {
-        return fieldDirection.clone();
+    public void critParticles() {
+        for (Block block : borderBlocks) {
+            block.getWorld().spawnParticle(Particle.CRIT, block.getLocation(), 7, 0.5, 0.5, 0.5, 0.1);
+        }
     }
 
-    public Player getPlayer() {
-        return player;
+    public void resetBorder() {
+        changeBorderBlocks(defaultBorderMaterial);
     }
 
-    public Location getReferencePoint() {
-        return fieldReferencePoint;
-    }
-
-    public Block coordinatesToBlock(Pair<Integer, Integer> coordinates) {
-        return fieldReferencePoint.clone().add(fieldDirection.clone()
-                .multiply(coordinates.getValue0())).add(0, coordinates.getValue1(), 0)
-                .getBlock();
-
-    }
-
-    public void setQueue(WallQueue queue) {
-        this.queue = queue;
-    }
-
-    public WallQueue getQueue() {
-        return queue;
-    }
-
-    public void activateRush() {
-        event = new Rush(this);
-        event.activate();
-    }
-
-    public void endEvent() {
-        event.end();
-        event = null;
-    }
+    // Events and ticking
 
     public BukkitTask tickLoop() {
         return new BukkitRunnable() {
@@ -247,20 +254,14 @@ public class PlayingField implements Listener {
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
     }
 
-    public void changeBorderBlocks(Material material) {
-        for (Block block : borderBlocks) {
-            block.setType(material);
-        }
+    public void activateEvent(ModifierEvent event) {
+        this.event = event;
+        this.event.activate();
     }
 
-    public void critParticles() {
-        for (Block block : borderBlocks) {
-           block.getWorld().spawnParticle(Particle.CRIT, block.getLocation(), 7, 0.5, 0.5, 0.5, 0.1);
-        }
-    }
-
-    public void resetBorder() {
-        changeBorderBlocks(defaultBorderMaterial);
+    public void endEvent() {
+        event.end();
+        event = null;
     }
 
     public void stop() {
@@ -272,7 +273,7 @@ public class PlayingField implements Listener {
     }
 
     public void spawnTextDisplays() {
-        Location loc = getFieldReferencePoint().add(fieldDirection.clone().multiply(-1.5)
+        Location loc = getReferencePoint().add(fieldDirection.clone().multiply(-1.5)
                 .add(incomingDirection.clone().multiply(-3)));
         wallDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
         wallDisplay.setText(ChatColor.GOLD + "Perfect Walls: " + scorer.getWallsCleared());
@@ -283,7 +284,7 @@ public class PlayingField implements Listener {
                 new Vector3f(1.5f, 1.5f, 1.5f),
                 new AxisAngle4f(0, 0, 0, 1)));
 
-        loc = getFieldReferencePoint().add(fieldDirection.clone().multiply(7.5)
+        loc = getReferencePoint().add(fieldDirection.clone().multiply(7.5)
                 .add(incomingDirection.clone().multiply(-3)));
         scoreDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
         scoreDisplay.setText(ChatColor.GREEN + "Score: " + scorer.getScore());
