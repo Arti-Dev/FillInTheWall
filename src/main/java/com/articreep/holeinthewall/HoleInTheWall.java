@@ -1,5 +1,7 @@
 package com.articreep.holeinthewall;
 
+import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -14,6 +16,7 @@ public final class HoleInTheWall extends JavaPlugin implements CommandExecutor {
         instance = this;
         getCommand("holeinthewall").setExecutor(this);
         getServer().getPluginManager().registerEvents(new PlayingFieldListeners(), this);
+        Bukkit.getLogger().info(ChatColor.BLUE + "HoleInTheWall has been enabled!");
 
     }
 
