@@ -1,5 +1,6 @@
 package com.articreep.holeinthewall;
 
+import com.articreep.holeinthewall.modifiers.Rush;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -21,8 +22,9 @@ public class WallQueue {
      * Walls that are spawned but are invisible.
      */
     protected List<Wall> hiddenWalls;
-    protected Wall animatingWall;
-    protected List<Wall> visibleWalls;
+    // todo public for now
+    public Wall animatingWall;
+    public List<Wall> visibleWalls;
     private int pauseLoop = 0;
 
     public WallQueue(PlayingField field) {

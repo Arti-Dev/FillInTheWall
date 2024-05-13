@@ -1,5 +1,8 @@
-package com.articreep.holeinthewall;
+package com.articreep.holeinthewall.modifiers;
 
+import com.articreep.holeinthewall.PlayingField;
+import com.articreep.holeinthewall.Wall;
+import com.articreep.holeinthewall.WallQueue;
 import org.bukkit.entity.Player;
 
 /** Represents an event that affects the playing field and/or queue. */

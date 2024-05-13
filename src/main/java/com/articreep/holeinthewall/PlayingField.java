@@ -1,5 +1,7 @@
 package com.articreep.holeinthewall;
 
+import com.articreep.holeinthewall.modifiers.ModifierEvent;
+import com.articreep.holeinthewall.modifiers.Rush;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
@@ -243,7 +245,7 @@ public class PlayingField implements Listener {
                 queue.tick();
                 if (eventActive()) {
                     event.tick();
-                    if (event.ticksRemaining <= 0) {
+                    if (event.getTicksRemaining() <= 0) {
                         endEvent();
                     }
                 }

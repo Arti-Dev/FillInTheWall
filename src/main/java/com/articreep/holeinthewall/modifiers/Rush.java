@@ -1,5 +1,7 @@
-package com.articreep.holeinthewall;
+package com.articreep.holeinthewall.modifiers;
 
+import com.articreep.holeinthewall.PlayingField;
+import com.articreep.holeinthewall.Wall;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Particle;

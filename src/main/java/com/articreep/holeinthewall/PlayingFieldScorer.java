@@ -1,5 +1,7 @@
 package com.articreep.holeinthewall;
 
+import com.articreep.holeinthewall.modifiers.ModifierEvent;
+import com.articreep.holeinthewall.modifiers.Rush;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
