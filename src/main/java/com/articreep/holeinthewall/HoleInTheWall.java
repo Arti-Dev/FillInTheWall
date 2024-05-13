@@ -17,6 +17,7 @@ public final class HoleInTheWall extends JavaPlugin implements CommandExecutor {
         getCommand("holeinthewall").setExecutor(this);
         getServer().getPluginManager().registerEvents(new PlayingFieldListeners(), this);
         Bukkit.getLogger().info(ChatColor.BLUE + "HoleInTheWall has been enabled!");
+        System.out.println("lmao");
 
     }
 
