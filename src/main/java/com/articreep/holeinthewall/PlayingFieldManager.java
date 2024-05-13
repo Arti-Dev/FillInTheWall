@@ -75,7 +75,6 @@ public class PlayingFieldManager implements Listener {
             if (!field.getBoundingBox().isinBoundingBox(event.getPlayer().getLocation())) {
                 removeGame(event.getPlayer());
             }
-            return;
         } else {
             for (WorldBoundingBox box : playingFieldLocations.keySet()) {
                 if (box.isinBoundingBox(event.getPlayer().getLocation())) {
@@ -96,14 +95,7 @@ public class PlayingFieldManager implements Listener {
     // Managing games
     public static void newGame(Player player, WorldBoundingBox box) {
         PlayingField field = playingFieldLocations.get(box);
-        // constructor automatically adds this queue to the playingfield object
-        WallQueue queue = new WallQueue(field);
-        Wall wall1 = new Wall();
-        wall1.insertHoles(new Pair<>(3, 1), new Pair<>(4, 1));
-        queue.addWall(wall1);
-
         field.player = player;
-
         field.start();
 
         activePlayingFields.put(player, field);

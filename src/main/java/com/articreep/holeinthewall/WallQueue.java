@@ -32,7 +32,6 @@ public class WallQueue {
         animatingWall = null;
         visibleWalls = new ArrayList<>();
         this.field = field;
-        this.field.setQueue(this);
     }
 
     public void addWall(Wall wall) {

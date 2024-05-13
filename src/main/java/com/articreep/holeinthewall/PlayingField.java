@@ -60,6 +60,7 @@ public class PlayingField implements Listener {
         this.incomingDirection = incomingDirection;
         this.player = player;
         this.scorer = new PlayingFieldScorer(this);
+        this.queue = new WallQueue(this);
         this.boundingBox = boundingBox;
 
         for (int x = 0; x < length + 2; x++) {
@@ -76,9 +77,18 @@ public class PlayingField implements Listener {
                 }
             }
         }
+        // starter wall
+        Wall wall1 = new Wall();
+        wall1.insertHoles(new Pair<>(3, 1), new Pair<>(4, 1));
+        queue.addWall(wall1);
     }
 
     public void start() {
+        // Silently fail if this is already running
+        if (hasStarted()) {
+            Bukkit.getLogger().severe("Tried to start game that's already been started");
+            return;
+        }
         if (player == null) {
             throw new IllegalStateException("Player is null");
         }
@@ -87,7 +97,12 @@ public class PlayingField implements Listener {
     }
 
     public void stop() {
+        if (!hasStarted()) {
+            Bukkit.getLogger().severe("Tried to stop game that's already been stopped");
+            return;
+        }
         task.cancel();
+        task = null;
         for (TextDisplay display : textDisplays) {
             display.remove();
         }
@@ -333,5 +348,9 @@ public class PlayingField implements Listener {
 
     public WorldBoundingBox getBoundingBox() {
         return boundingBox;
+    }
+
+    public boolean hasStarted() {
+        return task != null;
     }
 }
