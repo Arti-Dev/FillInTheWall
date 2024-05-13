@@ -74,7 +74,7 @@ public class PlayingFieldListeners implements Listener {
         // constructor automatically adds this queue to the playingfield object
         WallQueue queue = new WallQueue(field);
         Wall wall1 = new Wall();
-        wall1.insertHoles(new Pair<>(2, 1), new Pair<>(2, 3), new Pair<>(3, 1), new Pair<>(5, 1));
+        wall1.insertHoles(new Pair<>(3, 1), new Pair<>(4, 1));
         queue.addWall(wall1);
 
         playingFields.put(player, field);
