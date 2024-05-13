@@ -21,13 +21,10 @@ import org.javatuples.Pair;
 import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class PlayingField implements Listener {
-    Player player;
+    Set<Player> players = new HashSet<>();
     /**
      * Must be the bottom left corner of the playing field (NOT including the border blocks)
      */
@@ -53,12 +50,11 @@ public class PlayingField implements Listener {
     private WallQueue queue = null;
     private BukkitTask task = null;
 
-    public PlayingField(Player player, Location referencePoint, Vector direction, Vector incomingDirection, WorldBoundingBox boundingBox) {
+    public PlayingField(Location referencePoint, Vector direction, Vector incomingDirection, WorldBoundingBox boundingBox) {
         // define playing field in a very scuffed way
         this.fieldReferencePoint = referencePoint;
         this.fieldDirection = direction;
         this.incomingDirection = incomingDirection;
-        this.player = player;
         this.scorer = new PlayingFieldScorer(this);
         this.queue = new WallQueue(this);
         this.boundingBox = boundingBox;
@@ -89,8 +85,8 @@ public class PlayingField implements Listener {
             Bukkit.getLogger().severe("Tried to start game that's already been started");
             return;
         }
-        if (player == null) {
-            throw new IllegalStateException("Player is null");
+        if (players.isEmpty()) {
+            throw new IllegalStateException("There are no players!");
         }
         spawnTextDisplays();
         task = tickLoop();
@@ -149,8 +145,8 @@ public class PlayingField implements Listener {
 
     }
 
-    public Player getPlayer() {
-        return player;
+    public Set<Player> getPlayers() {
+        return players;
     }
 
     public void setQueue(WallQueue queue) {
@@ -172,7 +168,8 @@ public class PlayingField implements Listener {
         if (!eventActive() || !event.overrideScoring) {
             PlayingFieldState state = scorer.scoreWall(wall, this);
             if (state.title != null) {
-                player.sendTitle(state.titleColor + state.title, state.titleColor + "+" + state.score + " points", 0, 10, 5);
+                for (Player player : players) player.sendTitle(
+                        state.titleColor + state.title, state.titleColor + "+" + state.score + " points", 0, 10, 5);
             }
             changeBorderBlocks(state.borderMaterial);
         } else {
@@ -273,7 +270,7 @@ public class PlayingField implements Listener {
                     } else {
                         color = ChatColor.GREEN;
                     }
-                    player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                    for (Player player : players) player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
                             new TextComponent(color + "Rush Meter: " + String.format("%.2f", bonus) + "/10"));
                 }
                 queue.tick();

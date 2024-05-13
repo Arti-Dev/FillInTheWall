@@ -33,13 +33,17 @@ public class PlayingFieldScorer {
         ChatColor color = ChatColor.GREEN;
         Material border = field.getDefaultBorderMaterial();
         if (percent == 1) {
-            field.getPlayer().playSound(field.getPlayer().getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+            for (Player player : field.getPlayers()) {
+                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+            }
             color = ChatColor.GOLD;
             title = ChatColor.BOLD + "PERFECT!";
             border = Material.GLOWSTONE;
             wallsCleared++;
         } else {
-            field.getPlayer().playSound(field.getPlayer(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+            for (Player player : field.getPlayers()) {
+                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+            }
         }
         if (percent < 1 && percent >= 0.5) {
             title = "Cool!";

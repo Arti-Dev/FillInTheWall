@@ -14,7 +14,6 @@ public abstract class ModifierEvent {
     protected WallQueue queue;
     protected int ticksRemaining;
     protected PlayingField field;
-    protected Player player;
 
 
     // todo this constructor is yucky
@@ -25,7 +24,6 @@ public abstract class ModifierEvent {
         this.ticksRemaining = ticks;
         this.pauseTime = pauseTime;
         this.allowMultipleWalls = allowMultipleWalls;
-        this.player = field.getPlayer();
     }
 
     public int getTicksRemaining() {

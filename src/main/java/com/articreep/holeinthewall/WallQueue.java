@@ -47,7 +47,7 @@ public class WallQueue {
         if (hiddenWalls.isEmpty()) return;
         animatingWall = hiddenWalls.removeFirst();
         animatingWall.spawnWall(field, this);
-        animatingWall.animateWall(field.getPlayer());
+        animatingWall.animateWall(field.getPlayers());
         new BukkitRunnable() {
             @Override
             public void run() {

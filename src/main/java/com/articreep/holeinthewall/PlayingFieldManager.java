@@ -95,8 +95,8 @@ public class PlayingFieldManager implements Listener {
     // Managing games
     public static void newGame(Player player, WorldBoundingBox box) {
         PlayingField field = playingFieldLocations.get(box);
-        field.player = player;
-        field.start();
+        field.players.add(player);
+        if (!field.hasStarted()) field.start();
 
         activePlayingFields.put(player, field);
     }
@@ -104,9 +104,11 @@ public class PlayingFieldManager implements Listener {
     public static void removeGame(Player player) {
         PlayingField field = activePlayingFields.get(player);
         if (field != null) {
-            field.stop();
-            field.player = null;
+            field.players.remove(player);
             activePlayingFields.remove(player);
+            if (field.getPlayers().isEmpty()) {
+                field.stop();
+            }
         }
     }
 
@@ -134,7 +136,7 @@ public class PlayingFieldManager implements Listener {
 
             WorldBoundingBox box = new WorldBoundingBox(corner1, corner2);
             playingFieldLocations.put(box, new PlayingField(
-                    null, refPoint, fieldDirection, incomingDirection, box));
+                    refPoint, fieldDirection, incomingDirection, box));
 
 
         }

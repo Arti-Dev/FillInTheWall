@@ -6,6 +6,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
+import org.bukkit.entity.Player;
 import org.javatuples.Pair;
 
 public class Rush extends ModifierEvent {
@@ -91,8 +92,10 @@ public class Rush extends ModifierEvent {
 
     @Override
     public void activate() {
-        player.sendTitle(ChatColor.RED + "RUSH!", ChatColor.RED + "Clear as many walls as you can!", 0, 40, 10);
-        player.playSound(player, Sound.ENTITY_ENDER_DRAGON_GROWL, 0.5F, 1);
+        for (Player player : field.getPlayers()) {
+            player.sendTitle(ChatColor.RED + "RUSH!", ChatColor.RED + "Clear as many walls as you can!", 0, 40, 10);
+            player.playSound(player, Sound.ENTITY_ENDER_DRAGON_GROWL, 0.5F, 1);
+        }
         field.clearField();
 
         queue.clearAllWalls();
@@ -102,12 +105,12 @@ public class Rush extends ModifierEvent {
     public void end() {
         field.clearField();
         queue.clearAllWalls();
-
-        player.playSound(player, Sound.ENTITY_GENERIC_EXPLODE, 1, 1);
-        player.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, player.getLocation(), 1);
-
         field.getScorer().scoreEvent(this);
-        player.sendTitle(ChatColor.GREEN + "RUSH OVER!", ChatColor.GREEN + "" + boardsCleared + " walls cleared", 0, 40, 10);
+        for (Player player : field.getPlayers()) {
+            player.playSound(player, Sound.ENTITY_GENERIC_EXPLODE, 1, 1);
+            player.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, player.getLocation(), 1);
+            player.sendTitle(ChatColor.GREEN + "RUSH OVER!", ChatColor.GREEN + "" + boardsCleared + " walls cleared", 0, 40, 10);
+        }
     }
 
     @Override
@@ -129,11 +132,11 @@ public class Rush extends ModifierEvent {
         if (field.getScorer().calculatePercent(wall, field) == 1) {
             double pitch = Math.pow(2, (double) (getBoardsCleared() - 6) / 12);
             if (pitch > 2) pitch = 2;
-            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, (float) pitch);
+            for (Player player : field.getPlayers()) player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, (float) pitch);
             increaseBoardsCleared();
             field.critParticles();
         } else {
-            player.playSound(player, Sound.BLOCK_NOTE_BLOCK_SNARE, 1, 1);
+            for (Player player : field.getPlayers()) player.playSound(player, Sound.BLOCK_NOTE_BLOCK_SNARE, 1, 1);
         }
     }
 
