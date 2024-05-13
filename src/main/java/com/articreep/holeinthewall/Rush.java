@@ -67,14 +67,6 @@ public class Rush extends ModifierEvent {
         return materials[(int) (Math.random() * materials.length)];
     }
 
-    public int getWallSpeed() {
-        return wallSpeed;
-    }
-
-    public int getNextSpawn() {
-        return nextSpawn;
-    }
-
     @Override
     public void tick() {
         super.tick();

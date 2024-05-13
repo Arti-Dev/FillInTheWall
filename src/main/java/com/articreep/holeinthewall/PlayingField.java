@@ -32,19 +32,21 @@ public class PlayingField implements Listener {
     private final Vector incomingDirection; // normal to the field
     private final int height = 4;
     private final int length = 7;
-    private WallQueue queue = null;
-    private BukkitTask task = null;
+
     private final List<Block> borderBlocks = new ArrayList<>();
-    private Material defaultBorderMaterial = Material.GRAY_CONCRETE;
-    private List<TextDisplay> textDisplays = new ArrayList<>();
+    private final Material defaultBorderMaterial = Material.GRAY_CONCRETE;
+
+    private final List<TextDisplay> textDisplays = new ArrayList<>();
     private TextDisplay scoreDisplay = null;
     private TextDisplay accuracyDisplay = null;
     private TextDisplay speedDisplay = null;
     private TextDisplay wallDisplay = null;
-    private int rushResults = 0;
     private boolean scoreDisplayOverride = false;
-    private PlayingFieldScorer scorer;
+
+    private final PlayingFieldScorer scorer;
     private ModifierEvent event = null;
+    private WallQueue queue = null;
+    private BukkitTask task = null;
 
     public PlayingField(Player player, Location referencePoint, Vector direction, Vector incomingDirection) {
         // define playing field in a very scuffed way
@@ -165,6 +167,7 @@ public class PlayingField implements Listener {
             resetBorder();
 
             // Rush jank
+            // todo might move to rush class
             if (eventActive() && event instanceof Rush rush) {
                 if (rush.hasFirstWallCleared()) {
                     for (Pair<Integer, Integer> hole : wall.getHoles()) {
@@ -263,7 +266,7 @@ public class PlayingField implements Listener {
         for (TextDisplay display : textDisplays) {
             display.remove();
         }
-        queue.stop();
+        queue.clearAllWalls();
     }
 
     public void spawnTextDisplays() {
@@ -312,8 +315,6 @@ public class PlayingField implements Listener {
     public void overrideScoreDisplay(int ticks, String message) {
         scoreDisplayOverride = true;
         scoreDisplay.setText(message);
-        Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), () -> {
-            scoreDisplayOverride = false;
-        }, 80);
+        Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), () -> scoreDisplayOverride = false, ticks);
     }
 }

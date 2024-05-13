@@ -26,7 +26,7 @@ public class Wall {
     private Vector movementDirection = null;
     private List<BlockDisplay> entities = new ArrayList<>();
     private List<BlockDisplay> toRemove = new ArrayList<>();
-    private Random random = new Random();
+    private final Random random = new Random();
 
     public Wall(HashSet<Pair<Integer, Integer>> holes, Material material) {
         this.holes = holes;
@@ -66,7 +66,7 @@ public class Wall {
         return state;
     }
 
-    public void spawnWall(PlayingField field, WallQueue queue, Player player) {
+    public void spawnWall(PlayingField field, WallQueue queue) {
         if (state != WallState.HIDDEN) return;
         // go to the end of the queue
         // spawn block display entities
@@ -75,7 +75,7 @@ public class Wall {
         // interpolate towards the playing field
         Location spawnReferencePoint = field.getReferencePoint();
         movementDirection = field.getIncomingDirection();
-        spawnReferencePoint.subtract(movementDirection.clone().multiply(queue.getLength()));
+        spawnReferencePoint.subtract(movementDirection.clone().multiply(queue.getFullLength()));
 
         for (int x = 0; x < length; x++) {
             for (int y = 0; y < height; y++) {
@@ -103,7 +103,7 @@ public class Wall {
         }
     }
 
-    public void animateWall(WallQueue queue, Player player) {
+    public void animateWall(Player player) {
         // make them visible immediately
         for (BlockDisplay display : entities) {
             display.setBlock(material.createBlockData());
@@ -130,7 +130,7 @@ public class Wall {
     public int tick(WallQueue queue) {
         if (state != WallState.VISIBLE) return -1;
 
-        int length = queue.getLength();
+        int length = queue.getFullLength();
         for (BlockDisplay display : entities) {
             display.teleport(display.getLocation().add(movementDirection.clone().multiply((double) length/maxTime)));
         }
@@ -187,7 +187,7 @@ public class Wall {
         Map<Pair<Integer, Integer>, Block> playingFieldBlocks = field.getPlayingFieldBlocks();
 
         for (Pair<Integer, Integer> hole : holes) {
-            if (!field.getPlayingFieldBlocks().containsKey(hole)) {
+            if (!playingFieldBlocks.containsKey(hole)) {
                 missingBlocks.put(hole, field.coordinatesToBlock(hole));
             }
         }

@@ -16,7 +16,6 @@ public class PlayingFieldScorer {
     private int score = 0;
     private double bonus = 0;
     private int wallsCleared = 0;
-    // todo move rush to here...?
 
     public PlayingFieldScorer(PlayingField field) {
         this.field = field;
@@ -75,7 +74,6 @@ public class PlayingFieldScorer {
     public int calculateScore(Wall wall, PlayingField field) {
         Map<Pair<Integer, Integer>, Block> extraBlocks = wall.getExtraBlocks(field);
         Map<Pair<Integer, Integer>, Block> correctBlocks = wall.getCorrectBlocks(field);
-        Map<Pair<Integer, Integer>, Block> missingBlocks = wall.getMissingBlocks(field);
 
         // Check score
         return correctBlocks.size() - extraBlocks.size();

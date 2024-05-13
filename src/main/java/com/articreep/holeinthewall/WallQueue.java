@@ -13,8 +13,9 @@ public class WallQueue {
      */
     private final int timeToFill = 160;
     private PlayingField field = null;
-    // todo this number is arbitrary
-    private final int length = 20;
+    private final int fullLength = 20;
+    // todo this number will change if "garbage walls" accumulate in the queue
+    private int effectiveLength = 20;
 
     /**
      * Walls that are spawned but are invisible.
@@ -44,14 +45,12 @@ public class WallQueue {
         if (animatingWall != null) return;
         if (hiddenWalls.isEmpty()) return;
         animatingWall = hiddenWalls.removeFirst();
-        animatingWall.spawnWall(field, this, field.getPlayer());
-        animatingWall.animateWall(this, field.getPlayer());
+        animatingWall.spawnWall(field, this);
+        animatingWall.animateWall(field.getPlayer());
         new BukkitRunnable() {
             @Override
             public void run() {
-                // fix possible race condition: only add to visible walls if the wall has spawned
-                // (finished spawn animation)
-                // todo this task/conditional might not be necessary
+                // Wait for wall status to be visible
                 if (animatingWall == null) return;
                 if (animatingWall.getWallState() == WallState.VISIBLE) {
                     visibleWalls.add(animatingWall);
@@ -59,7 +58,7 @@ public class WallQueue {
                     this.cancel();
                 }
             }
-        }.runTaskTimer(HoleInTheWall.getInstance(), 10, 1);
+        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
     }
 
     public void tick() {
@@ -98,7 +97,7 @@ public class WallQueue {
                 }
                 pauseLoop = 10;
             } else if (wall.getWallState() != WallState.VISIBLE) {
-                Bukkit.broadcastMessage(ChatColor.RED + "Attempted to tick wall before spawned..");
+                Bukkit.getLogger().severe(ChatColor.RED + "Attempted to tick wall before spawned..");
             }
         }
     }
@@ -109,30 +108,14 @@ public class WallQueue {
     public void instantSend() {
         // todo closest wall will ALWAYS be the first element for now.
         if (visibleWalls.isEmpty()) return;
-        Wall wall = visibleWalls.get(0);
+        Wall wall = visibleWalls.getFirst();
         field.matchAndScore(wall);
         visibleWalls.remove(wall);
         wall.despawn();
     }
 
-    public int getLength() {
-        return length;
-    }
-
-    public PlayingField getField() {
-        return field;
-    }
-
-    public void stop() {
-        for (Wall wall : visibleWalls) {
-            wall.despawn();
-        }
-        visibleWalls.clear();
-        if (animatingWall != null) {
-            animatingWall.despawn();
-            animatingWall = null;
-        }
-        hiddenWalls.clear();
+    public int getFullLength() {
+        return fullLength;
     }
 
     public void clearAllWalls() {
