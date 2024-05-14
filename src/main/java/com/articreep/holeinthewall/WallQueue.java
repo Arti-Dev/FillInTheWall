@@ -70,7 +70,7 @@ public class WallQueue {
 
         if (hiddenWalls.isEmpty() && !field.eventActive()) {
             Random random = new Random();
-            Wall newWall = new Wall();
+            Wall newWall = new Wall(field.getLength(), field.getHeight());
             newWall.generateHoles(2, random.nextInt(1,5));
             addWall(newWall);
         }

@@ -29,8 +29,8 @@ public class WorldBoundingBox {
 
             @Override
             public void run() {
-                world.spawnParticle(Particle.HEART, loc1, 1);
-                world.spawnParticle(Particle.HEART, loc2, 1);
+                world.spawnParticle(Particle.HEART, boundingBox.getMin().toLocation(world), 1);
+                world.spawnParticle(Particle.HEART, boundingBox.getMax().toLocation(world), 1);
             }
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 20);
     }

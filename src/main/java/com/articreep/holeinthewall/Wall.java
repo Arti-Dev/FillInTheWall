@@ -16,8 +16,8 @@ import java.util.*;
 
 public class Wall {
     // The walls will be 7x4 blocks
-    private final int length = 7;
-    private final int height = 4;
+    private final int length;
+    private final int height;
     private final HashSet<Pair<Integer, Integer>> holes;
     private final Material material;
     private WallState state = WallState.HIDDEN;
@@ -28,21 +28,23 @@ public class Wall {
     private List<BlockDisplay> toRemove = new ArrayList<>();
     private final Random random = new Random();
 
-    public Wall(HashSet<Pair<Integer, Integer>> holes, Material material) {
+    public Wall(HashSet<Pair<Integer, Integer>> holes, Material material, int length, int height) {
         this.holes = holes;
         this.material = material;
+        this.length = length;
+        this.height = height;
     }
 
-    public Wall(HashSet<Pair<Integer, Integer>> holes) {
-        this(holes, Material.BLUE_CONCRETE);
+    public Wall(HashSet<Pair<Integer, Integer>> holes, int length, int height) {
+        this(holes, Material.BLUE_CONCRETE, length, height);
     }
 
-    public Wall() {
-        this(new HashSet<>(), Material.BLUE_CONCRETE);
+    public Wall(int length, int height) {
+        this(new HashSet<>(), Material.BLUE_CONCRETE, length, height);
     }
 
-    public Wall(Material material) {
-        this(new HashSet<>(), material);
+    public Wall(Material material, int length, int height) {
+        this(new HashSet<>(), material, length, height);
     }
 
     public HashSet<Pair<Integer, Integer>> getHoles() {
@@ -264,8 +266,8 @@ public class Wall {
         return null;
     }
 
-    public static Pair<Integer, Integer> randomCoordinates() {
-        return Pair.with((int) (Math.random() * 7), (int) (Math.random() * 4));
+    public Pair<Integer, Integer> randomCoordinates() {
+        return Pair.with((int) (Math.random() * length), (int) (Math.random() * height));
     }
 
     public Pair<Integer, Integer> randomCoordinatesConnected() {
@@ -274,7 +276,7 @@ public class Wall {
             // Choose a random hole in the provided wall
             Pair<Integer, Integer> existingHole = randomHole();
             if (existingHole == null) {
-                return Wall.randomCoordinates();
+                return randomCoordinates();
             }
             // Choose a random direction to spread the hole to
             Random random = new Random();
@@ -282,7 +284,7 @@ public class Wall {
             int y = random.nextInt(-1, 2);
             Pair<Integer, Integer> newHole = Pair.with(existingHole.getValue0() + x, existingHole.getValue1() + y);
             // If the new hole is in bounds and is not already a hole, return it
-            if (newHole.getValue0() >= 0 && newHole.getValue0() < 7 && newHole.getValue1() >= 0 && newHole.getValue1() < 4
+            if (newHole.getValue0() >= 0 && newHole.getValue0() < length && newHole.getValue1() >= 0 && newHole.getValue1() < height
                     && !hasHole(newHole)) {
                 return newHole;
             } else {

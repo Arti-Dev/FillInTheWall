@@ -125,20 +125,36 @@ public class PlayingFieldManager implements Listener {
             int fieldLength = config.getInt(key + ".field_length");
             int fieldHeight = config.getInt(key + ".field_height");
 
-            // todo these bounding box coordinates are subject to change
-            Location corner1 = refPoint.clone()
-                    .add(incomingDirection.clone().multiply(standingDistance))
-                    .subtract(fieldDirection.clone().multiply(2));
-            Location corner2 = refPoint.clone()
-                    .subtract(incomingDirection.clone().multiply(queueLength))
-                    .add(fieldDirection.clone().multiply(fieldLength + 2))
-                    .add(new Vector(0, fieldHeight, 0));
-
-            WorldBoundingBox box = new WorldBoundingBox(corner1, corner2);
+            WorldBoundingBox box = playingFieldActivationBox(refPoint, incomingDirection, fieldDirection, standingDistance, queueLength, fieldLength, fieldHeight);
             playingFieldLocations.put(box, new PlayingField(
-                    refPoint, fieldDirection, incomingDirection, box));
+                    refPoint, fieldDirection, incomingDirection, box, fieldLength, fieldHeight));
 
 
         }
+    }
+
+    public static WorldBoundingBox playingFieldActivationBox(Location refPoint,
+                                                             Vector incomingDirection,
+                                                             Vector fieldDirection,
+                                                             int standingDistance,
+                                                             int queueLength,
+                                                             int fieldLength,
+                                                             int fieldHeight) {
+        // todo these bounding box coordinates are subject to change
+        Location corner1 = refPoint.clone()
+                .add(incomingDirection.clone().multiply(standingDistance));
+                //.subtract(fieldDirection.clone().multiply(2));
+        Location corner2 = refPoint.clone()
+                .subtract(incomingDirection.clone().multiply(queueLength))
+                .add(fieldDirection.clone().multiply(fieldLength))
+                .add(new Vector(0, fieldHeight, 0));
+
+        WorldBoundingBox box = new WorldBoundingBox(corner1, corner2);
+        box.getBoundingBox().expand(fieldDirection, 2);
+        box.getBoundingBox().expand(new Vector(0, fieldHeight, 0), 2);
+        box.getBoundingBox().expand(fieldDirection.clone().multiply(-1), 2);
+
+        return box;
+
     }
 }

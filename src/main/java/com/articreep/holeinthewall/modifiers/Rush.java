@@ -24,13 +24,13 @@ public class Rush extends ModifierEvent {
     private int boardsCleared = 0;
     public Rush(PlayingField field) {
         super(field, 600, 5, true, true);
-        nextWall = new Wall(randomMaterial());
-        nextWall.insertHoles(Wall.randomCoordinates());
+        nextWall = new Wall(randomMaterial(), field.getLength(), field.getHeight());
+        nextWall.insertHoles(nextWall.randomCoordinates());
     }
 
     public void deploy() {
         Wall toReturn = nextWall;
-        nextWall = generateNextWall(1);
+        nextWall = generateNextWall();
         toReturn.setTimeRemaining(wallSpeed);
         if (spawnSpeed > 0) {
             wallSpeed -= 4;
@@ -41,20 +41,20 @@ public class Rush extends ModifierEvent {
         queue.addWall(toReturn);
     }
 
-    private Wall generateNextWall(int diff) {
+    private Wall generateNextWall() {
         // Copy data from old wall
-        Wall wall = new Wall(randomMaterial());
+        Wall wall = new Wall(randomMaterial(), field.getLength(), field.getHeight());
         for (Pair<Integer, Integer> hole : nextWall.getHoles()) {
             wall.insertHole(hole);
         }
 
         if (wall.getHoles().size() < 2 || (Math.random() < 0.75 && wall.getHoles().size() < 5)) {
-            for (int i = 0; i < diff; i++) {
+            for (int i = 0; i < 1; i++) {
                 // Add a new hole
                 wall.insertHole(wall.randomCoordinatesConnected());
             }
         } else {
-            for (int i = 0; i < diff; i++) {
+            for (int i = 0; i < 1; i++) {
                 // Remove an existing hole
                 wall.removeHole(wall.randomHole());
             }
