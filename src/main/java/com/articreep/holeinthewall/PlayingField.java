@@ -308,7 +308,7 @@ public class PlayingField implements Listener {
                 new Vector3f(1.5f, 1.5f, 1.5f),
                 new AxisAngle4f(0, 0, 0, 1)));
 
-        loc = getReferencePoint().add(fieldDirection.clone().multiply(7.5)
+        loc = getReferencePoint().add(fieldDirection.clone().multiply(length + 0.5)
                 .add(incomingDirection.clone().multiply(-3)));
         scoreDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
         scoreDisplay.setText(ChatColor.GREEN + "Score: " + scorer.getScore());
