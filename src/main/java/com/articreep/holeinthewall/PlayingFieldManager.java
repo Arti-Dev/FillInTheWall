@@ -130,11 +130,12 @@ public class PlayingFieldManager implements Listener {
             int queueLength = config.getInt(key + ".queue_length");
             int fieldLength = config.getInt(key + ".field_length");
             int fieldHeight = config.getInt(key + ".field_height");
+            String environment = config.getString(key + ".environment");
 
             WorldBoundingBox box = playingFieldActivationBox(refPoint, incomingDirection, fieldDirection, standingDistance, queueLength, fieldLength, fieldHeight);
             WorldBoundingBox effectBox = effectBox(refPoint, incomingDirection, fieldDirection, queueLength, fieldLength, fieldHeight);
             playingFieldLocations.put(box, new PlayingField(
-                    refPoint, fieldDirection, incomingDirection, box, effectBox, fieldLength, fieldHeight));
+                    refPoint, fieldDirection, incomingDirection, box, effectBox, environment, fieldLength, fieldHeight));
 
 
         }
@@ -174,6 +175,7 @@ public class PlayingFieldManager implements Listener {
                 .add(new Vector(0, fieldHeight * 2.5, 0));
         WorldBoundingBox box = new WorldBoundingBox(corner1, corner2, Particle.GLOW);
         box.getBoundingBox().expand(fieldDirection, 7);
+        box.getBoundingBox().expand(fieldDirection.clone().multiply(-1), 7);
 
         return box;
 

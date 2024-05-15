@@ -1,6 +1,7 @@
 package com.articreep.holeinthewall.environments;
 
 import com.articreep.holeinthewall.HoleInTheWall;
+import com.articreep.holeinthewall.PlayingField;
 import com.articreep.holeinthewall.utils.WorldBoundingBox;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -10,10 +11,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class TheVoid implements Listener {
 
@@ -63,37 +61,28 @@ public class TheVoid implements Listener {
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
     }
 
-    private void triangle(Location location) {
-        int radius = 3;
+    private static void regularPolygon(int sides, int radius, Location location, Color dustColor) {
+        if (sides <= 0) return;
+
         List<Location> locations = new ArrayList<>();
-        for (int d = 0; d < 360; d += 120) {
+        for (int d = 0; d < 360; d += 360/sides) {
             Location corner = location.clone().add(radius * Math.cos(Math.toRadians(d)), radius * Math.sin(Math.toRadians(d)), 0);
             locations.add(corner);
         }
-        connectLocations(locations);
+        connectLocations(locations, dustColor);
     }
 
-    private void square(Location location) {
-        int radius = 3;
-        List<Location> locations = new ArrayList<>();
-        for (int d = 0; d < 360; d += 90) {
-            Location corner = location.clone().add(radius * Math.cos(Math.toRadians(d)), radius * Math.sin(Math.toRadians(d)), 0);
-            locations.add(corner);
-        }
-        connectLocations(locations);
+    public static void randomShape(PlayingField field) {
+        Location location = field.getEffectBox().randomLocation();
+        Random random = new Random();
+        int shape = random.nextInt(3,8);
+        int radius = random.nextInt(1, 5);
+        Color dustColor = Color.fromRGB(random.nextInt(255), random.nextInt(255), random.nextInt(255));
+        regularPolygon(shape, radius, location, dustColor);
+
     }
 
-    private void pentagon(Location location) {
-        int radius = 3;
-        List<Location> locations = new ArrayList<>();
-        for (int d = 0; d < 360; d += 72) {
-            Location corner = location.clone().add(radius * Math.cos(Math.toRadians(d)), radius * Math.sin(Math.toRadians(d)), 0);
-            locations.add(corner);
-        }
-        connectLocations(locations);
-    }
-
-    public void connectLocations(Location loc1, Location loc2, int amount) {
+    public static void connectLocations(Location loc1, Location loc2, int amount, Color dustColor) {
         loc1 = loc1.clone();
         loc2 = loc2.clone();
         Vector v = loc2.toVector().subtract(loc1.toVector());
@@ -104,10 +93,10 @@ public class TheVoid implements Listener {
         }
     }
 
-    public void connectLocations(List<Location> locations) {
+    public static void connectLocations(List<Location> locations, Color dustColor) {
         for (int i = 0; i < locations.size() - 1; i++) {
-            connectLocations(locations.get(i), locations.get(i + 1), 30);
+            connectLocations(locations.get(i), locations.get(i + 1), 30, dustColor);
         }
-        connectLocations(locations.getLast(), locations.getFirst(), 30);
+        connectLocations(locations.getLast(), locations.getFirst(), 30, dustColor);
     }
 }

@@ -1,5 +1,6 @@
 package com.articreep.holeinthewall;
 
+import com.articreep.holeinthewall.environments.TheVoid;
 import com.articreep.holeinthewall.modifiers.ModifierEvent;
 import com.articreep.holeinthewall.modifiers.Rush;
 import com.articreep.holeinthewall.utils.WorldBoundingBox;
@@ -38,6 +39,7 @@ public class PlayingField implements Listener {
     private final Material defaultBorderMaterial = Material.GRAY_CONCRETE;
     private final WorldBoundingBox boundingBox;
     private final WorldBoundingBox effectBox;
+    private String environment;
 
     private final List<TextDisplay> textDisplays = new ArrayList<>();
     private TextDisplay scoreDisplay = null;
@@ -52,7 +54,7 @@ public class PlayingField implements Listener {
     private BukkitTask task = null;
 
     public PlayingField(Location referencePoint, Vector direction, Vector incomingDirection, WorldBoundingBox boundingBox,
-                        WorldBoundingBox effectBox, int length, int height) {
+                        WorldBoundingBox effectBox, String environment, int length, int height) {
         // define playing field in a very scuffed way
         this.fieldReferencePoint = referencePoint;
         this.fieldDirection = direction;
@@ -63,6 +65,8 @@ public class PlayingField implements Listener {
         this.effectBox = effectBox;
         this.height = height;
         this.length = length;
+        this.environment = environment;
+        if (this.environment == null) this.environment = "";
 
         for (int x = 0; x < length + 2; x++) {
             for (int y = 0; y < height + 1; y++) {
@@ -257,6 +261,7 @@ public class PlayingField implements Listener {
 
     public BukkitTask tickLoop() {
         return new BukkitRunnable() {
+            int ticks = 0;
             @Override
             public void run() {
                 wallDisplay.setText(ChatColor.GOLD + "Perfect Walls: " + scorer.getWallsCleared());
@@ -285,6 +290,14 @@ public class PlayingField implements Listener {
                         endEvent();
                     }
                 }
+
+                // todo Effects
+                if (environment.equalsIgnoreCase("VOID")) {
+                    if (ticks % 10 == 0) {
+                        TheVoid.randomShape(PlayingField.this);
+                    }
+                }
+
             }
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
     }
@@ -362,5 +375,9 @@ public class PlayingField implements Listener {
 
     public int getHeight() {
         return height;
+    }
+
+    public WorldBoundingBox getEffectBox() {
+        return effectBox;
     }
 }

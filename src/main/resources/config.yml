@@ -13,6 +13,7 @@ field_1:
   field_length: 7
   field_height: 4
   standing_distance: 7
+  environment: "VOID"
   # Direction where the walls move in.
   incoming_direction: "NORTH"
   # Direction parallel to the field.

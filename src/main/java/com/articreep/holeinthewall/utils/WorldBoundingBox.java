@@ -57,4 +57,11 @@ public class WorldBoundingBox {
     public World getWorld() {
         return world;
     }
+
+    public Location randomLocation() {
+        double x = boundingBox.getMinX() + Math.random() * (boundingBox.getMaxX() - boundingBox.getMinX());
+        double y = boundingBox.getMinY() + Math.random() * (boundingBox.getMaxY() - boundingBox.getMinY());
+        double z = boundingBox.getMinZ() + Math.random() * (boundingBox.getMaxZ() - boundingBox.getMinZ());
+        return new Location(world, x, y, z);
+    }
 }
