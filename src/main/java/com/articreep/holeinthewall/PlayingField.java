@@ -262,6 +262,8 @@ public class PlayingField implements Listener {
     public BukkitTask tickLoop() {
         return new BukkitRunnable() {
             int ticks = 0;
+            // todo this is exclusively for the void environment, but I haven't decided on a good way on doing this
+            int beats = 0;
             @Override
             public void run() {
                 wallDisplay.setText(ChatColor.GOLD + "Perfect Walls: " + scorer.getWallsCleared());
@@ -294,7 +296,14 @@ public class PlayingField implements Listener {
                 // todo Effects
                 if (environment.equalsIgnoreCase("VOID")) {
                     if (ticks % 10 == 0) {
-                        TheVoid.randomShape(PlayingField.this);
+                        beats++;
+                        if (beats <= 16) {
+                            TheVoid.randomShape(PlayingField.this);
+                        } else if (beats <= 32) {
+                            TheVoid.randomPetal(PlayingField.this);
+                        } else {
+                            beats = 0;
+                        }
                     }
                 }
                 ticks++;

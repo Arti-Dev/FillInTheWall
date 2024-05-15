@@ -60,9 +60,9 @@ public class TheVoid implements Listener {
             }
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
     }
-
+    // todo this is hard-coded to display on the x-y plane only as of right now
     private static void regularPolygon(int sides, int radius, Location location, Color dustColor) {
-        if (sides <= 0) return;
+        if (sides < 3) return;
 
         List<Location> locations = new ArrayList<>();
         for (int d = 0; d < 360; d += 360/sides) {
@@ -72,6 +72,50 @@ public class TheVoid implements Listener {
         connectLocations(locations, dustColor);
     }
 
+    private static void animateRegularPetals(int petals, int radius, Location location, Color dustColor) {
+        if (petals < 3) return;
+        int coeff;
+        if (petals % 2 == 0) {
+            coeff = petals / 2;
+        } else {
+            coeff = petals;
+        }
+
+        // todo each will take 20 ticks to draw. subject to change
+        new BukkitRunnable() {
+            int theta = 0;
+            @Override
+            public void run() {
+                petalPolarEquation(radius, location, dustColor, coeff, theta);
+                theta += 9;
+                if (theta >= 180) {
+                    regularPetals(petals, radius, location, Color.WHITE);
+                    this.cancel();
+                }
+            }
+        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
+    }
+
+    private static void regularPetals(int petals, int radius, Location location, Color dustColor) {
+        if (petals < 3) return;
+        int coeff;
+        if (petals % 2 == 0) {
+            coeff = petals / 2;
+        } else {
+            coeff = petals;
+        }
+        for (int theta = 0; theta < 180; theta++) {
+            petalPolarEquation(radius, location, dustColor, coeff, theta);
+        }
+    }
+
+    private static void petalPolarEquation(int radius, Location location, Color dustColor, int coeff, int theta) {
+        double r = radius * Math.sin(coeff * Math.toRadians(theta));
+        location.getWorld().spawnParticle(Particle.DUST, location.clone().add(
+                r * Math.cos(Math.toRadians(theta)), 0, r * Math.sin(Math.toRadians(theta))),
+                1, new Particle.DustOptions(dustColor, 0.7F));
+    }
+
     public static void randomShape(PlayingField field) {
         Location location = field.getEffectBox().randomLocation();
         Random random = new Random();
@@ -79,7 +123,15 @@ public class TheVoid implements Listener {
         int radius = random.nextInt(1, 5);
         Color dustColor = Color.fromRGB(random.nextInt(255), random.nextInt(255), random.nextInt(255));
         regularPolygon(shape, radius, location, dustColor);
+    }
 
+    public static void randomPetal(PlayingField field) {
+        Location location = field.getEffectBox().randomLocation();
+        Random random = new Random();
+        int petals = random.nextInt(3, 8);
+        int radius = random.nextInt(1, 5);
+        Color dustColor = Color.fromRGB(random.nextInt(255), random.nextInt(255), random.nextInt(255));
+        animateRegularPetals(petals, radius, location, dustColor);
     }
 
     public static void connectLocations(Location loc1, Location loc2, int amount, Color dustColor) {
