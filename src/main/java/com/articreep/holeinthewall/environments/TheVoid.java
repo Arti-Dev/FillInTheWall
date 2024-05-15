@@ -32,24 +32,25 @@ public class TheVoid implements Listener {
 
         puddleCooldowns.add(player);
         Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(),
-                () -> puddleCooldowns.remove(player), 20 * 5);
+                () -> puddleCooldowns.remove(player), 20 * 2);
 
-        Particle particle = Particle.DRIPPING_OBSIDIAN_TEAR;
+        Particle particle = Particle.DUST_PLUME;
 
         new BukkitRunnable() {
-            double t = 0;
+            double t = Math.PI / 3;
             double tMax = Math.PI * 2;
-            double tIncrement = Math.PI / 4;
+            double tIncrement = Math.PI / 3;
 
             @Override
             public void run() {
                 for (int i = 0; i < 360; i += 10) {
                     Vector vector = new Vector(1, 0, 0);
                     vector.rotateAroundY(i);
-                    double x = 0.125 * t - 0.125 * Math.sin(t / 2);
-                    double y = 0.125 - 0.125 * Math.cos(t);
+                    double x = 0.5 * t - 0.5 * Math.sin(t / 2);
+                    double y = -0.125 + 0.125 * Math.cos(t);
                     // spawn particle at x, y
-                    player.spawnParticle(particle, location.clone().add(vector.clone().multiply(x)).add(0, y, 0), 1);
+                    player.spawnParticle(particle, location.clone().add(vector.clone().multiply(x)).add(0, y, 0),
+                            1, 0.1, 0, 0.1, 0);
                 }
 
                 t += tIncrement;
