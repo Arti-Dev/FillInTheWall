@@ -31,8 +31,8 @@ public class PlayingField implements Listener {
     private final Location fieldReferencePoint;
     private final Vector fieldDirection; // parallel to the field, positive x direction
     private final Vector incomingDirection; // normal to the field
-    private final int height = 4;
-    private final int length = 7;
+    private final int height;
+    private final int length;
 
     private final List<Block> borderBlocks = new ArrayList<>();
     private final Material defaultBorderMaterial = Material.GRAY_CONCRETE;
@@ -50,7 +50,7 @@ public class PlayingField implements Listener {
     private WallQueue queue = null;
     private BukkitTask task = null;
 
-    public PlayingField(Location referencePoint, Vector direction, Vector incomingDirection, WorldBoundingBox boundingBox) {
+    public PlayingField(Location referencePoint, Vector direction, Vector incomingDirection, WorldBoundingBox boundingBox, int length, int height) {
         // define playing field in a very scuffed way
         this.fieldReferencePoint = referencePoint;
         this.fieldDirection = direction;
@@ -58,6 +58,8 @@ public class PlayingField implements Listener {
         this.scorer = new PlayingFieldScorer(this);
         this.queue = new WallQueue(this);
         this.boundingBox = boundingBox;
+        this.height = height;
+        this.length = length;
 
         for (int x = 0; x < length + 2; x++) {
             for (int y = 0; y < height + 1; y++) {
@@ -74,7 +76,7 @@ public class PlayingField implements Listener {
             }
         }
         // starter wall
-        Wall wall1 = new Wall();
+        Wall wall1 = new Wall(length, height);
         wall1.insertHoles(new Pair<>(3, 1), new Pair<>(4, 1));
         queue.addWall(wall1);
     }
@@ -306,7 +308,7 @@ public class PlayingField implements Listener {
                 new Vector3f(1.5f, 1.5f, 1.5f),
                 new AxisAngle4f(0, 0, 0, 1)));
 
-        loc = getReferencePoint().add(fieldDirection.clone().multiply(7.5)
+        loc = getReferencePoint().add(fieldDirection.clone().multiply(length + 0.5)
                 .add(incomingDirection.clone().multiply(-3)));
         scoreDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
         scoreDisplay.setText(ChatColor.GREEN + "Score: " + scorer.getScore());
@@ -349,5 +351,13 @@ public class PlayingField implements Listener {
 
     public boolean hasStarted() {
         return task != null;
+    }
+
+    public int getLength() {
+        return length;
+    }
+
+    public int getHeight() {
+        return height;
     }
 }
