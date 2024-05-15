@@ -112,7 +112,7 @@ public class TheVoid implements Listener {
     private static void petalPolarEquation(int radius, Location location, Color dustColor, int coeff, int theta) {
         double r = radius * Math.sin(coeff * Math.toRadians(theta));
         location.getWorld().spawnParticle(Particle.DUST, location.clone().add(
-                r * Math.cos(Math.toRadians(theta)), 0, r * Math.sin(Math.toRadians(theta))),
+                r * Math.cos(Math.toRadians(theta)), r * Math.sin(Math.toRadians(theta)), 0),
                 1, new Particle.DustOptions(dustColor, 0.7F));
     }
 
