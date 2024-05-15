@@ -75,10 +75,13 @@ public class TheVoid implements Listener {
     private static void animateRegularPetals(int petals, int radius, Location location, Color dustColor) {
         if (petals < 3) return;
         int coeff;
+        int thetaMultplier;
         if (petals % 2 == 0) {
             coeff = petals / 2;
+            thetaMultplier = 2;
         } else {
             coeff = petals;
+            thetaMultplier = 1;
         }
 
         // todo each will take 20 ticks to draw. subject to change
@@ -87,8 +90,8 @@ public class TheVoid implements Listener {
             @Override
             public void run() {
                 petalPolarEquation(radius, location, Color.WHITE, coeff, theta, 1.5F);
-                theta += 9;
-                if (theta >= 180) {
+                theta += 9 * thetaMultplier;
+                if (theta >= 180 * thetaMultplier) {
                     regularPetals(petals, radius, location, dustColor);
                     this.cancel();
                 }
@@ -99,13 +102,16 @@ public class TheVoid implements Listener {
     private static void regularPetals(int petals, int radius, Location location, Color dustColor) {
         if (petals < 3) return;
         int coeff;
+        int thetaMultplier;
         if (petals % 2 == 0) {
             coeff = petals / 2;
+            thetaMultplier = 2;
         } else {
             coeff = petals;
+            thetaMultplier = 1;
         }
-        for (int theta = 0; theta < 180; theta++) {
-            petalPolarEquation(radius, location, dustColor, coeff, theta, 2F);
+        for (int theta = 0; theta < 180 * thetaMultplier; theta++) {
+            petalPolarEquation(radius, location, dustColor, coeff, theta, 1.5F);
         }
     }
 
