@@ -88,7 +88,7 @@ public class TheVoid implements Listener {
         Vector v = loc2.toVector().subtract(loc1.toVector());
         v.multiply(1.0 / (amount - 1));
         for (int i = 0; i < amount; i++) {
-            loc1.getWorld().spawnParticle(Particle.DUST, loc1, 1, new Particle.DustOptions(Color.RED, 0.7F));
+            loc1.getWorld().spawnParticle(Particle.DUST, loc1, 1, new Particle.DustOptions(dustColor, 0.7F));
             loc1.add(v);
         }
     }

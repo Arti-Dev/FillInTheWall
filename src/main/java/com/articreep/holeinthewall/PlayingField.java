@@ -297,6 +297,7 @@ public class PlayingField implements Listener {
                         TheVoid.randomShape(PlayingField.this);
                     }
                 }
+                ticks++;
 
             }
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
