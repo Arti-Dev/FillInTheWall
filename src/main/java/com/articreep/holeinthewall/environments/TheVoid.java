@@ -86,10 +86,10 @@ public class TheVoid implements Listener {
             int theta = 0;
             @Override
             public void run() {
-                petalPolarEquation(radius, location, dustColor, coeff, theta);
+                petalPolarEquation(radius, location, Color.WHITE, coeff, theta, 2F);
                 theta += 9;
                 if (theta >= 180) {
-                    regularPetals(petals, radius, location, Color.WHITE);
+                    regularPetals(petals, radius, location, dustColor);
                     this.cancel();
                 }
             }
@@ -105,15 +105,15 @@ public class TheVoid implements Listener {
             coeff = petals;
         }
         for (int theta = 0; theta < 180; theta++) {
-            petalPolarEquation(radius, location, dustColor, coeff, theta);
+            petalPolarEquation(radius, location, dustColor, coeff, theta, 0.7F);
         }
     }
 
-    private static void petalPolarEquation(int radius, Location location, Color dustColor, int coeff, int theta) {
+    private static void petalPolarEquation(int radius, Location location, Color dustColor, int coeff, int theta, float size) {
         double r = radius * Math.sin(coeff * Math.toRadians(theta));
         location.getWorld().spawnParticle(Particle.DUST, location.clone().add(
                 r * Math.cos(Math.toRadians(theta)), r * Math.sin(Math.toRadians(theta)), 0),
-                1, new Particle.DustOptions(dustColor, 0.7F));
+                1, new Particle.DustOptions(dustColor, size));
     }
 
     public static void randomShape(PlayingField field) {
