@@ -104,6 +104,7 @@ public class Wall {
     }
 
     public void animateWall(Set<Player> players) {
+        state = WallState.ANIMATING;
         // make them visible immediately
         for (BlockDisplay display : entities) {
             display.setBlock(material.createBlockData());
