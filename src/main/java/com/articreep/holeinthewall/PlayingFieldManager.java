@@ -132,8 +132,9 @@ public class PlayingFieldManager implements Listener {
             int fieldHeight = config.getInt(key + ".field_height");
 
             WorldBoundingBox box = playingFieldActivationBox(refPoint, incomingDirection, fieldDirection, standingDistance, queueLength, fieldLength, fieldHeight);
+            WorldBoundingBox effectBox = effectBox(refPoint, incomingDirection, fieldDirection, queueLength, fieldLength, fieldHeight);
             playingFieldLocations.put(box, new PlayingField(
-                    refPoint, fieldDirection, incomingDirection, box, fieldLength, fieldHeight));
+                    refPoint, fieldDirection, incomingDirection, box, effectBox, fieldLength, fieldHeight));
 
 
         }
@@ -155,7 +156,7 @@ public class PlayingFieldManager implements Listener {
                 .add(fieldDirection.clone().multiply(fieldLength))
                 .add(new Vector(0, fieldHeight, 0));
 
-        WorldBoundingBox box = new WorldBoundingBox(corner1, corner2);
+        WorldBoundingBox box = new WorldBoundingBox(corner1, corner2, Particle.HEART);
         box.getBoundingBox().expand(fieldDirection, 2);
         box.getBoundingBox().expand(new Vector(0, fieldHeight, 0), 2);
         box.getBoundingBox().expand(fieldDirection.clone().multiply(-1), 2);
@@ -163,4 +164,19 @@ public class PlayingFieldManager implements Listener {
         return box;
 
     }
+
+    public static WorldBoundingBox effectBox(Location refPoint, Vector incomingDirection, Vector fieldDirection,
+                                             int queueLength, int fieldLength, int fieldHeight) {
+        Location corner1 = refPoint.clone();
+        Location corner2 = refPoint.clone()
+                .subtract(incomingDirection.clone().multiply(queueLength))
+                .add(fieldDirection.clone().multiply(fieldLength))
+                .add(new Vector(0, fieldHeight * 2.5, 0));
+        WorldBoundingBox box = new WorldBoundingBox(corner1, corner2, Particle.GLOW);
+        box.getBoundingBox().expand(fieldDirection, 7);
+
+        return box;
+
+    }
+
 }

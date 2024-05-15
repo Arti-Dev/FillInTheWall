@@ -1,10 +1,8 @@
 package com.articreep.holeinthewall.environments;
 
 import com.articreep.holeinthewall.HoleInTheWall;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
+import com.articreep.holeinthewall.utils.WorldBoundingBox;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -12,12 +10,15 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class TheVoid implements Listener {
 
-    private static Set<Player> puddleCooldowns = new HashSet<>();
+    private static final Set<Player> puddleCooldowns = new HashSet<>();
+
     @EventHandler
     public static void puddleParticles(PlayerMoveEvent event) {
         if (puddleCooldowns.contains(event.getPlayer())) {
@@ -49,6 +50,7 @@ public class TheVoid implements Listener {
                     double x = 0.5 * t - 0.5 * Math.sin(t / 2);
                     double y = -0.125 + 0.125 * Math.cos(t);
                     // spawn particle at x, y
+                    // todo we could follow the player.. should experiment
                     player.spawnParticle(particle, location.clone().add(vector.clone().multiply(x)).add(0, y, 0),
                             1, 0.1, 0, 0.1, 0);
                 }
@@ -59,5 +61,53 @@ public class TheVoid implements Listener {
                 }
             }
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
+    }
+
+    private void triangle(Location location) {
+        int radius = 3;
+        List<Location> locations = new ArrayList<>();
+        for (int d = 0; d < 360; d += 120) {
+            Location corner = location.clone().add(radius * Math.cos(Math.toRadians(d)), radius * Math.sin(Math.toRadians(d)), 0);
+            locations.add(corner);
+        }
+        connectLocations(locations);
+    }
+
+    private void square(Location location) {
+        int radius = 3;
+        List<Location> locations = new ArrayList<>();
+        for (int d = 0; d < 360; d += 90) {
+            Location corner = location.clone().add(radius * Math.cos(Math.toRadians(d)), radius * Math.sin(Math.toRadians(d)), 0);
+            locations.add(corner);
+        }
+        connectLocations(locations);
+    }
+
+    private void pentagon(Location location) {
+        int radius = 3;
+        List<Location> locations = new ArrayList<>();
+        for (int d = 0; d < 360; d += 72) {
+            Location corner = location.clone().add(radius * Math.cos(Math.toRadians(d)), radius * Math.sin(Math.toRadians(d)), 0);
+            locations.add(corner);
+        }
+        connectLocations(locations);
+    }
+
+    public void connectLocations(Location loc1, Location loc2, int amount) {
+        loc1 = loc1.clone();
+        loc2 = loc2.clone();
+        Vector v = loc2.toVector().subtract(loc1.toVector());
+        v.multiply(1.0 / (amount - 1));
+        for (int i = 0; i < amount; i++) {
+            loc1.getWorld().spawnParticle(Particle.DUST, loc1, 1, new Particle.DustOptions(Color.RED, 0.7F));
+            loc1.add(v);
+        }
+    }
+
+    public void connectLocations(List<Location> locations) {
+        for (int i = 0; i < locations.size() - 1; i++) {
+            connectLocations(locations.get(i), locations.get(i + 1), 30);
+        }
+        connectLocations(locations.getLast(), locations.getFirst(), 30);
     }
 }

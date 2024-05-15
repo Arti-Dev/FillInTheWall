@@ -49,7 +49,7 @@ public class PlayingFieldScorer {
             title = "Cool!";
             border = Material.LIME_CONCRETE;
         } else if (percent < 0.5) {
-            title = "Meh..";
+            title = "Miss..";
             color = ChatColor.RED;
             border = Material.REDSTONE_BLOCK;
         }

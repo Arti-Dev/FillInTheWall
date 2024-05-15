@@ -13,26 +13,26 @@ public class WorldBoundingBox {
     private final World world;
     private BoundingBox boundingBox;
 
-    public WorldBoundingBox(World world, double x1, double y1, double z1, double x2, double y2, double z2) {
-        this.boundingBox = new BoundingBox(Math.min(x1, x2), Math.min(y1, y2), Math.min(z1, z2), Math.max(x1, x2), Math.max(y1, y2), Math.max(z1, z2));
-        this.world = world;
-    }
-
-    public WorldBoundingBox(Location loc1, Location loc2) {
+    public WorldBoundingBox(Location loc1, Location loc2, Particle particle) {
         if (!loc1.getWorld().equals(loc2.getWorld())) {
             throw new IllegalArgumentException("Locations must be in the same world");
         }
         this.world = loc1.getWorld();
         this.boundingBox = locationsToBoundingBox(loc1, loc2);
+        if (particle != null) {
+            new BukkitRunnable() {
 
-        new BukkitRunnable() {
+                @Override
+                public void run() {
+                    world.spawnParticle(particle, boundingBox.getMin().toLocation(world), 1);
+                    world.spawnParticle(particle, boundingBox.getMax().toLocation(world), 1);
+                }
+            }.runTaskTimer(HoleInTheWall.getInstance(), 0, 20);
+        }
+    }
 
-            @Override
-            public void run() {
-                world.spawnParticle(Particle.HEART, boundingBox.getMin().toLocation(world), 1);
-                world.spawnParticle(Particle.HEART, boundingBox.getMax().toLocation(world), 1);
-            }
-        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 20);
+    public WorldBoundingBox(Location loc1, Location loc2) {
+        this(loc1, loc2, null);
     }
 
     public boolean isinBoundingBox(Location loc) {

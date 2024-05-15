@@ -37,6 +37,7 @@ public class PlayingField implements Listener {
     private final List<Block> borderBlocks = new ArrayList<>();
     private final Material defaultBorderMaterial = Material.GRAY_CONCRETE;
     private final WorldBoundingBox boundingBox;
+    private final WorldBoundingBox effectBox;
 
     private final List<TextDisplay> textDisplays = new ArrayList<>();
     private TextDisplay scoreDisplay = null;
@@ -50,7 +51,8 @@ public class PlayingField implements Listener {
     private WallQueue queue = null;
     private BukkitTask task = null;
 
-    public PlayingField(Location referencePoint, Vector direction, Vector incomingDirection, WorldBoundingBox boundingBox, int length, int height) {
+    public PlayingField(Location referencePoint, Vector direction, Vector incomingDirection, WorldBoundingBox boundingBox,
+                        WorldBoundingBox effectBox, int length, int height) {
         // define playing field in a very scuffed way
         this.fieldReferencePoint = referencePoint;
         this.fieldDirection = direction;
@@ -58,6 +60,7 @@ public class PlayingField implements Listener {
         this.scorer = new PlayingFieldScorer(this);
         this.queue = new WallQueue(this);
         this.boundingBox = boundingBox;
+        this.effectBox = effectBox;
         this.height = height;
         this.length = length;
 
