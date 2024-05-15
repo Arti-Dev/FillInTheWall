@@ -86,7 +86,7 @@ public class TheVoid implements Listener {
             int theta = 0;
             @Override
             public void run() {
-                petalPolarEquation(radius, location, Color.WHITE, coeff, theta, 2F);
+                petalPolarEquation(radius, location, Color.WHITE, coeff, theta, 1.5F);
                 theta += 9;
                 if (theta >= 180) {
                     regularPetals(petals, radius, location, dustColor);
@@ -105,7 +105,7 @@ public class TheVoid implements Listener {
             coeff = petals;
         }
         for (int theta = 0; theta < 180; theta++) {
-            petalPolarEquation(radius, location, dustColor, coeff, theta, 0.7F);
+            petalPolarEquation(radius, location, dustColor, coeff, theta, 2F);
         }
     }
 
