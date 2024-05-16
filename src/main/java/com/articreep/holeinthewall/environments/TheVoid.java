@@ -256,7 +256,7 @@ public class TheVoid implements Listener {
         Random random = new Random();
         switch (effects.get(random.nextInt(effects.size()))) {
             case VOID_BLOCK_FALLING:
-                randomFallingBlockDisplay(field);
+                for (int i = 0; i < 3; i++) randomFallingBlockDisplay(field);
                 break;
             case VOID_SONIC_BOOM:
                 randomSonicBoomLine(field);

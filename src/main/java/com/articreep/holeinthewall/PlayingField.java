@@ -301,10 +301,10 @@ public class PlayingField implements Listener {
                 if (environment.equalsIgnoreCase("VOID")) {
                     if (ticks % 10 == 0) {
                         beats++;
-                        if (beats <= 16 && beats % 2 == 0) {
-                            TheVoid.randomShape(PlayingField.this);
-                        } else if (beats <= 32 && beats % 2 == 0) {
-                            TheVoid.randomPetal(PlayingField.this);
+                        if (beats <= 16) {
+                            if (beats % 2 == 0) TheVoid.randomShape(PlayingField.this);
+                        } else if (beats <= 32) {
+                            if (beats % 2 == 0) TheVoid.randomPetal(PlayingField.this);
 //                        } else if (beats <= 48) {
 //                            TheVoid.randomFallingBlockDisplay(PlayingField.this);
                         } else {
