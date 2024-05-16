@@ -151,7 +151,7 @@ public class TheVoid implements Listener {
                 .add(field.getIncomingDirection().multiply(-1 * random.nextInt(field.getLength() - 1))).add(0, 1, 0);
         int length = field.getLength();
         Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), () -> {
-            for (int i = 0; i < length; i++) {
+            for (int i = 1; i <= length; i++) {
                 location.getWorld().spawnParticle(Particle.SONIC_BOOM, location, 1, 0, 0, 0, 0);
                 location.add(field.getFieldDirection());
             }
@@ -161,7 +161,8 @@ public class TheVoid implements Listener {
 
     private static final List<Material> possibleFallingBlocks = new ArrayList<>(Arrays.asList(
             Material.STONE, Material.SUSPICIOUS_SAND, Material.CHERRY_LEAVES, Material.SHROOMLIGHT, Material.SNOW_BLOCK,
-            Material.SMOOTH_STONE, Material.POLISHED_ANDESITE, Material.POLISHED_DIORITE, Material.POLISHED_GRANITE));
+            Material.SMOOTH_STONE, Material.POLISHED_ANDESITE, Material.POLISHED_DIORITE, Material.POLISHED_GRANITE,
+            Material.COMMAND_BLOCK, Material.REPEATING_COMMAND_BLOCK, Material.CHAIN_COMMAND_BLOCK, Material.BEDROCK));
     // VOID_BLOCK_FALLING
     public static void randomFallingBlockDisplay(PlayingField field) {
         Random random = new Random();
@@ -208,12 +209,42 @@ public class TheVoid implements Listener {
                     cancel();
                 }
                 Location bottomLeft = location.clone().add(movingDirection.clone().multiply(offset));
-                connectLocations(bottomLeft, bottomLeft.clone().add(0, height, 0), amount, Particle.END_ROD);
+                connectLocations(bottomLeft, bottomLeft.clone().add(0, height, 0), 30, Particle.END_ROD);
 
                 Location bottomRight = bottomLeft.clone().add(fieldDirection.clone().multiply(across));
-                connectLocations(bottomRight, bottomRight.clone().add(0, height, 0), amount, Particle.END_ROD);
+                connectLocations(bottomRight, bottomRight.clone().add(0, height, 0), 30, Particle.END_ROD);
             }
-        }.runTaskTimer(HoleInTheWall.getInstance(), field.getPauseTime(), 10);
+        }.runTaskTimer(HoleInTheWall.getInstance(), field.getPauseTime(), 5);
+    }
+
+    // VOID_BIG_PUDDLE
+    public static void bigPuddle(PlayingField field) {
+        Location location = field.getReferencePoint()
+                .add(field.getFieldDirection().multiply((double) field.getLength() / 2))
+                .add(0, -1, 0);
+
+        Particle particle = Particle.DUST_PLUME;
+
+        new BukkitRunnable() {
+            double r = 0;
+            final double rIncrement = 0.2;
+            final double rMax = 15;
+
+            @Override
+            public void run() {
+                for (int i = 0; i < 360; i += 10) {
+                    Vector vector = new Vector(1, 0, 0);
+                    vector.rotateAroundY(i);
+                    location.getWorld().spawnParticle(particle, location.clone().add(vector.clone().multiply(r)),
+                            1, 0.1, 0, 0.1, 0);
+                }
+
+                r += rIncrement;
+                if (r >= rMax) {
+                    cancel();
+                }
+            }
+        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
     }
 
     public static void connectLocations(Location loc1, Location loc2, int amount, Color dustColor) {
@@ -249,6 +280,7 @@ public class TheVoid implements Listener {
         List<EnvironmentEffect> effects = new ArrayList<>();
         switch (judgement) {
             case Judgement.PERFECT: effects.add(EnvironmentEffect.VOID_VERTICAL_LINES);
+            effects.add(EnvironmentEffect.VOID_BIG_PUDDLE);
             case Judgement.COOL: effects.add(EnvironmentEffect.VOID_BLOCK_FALLING);
             effects.add(EnvironmentEffect.VOID_SONIC_BOOM);
         }
@@ -262,7 +294,10 @@ public class TheVoid implements Listener {
                 randomSonicBoomLine(field);
                 break;
             case VOID_VERTICAL_LINES:
-                animateVerticalLines(field, 6, 30);
+                animateVerticalLines(field, 6, 10);
+                break;
+            case VOID_BIG_PUDDLE:
+                bigPuddle(field);
                 break;
         }
     }
