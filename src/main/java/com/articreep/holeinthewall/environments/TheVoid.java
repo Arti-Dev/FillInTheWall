@@ -3,6 +3,7 @@ package com.articreep.holeinthewall.environments;
 import com.articreep.holeinthewall.HoleInTheWall;
 import com.articreep.holeinthewall.Judgement;
 import com.articreep.holeinthewall.PlayingField;
+import com.articreep.holeinthewall.modifiers.Rush;
 import com.articreep.holeinthewall.utils.WorldBoundingBox;
 import org.bukkit.*;
 import org.bukkit.entity.BlockDisplay;
@@ -149,11 +150,12 @@ public class TheVoid implements Listener {
         Random random = new Random();
         Location location = field.getReferencePoint()
                 .add(field.getIncomingDirection().multiply(-1 * random.nextInt(field.getLength() - 1))).add(0, 1, 0);
+
         int length = field.getLength();
         Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), () -> {
-            for (int i = 1; i <= length; i++) {
-                location.getWorld().spawnParticle(Particle.SONIC_BOOM, location, 1, 0, 0, 0, 0);
+            for (int i = 0; i < length-1; i++) {
                 location.add(field.getFieldDirection());
+                location.getWorld().spawnParticle(Particle.SONIC_BOOM, location, 1, 0, 0, 0, 0);
             }
         }, field.getPauseTime());
 
@@ -241,6 +243,37 @@ public class TheVoid implements Listener {
 
                 r += rIncrement;
                 if (r >= rMax) {
+                    cancel();
+                }
+            }
+        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
+    }
+
+    public static void spawnRotatingBlocks(PlayingField field, Rush rush) {
+        Location leftLocation = field.getReferencePoint().subtract(field.getFieldDirection().multiply(4));
+        Location rightLocation = field.getReferencePoint().add(field.getFieldDirection().multiply(field.getLength() + 4));
+        BlockDisplay leftDisplay = (BlockDisplay) leftLocation.getWorld().spawnEntity(leftLocation, EntityType.BLOCK_DISPLAY);
+        BlockDisplay rightDisplay = (BlockDisplay) rightLocation.getWorld().spawnEntity(rightLocation, EntityType.BLOCK_DISPLAY);
+
+        leftDisplay.setBlock(Material.END_STONE.createBlockData());
+        rightDisplay.setBlock(Material.END_STONE.createBlockData());
+        leftDisplay.setTeleportDuration(1);
+        rightDisplay.setTeleportDuration(1);
+        new BukkitRunnable() {
+
+            @Override
+            public void run() {
+                // todo this is a pain
+                float oldYaw = leftDisplay.getLocation().getYaw();
+                Location leftNewLocation = leftDisplay.getLocation();
+                Location rightNewLocation = rightDisplay.getLocation();
+                leftNewLocation.setYaw(oldYaw + rush.getBoardsCleared());
+                rightNewLocation.setYaw(oldYaw + rush.getBoardsCleared());
+                leftDisplay.teleport(leftNewLocation);
+                rightDisplay.teleport(leftNewLocation);
+                if (!rush.isActive()) {
+                    leftDisplay.remove();
+                    rightDisplay.remove();
                     cancel();
                 }
             }

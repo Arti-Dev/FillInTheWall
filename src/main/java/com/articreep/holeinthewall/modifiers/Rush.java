@@ -2,6 +2,7 @@ package com.articreep.holeinthewall.modifiers;
 
 import com.articreep.holeinthewall.PlayingField;
 import com.articreep.holeinthewall.Wall;
+import com.articreep.holeinthewall.environments.TheVoid;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -22,6 +23,7 @@ public class Rush extends ModifierEvent {
     private int spawnSpeed = 30;
     private int nextSpawn = spawnSpeed;
     private int boardsCleared = 0;
+    private boolean active = false;
     public Rush(PlayingField field) {
         super(field, 600, 5, true, true);
         nextWall = new Wall(randomMaterial(), field.getLength(), field.getHeight());
@@ -92,6 +94,7 @@ public class Rush extends ModifierEvent {
 
     @Override
     public void activate() {
+        active = true;
         for (Player player : field.getPlayers()) {
             player.sendTitle(ChatColor.RED + "RUSH!", ChatColor.RED + "Clear as many walls as you can!", 0, 40, 10);
             player.playSound(player, Sound.ENTITY_ENDER_DRAGON_GROWL, 0.5F, 1);
@@ -99,10 +102,13 @@ public class Rush extends ModifierEvent {
         field.clearField();
 
         queue.clearAllWalls();
+
+        TheVoid.spawnRotatingBlocks(field, this);
     }
 
     @Override
     public void end() {
+        active = false;
         field.clearField();
         queue.clearAllWalls();
         field.getScorer().scoreEvent(this);
@@ -146,5 +152,9 @@ public class Rush extends ModifierEvent {
 
     public void setFirstWallCleared(boolean b) {
         firstWallCleared = b;
+    }
+
+    public boolean isActive() {
+        return active;
     }
 }
