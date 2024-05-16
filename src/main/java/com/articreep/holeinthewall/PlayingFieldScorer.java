@@ -28,6 +28,8 @@ public class PlayingFieldScorer {
         this.score += score;
 
         double percent = calculatePercent(wall, score);
+        // todo this basically serves the same purpose as percent and should be tweaked
+        Judgement judgement = Judgement.MISS;
 
         String title = "";
         ChatColor color = ChatColor.GREEN;
@@ -39,6 +41,7 @@ public class PlayingFieldScorer {
             color = ChatColor.GOLD;
             title = ChatColor.BOLD + "PERFECT!";
             border = Material.GLOWSTONE;
+            judgement = Judgement.PERFECT;
             wallsCleared++;
         } else {
             for (Player player : field.getPlayers()) {
@@ -48,10 +51,12 @@ public class PlayingFieldScorer {
         if (percent < 1 && percent >= 0.5) {
             title = "Cool!";
             border = Material.LIME_CONCRETE;
+            judgement = Judgement.COOL;
         } else if (percent < 0.5) {
             title = "Miss..";
             color = ChatColor.RED;
             border = Material.REDSTONE_BLOCK;
+            judgement = Judgement.MISS;
         }
 
         // Add/subtract to bonus and maybe even trigger rush
@@ -72,7 +77,7 @@ public class PlayingFieldScorer {
             if (bonus < 0) bonus = 0;
         }
 
-        return new PlayingFieldState(border, color, title, score);
+        return new PlayingFieldState(border, color, title, score, judgement);
     }
 
     public int calculateScore(Wall wall, PlayingField field) {

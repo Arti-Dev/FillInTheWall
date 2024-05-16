@@ -1,6 +1,7 @@
 package com.articreep.holeinthewall.environments;
 
 import com.articreep.holeinthewall.HoleInTheWall;
+import com.articreep.holeinthewall.Judgement;
 import com.articreep.holeinthewall.PlayingField;
 import com.articreep.holeinthewall.utils.WorldBoundingBox;
 import org.bukkit.*;
@@ -142,9 +143,26 @@ public class TheVoid implements Listener {
         animateRegularPetals(petals, radius, location, dustColor);
     }
 
+    // VOID_SONIC_BOOM
+    public static void randomSonicBoomLine(PlayingField field) {
+        // Go to a random location on the queue
+        Location location = field.getReferencePoint()
+                .add(field.getIncomingDirection().multiply(-1 * field.getQueue().getFullLength()))
+                .add(0, 1, 0);
+        int length = field.getLength();
+        Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), () -> {
+            for (int i = 0; i < length; i++) {
+                location.getWorld().spawnParticle(Particle.SONIC_BOOM, location, 1, 0, 0, 0, 0);
+                location.add(field.getFieldDirection());
+            }
+        }, field.getPauseTime());
+
+    }
+
     private static final List<Material> possibleFallingBlocks = new ArrayList<>(Arrays.asList(
             Material.STONE, Material.SUSPICIOUS_SAND, Material.CHERRY_LEAVES, Material.SHROOMLIGHT, Material.SNOW_BLOCK,
             Material.SMOOTH_STONE, Material.POLISHED_ANDESITE, Material.POLISHED_DIORITE, Material.POLISHED_GRANITE));
+    // VOID_BLOCK_FALLING
     public static void randomFallingBlockDisplay(PlayingField field) {
         Random random = new Random();
         // arbitrarily add 10 blocks of height haha
@@ -172,6 +190,32 @@ public class TheVoid implements Listener {
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
     }
 
+    // VOID_VERTICAL_LINES
+    public static void animateVerticalLines(PlayingField field, double height, int amount) {
+        Location location = field.getReferencePoint();
+        int across = field.getLength();
+        int queue_length = field.getQueue().getFullLength();
+        Vector fieldDirection = field.getFieldDirection();
+        // The direction the vertical lines will be moving in (away from the board)
+        Vector movingDirection = field.getIncomingDirection().multiply(-1);
+
+        new BukkitRunnable() {
+            double offset = 0;
+            @Override
+            public void run() {
+                offset += (double) queue_length / amount;
+                if (offset >= queue_length) {
+                    cancel();
+                }
+                Location bottomLeft = location.clone().add(movingDirection.clone().multiply(offset));
+                connectLocations(bottomLeft, bottomLeft.clone().add(0, height, 0), amount, Particle.END_ROD);
+
+                Location bottomRight = bottomLeft.clone().add(fieldDirection.clone().multiply(across));
+                connectLocations(bottomRight, bottomRight.clone().add(0, height, 0), amount, Particle.END_ROD);
+            }
+        }.runTaskTimer(HoleInTheWall.getInstance(), field.getPauseTime(), 10);
+    }
+
     public static void connectLocations(Location loc1, Location loc2, int amount, Color dustColor) {
         loc1 = loc1.clone();
         loc2 = loc2.clone();
@@ -188,5 +232,37 @@ public class TheVoid implements Listener {
             connectLocations(locations.get(i), locations.get(i + 1), 30, dustColor);
         }
         connectLocations(locations.getLast(), locations.getFirst(), 30, dustColor);
+    }
+
+    public static void connectLocations(Location loc1, Location loc2, int amount, Particle particle) {
+        loc1 = loc1.clone();
+        loc2 = loc2.clone();
+        Vector v = loc2.toVector().subtract(loc1.toVector());
+        v.multiply(1.0 / (amount - 1));
+        for (int i = 0; i < amount; i++) {
+            loc1.getWorld().spawnParticle(particle, loc1, 1, 0, 0, 0, 0);
+            loc1.add(v);
+        }
+    }
+
+    public static void judgementEffect(PlayingField field, Judgement judgement) {
+        List<EnvironmentEffect> effects = new ArrayList<>();
+        switch (judgement) {
+            case Judgement.PERFECT: effects.add(EnvironmentEffect.VOID_VERTICAL_LINES);
+            case Judgement.COOL: effects.add(EnvironmentEffect.VOID_BLOCK_FALLING);
+            effects.add(EnvironmentEffect.VOID_SONIC_BOOM);
+        }
+        Random random = new Random();
+        switch (effects.get(random.nextInt(effects.size()))) {
+            case VOID_BLOCK_FALLING:
+                randomFallingBlockDisplay(field);
+                break;
+            case VOID_SONIC_BOOM:
+                randomSonicBoomLine(field);
+                break;
+            case VOID_VERTICAL_LINES:
+                animateVerticalLines(field, 6, 4);
+                break;
+        }
     }
 }

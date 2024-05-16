@@ -34,6 +34,7 @@ public class PlayingField implements Listener {
     private final Vector incomingDirection; // normal to the field
     private final int height;
     private final int length;
+    private final int pauseTime = 10;
 
     private final List<Block> borderBlocks = new ArrayList<>();
     private final Material defaultBorderMaterial = Material.GRAY_CONCRETE;
@@ -181,6 +182,9 @@ public class PlayingField implements Listener {
                         state.titleColor + state.title, state.titleColor + "+" + state.score + " points", 0, 10, 5);
             }
             changeBorderBlocks(state.borderMaterial);
+            if (environment.equalsIgnoreCase("VOID")) {
+                TheVoid.judgementEffect(this, state.judgement);
+            }
         } else {
             event.score(wall);
         }
@@ -190,7 +194,7 @@ public class PlayingField implements Listener {
         Map<Pair<Integer, Integer>, Block> missingBlocks = wall.getMissingBlocks(this);
 
         // Visually display what blocks were correct and what were wrong
-        int pauseTime = 10;
+        int pauseTime = this.pauseTime;
         if (eventActive()) pauseTime = event.pauseTime;
         fillField(wall.getMaterial());
         for (Block block : extraBlocks.values()) {
@@ -301,8 +305,8 @@ public class PlayingField implements Listener {
                             TheVoid.randomShape(PlayingField.this);
                         } else if (beats <= 32) {
                             TheVoid.randomPetal(PlayingField.this);
-                        } else if (beats <= 48) {
-                            TheVoid.randomFallingBlockDisplay(PlayingField.this);
+//                        } else if (beats <= 48) {
+//                            TheVoid.randomFallingBlockDisplay(PlayingField.this);
                         } else {
                             beats = 0;
                         }
@@ -391,5 +395,9 @@ public class PlayingField implements Listener {
 
     public WorldBoundingBox getEffectBox() {
         return effectBox;
+    }
+
+    public int getPauseTime() {
+        return pauseTime;
     }
 }

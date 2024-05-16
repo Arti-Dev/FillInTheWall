@@ -9,11 +9,13 @@ public class PlayingFieldState {
     ChatColor titleColor;
     String title;
     int score;
+    Judgement judgement;
 
-    public PlayingFieldState(Material borderMaterial, ChatColor titleColor, String title, int score) {
+    public PlayingFieldState(Material borderMaterial, ChatColor titleColor, String title, int score, Judgement judgement) {
         this.borderMaterial = borderMaterial;
         this.titleColor = titleColor;
         this.title = title;
         this.score = score;
+        this.judgement = judgement;
     }
 }
