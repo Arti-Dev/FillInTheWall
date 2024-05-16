@@ -353,6 +353,9 @@ public class TheVoid implements Listener {
     }
 
     public static void judgementEffect(PlayingField field, Judgement judgement) {
+        Random random = new Random();
+        // 20% chance of nothing happening
+        if (random.nextDouble() > 0.8) return;
         List<EnvironmentEffect> effects = new ArrayList<>();
         switch (judgement) {
             case Judgement.PERFECT: effects.add(EnvironmentEffect.VOID_VERTICAL_LINES);
@@ -361,7 +364,6 @@ public class TheVoid implements Listener {
             effects.add(EnvironmentEffect.VOID_SONIC_BOOM);
         }
         if (effects.isEmpty()) return;
-        Random random = new Random();
         switch (effects.get(random.nextInt(effects.size()))) {
             case VOID_BLOCK_FALLING:
                 for (int i = 0; i < 3; i++) randomFallingBlockDisplay(field);
