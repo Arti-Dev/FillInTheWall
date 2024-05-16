@@ -152,6 +152,7 @@ public class TheVoid implements Listener {
         Material material = possibleFallingBlocks.get(random.nextInt(possibleFallingBlocks.size()));
         BlockDisplay display = (BlockDisplay) location.getWorld().spawnEntity(location, EntityType.BLOCK_DISPLAY);
         display.setBlock(material.createBlockData());
+        display.setTeleportDuration(1);
         // Random orientation
         display.setRotation(random.nextInt(0, 360), random.nextInt(-90, 90));
 
@@ -161,8 +162,8 @@ public class TheVoid implements Listener {
             final double accel = -0.5;
             @Override
             public void run() {
-                display.setVelocity(new Vector(0, velo, 0));
                 velo += accel/20;
+                display.teleport(display.getLocation().add(0, velo, 0));
                 if (display.getLocation().getY() < -64) {
                     display.remove();
                     cancel();
