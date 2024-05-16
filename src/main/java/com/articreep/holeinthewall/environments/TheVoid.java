@@ -227,16 +227,16 @@ public class TheVoid implements Listener {
 
         new BukkitRunnable() {
             double r = 0;
-            final double rIncrement = 0.2;
+            final double rIncrement = 0.4;
             final double rMax = 15;
 
             @Override
             public void run() {
-                for (int i = 0; i < 360; i += 10) {
+                for (int i = 0; i < 360; i += 2) {
                     Vector vector = new Vector(1, 0, 0);
                     vector.rotateAroundY(i);
                     location.getWorld().spawnParticle(particle, location.clone().add(vector.clone().multiply(r)),
-                            1, 0.1, 0, 0.1, 0);
+                            2, 0.1, 0, 0.1, 0);
                 }
 
                 r += rIncrement;
