@@ -4,6 +4,8 @@ import com.articreep.holeinthewall.HoleInTheWall;
 import com.articreep.holeinthewall.PlayingField;
 import com.articreep.holeinthewall.utils.WorldBoundingBox;
 import org.bukkit.*;
+import org.bukkit.entity.BlockDisplay;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -138,6 +140,35 @@ public class TheVoid implements Listener {
         int radius = random.nextInt(1, 5);
         Color dustColor = Color.fromRGB(random.nextInt(255), random.nextInt(255), random.nextInt(255));
         animateRegularPetals(petals, radius, location, dustColor);
+    }
+
+    private static final List<Material> possibleFallingBlocks = new ArrayList<>(Arrays.asList(
+            Material.STONE, Material.SUSPICIOUS_SAND, Material.CHERRY_LEAVES, Material.SHROOMLIGHT, Material.SNOW_BLOCK,
+            Material.SMOOTH_STONE, Material.POLISHED_ANDESITE, Material.POLISHED_DIORITE, Material.POLISHED_GRANITE));
+    public static void randomFallingBlockDisplay(PlayingField field) {
+        Random random = new Random();
+        // arbitrarily add 10 blocks of height haha
+        Location location = field.getEffectBox().randomLocation().add(0, 10, 0);
+        Material material = possibleFallingBlocks.get(random.nextInt(possibleFallingBlocks.size()));
+        BlockDisplay display = (BlockDisplay) location.getWorld().spawnEntity(location, EntityType.BLOCK_DISPLAY);
+        display.setBlock(material.createBlockData());
+        // Random orientation
+        display.setRotation(random.nextInt(0, 360), random.nextInt(-90, 90));
+
+        new BukkitRunnable() {
+            double velo = 0;
+            // acceleration is blocks per second^2
+            final double accel = -0.5;
+            @Override
+            public void run() {
+                display.setVelocity(new Vector(0, velo, 0));
+                velo += accel/20;
+                if (display.getLocation().getY() < -64) {
+                    display.remove();
+                    cancel();
+                }
+            }
+        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
     }
 
     public static void connectLocations(Location loc1, Location loc2, int amount, Color dustColor) {

@@ -301,6 +301,8 @@ public class PlayingField implements Listener {
                             TheVoid.randomShape(PlayingField.this);
                         } else if (beats <= 32) {
                             TheVoid.randomPetal(PlayingField.this);
+                        } else if (beats <= 48) {
+                            TheVoid.randomFallingBlockDisplay(PlayingField.this);
                         } else {
                             beats = 0;
                         }
