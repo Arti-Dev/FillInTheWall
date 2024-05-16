@@ -13,7 +13,10 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
+import org.joml.AxisAngle4f;
+import org.joml.Vector3f;
 
 import java.util.*;
 
@@ -250,30 +253,70 @@ public class TheVoid implements Listener {
     }
 
     public static void spawnRotatingBlocks(PlayingField field, Rush rush) {
-        Location leftLocation = field.getReferencePoint().subtract(field.getFieldDirection().multiply(4));
-        Location rightLocation = field.getReferencePoint().add(field.getFieldDirection().multiply(field.getLength() + 4));
+        // todo this is a mess
+        Location leftLocation = field.getReferencePoint()
+                .subtract(field.getFieldDirection().multiply(4))
+                .subtract(field.getIncomingDirection().multiply(field.getQueue().getFullLength() / 2));
+        Location rightLocation = field.getReferencePoint()
+                .add(field.getFieldDirection().multiply(field.getLength() + 4))
+                .subtract(field.getIncomingDirection().multiply(field.getQueue().getFullLength() / 2));
         BlockDisplay leftDisplay = (BlockDisplay) leftLocation.getWorld().spawnEntity(leftLocation, EntityType.BLOCK_DISPLAY);
         BlockDisplay rightDisplay = (BlockDisplay) rightLocation.getWorld().spawnEntity(rightLocation, EntityType.BLOCK_DISPLAY);
+        leftDisplay.setGlowing(true);
+        rightDisplay.setGlowing(true);
 
         leftDisplay.setBlock(Material.END_STONE.createBlockData());
         rightDisplay.setBlock(Material.END_STONE.createBlockData());
         leftDisplay.setTeleportDuration(1);
         rightDisplay.setTeleportDuration(1);
+        leftDisplay.setTransformation(new Transformation(
+                new Vector3f(-0.5f, -0.5f, -0.5f),
+                new AxisAngle4f(0, 0, 0, 1), new Vector3f(1.5F, 1.5F, 1.5F),
+                new AxisAngle4f(0, 0, 0, 1)));
+        rightDisplay.setTransformation(new Transformation(
+                new Vector3f(-0.5f, -0.5f, -0.5f),
+                new AxisAngle4f(0, 0, 0, 1), new Vector3f(1.5F, 1.5F, 1.5F),
+                new AxisAngle4f(0, 0, 0, 1)));
+
         new BukkitRunnable() {
 
             @Override
             public void run() {
-                // todo this is a pain
                 float oldYaw = leftDisplay.getLocation().getYaw();
                 Location leftNewLocation = leftDisplay.getLocation();
                 Location rightNewLocation = rightDisplay.getLocation();
                 leftNewLocation.setYaw(oldYaw + rush.getBoardsCleared());
                 rightNewLocation.setYaw(oldYaw + rush.getBoardsCleared());
                 leftDisplay.teleport(leftNewLocation);
-                rightDisplay.teleport(leftNewLocation);
+                rightDisplay.teleport(rightNewLocation);
                 if (!rush.isActive()) {
                     leftDisplay.remove();
                     rightDisplay.remove();
+                    cancel();
+                }
+            }
+        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
+    }
+
+    public static void adjustTime(PlayingField field, Rush rush) {
+        World world = field.getReferencePoint().getWorld();
+        world.setTime(22000 + rush.getBoardsCleared() * 200L);
+    }
+
+    public static void resetTime(PlayingField field) {
+        World world = field.getReferencePoint().getWorld();
+        long initialTime = world.getTime();
+        if (initialTime < 18000) initialTime += 24000;
+
+        long finalInitialTime = initialTime;
+        new BukkitRunnable() {
+            long currentTime = finalInitialTime;
+            @Override
+            public void run() {
+                currentTime -= 50;
+                world.setTime(currentTime);
+                if (currentTime <= 18000) {
+                    world.setTime(18000);
                     cancel();
                 }
             }

@@ -113,7 +113,10 @@ public class PlayingField implements Listener {
             display.remove();
         }
         queue.clearAllWalls();
-        event = null;
+        if (event != null) {
+            event.end();
+            event = null;
+        }
         scorer.reset();
     }
 
@@ -298,7 +301,8 @@ public class PlayingField implements Listener {
                 }
 
                 // todo Effects
-                if (environment.equalsIgnoreCase("VOID")) {
+                // Do not do effects if an event is active
+                if (environment.equalsIgnoreCase("VOID") && !eventActive()) {
                     if (ticks % 10 == 0) {
                         beats++;
                         if (beats <= 16) {
@@ -399,5 +403,9 @@ public class PlayingField implements Listener {
 
     public int getPauseTime() {
         return pauseTime;
+    }
+
+    public String getEnvironment() {
+        return environment;
     }
 }

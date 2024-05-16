@@ -112,6 +112,7 @@ public class Rush extends ModifierEvent {
         field.clearField();
         queue.clearAllWalls();
         field.getScorer().scoreEvent(this);
+        TheVoid.resetTime(field);
         for (Player player : field.getPlayers()) {
             player.playSound(player, Sound.ENTITY_GENERIC_EXPLODE, 1, 1);
             player.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, player.getLocation(), 1);
@@ -141,6 +142,9 @@ public class Rush extends ModifierEvent {
             for (Player player : field.getPlayers()) player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, (float) pitch);
             increaseBoardsCleared();
             field.critParticles();
+            if (field.getEnvironment().equalsIgnoreCase("VOID")) {
+                TheVoid.adjustTime(field, this);
+            }
         } else {
             for (Player player : field.getPlayers()) player.playSound(player, Sound.BLOCK_NOTE_BLOCK_SNARE, 1, 1);
         }
