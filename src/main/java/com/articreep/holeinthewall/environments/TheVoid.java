@@ -146,9 +146,9 @@ public class TheVoid implements Listener {
     // VOID_SONIC_BOOM
     public static void randomSonicBoomLine(PlayingField field) {
         // Go to a random location on the queue
+        Random random = new Random();
         Location location = field.getReferencePoint()
-                .add(field.getIncomingDirection().multiply(-1 * field.getQueue().getFullLength()))
-                .add(0, 1, 0);
+                .add(field.getIncomingDirection().multiply(-1 * random.nextInt(field.getLength() - 1))).add(0, 1, 0);
         int length = field.getLength();
         Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), () -> {
             for (int i = 0; i < length; i++) {
@@ -262,7 +262,7 @@ public class TheVoid implements Listener {
                 randomSonicBoomLine(field);
                 break;
             case VOID_VERTICAL_LINES:
-                animateVerticalLines(field, 6, 4);
+                animateVerticalLines(field, 6, 30);
                 break;
         }
     }
