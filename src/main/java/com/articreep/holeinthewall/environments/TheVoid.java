@@ -252,6 +252,7 @@ public class TheVoid implements Listener {
             case Judgement.COOL: effects.add(EnvironmentEffect.VOID_BLOCK_FALLING);
             effects.add(EnvironmentEffect.VOID_SONIC_BOOM);
         }
+        if (effects.isEmpty()) return;
         Random random = new Random();
         switch (effects.get(random.nextInt(effects.size()))) {
             case VOID_BLOCK_FALLING:
