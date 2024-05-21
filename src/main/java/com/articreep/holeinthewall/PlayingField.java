@@ -1,6 +1,7 @@
 package com.articreep.holeinthewall;
 
 import com.articreep.holeinthewall.environments.TheVoid;
+import com.articreep.holeinthewall.menu.Menu;
 import com.articreep.holeinthewall.modifiers.ModifierEvent;
 import com.articreep.holeinthewall.modifiers.Rush;
 import com.articreep.holeinthewall.utils.WorldBoundingBox;
@@ -53,6 +54,7 @@ public class PlayingField implements Listener {
     private ModifierEvent event = null;
     private WallQueue queue = null;
     private BukkitTask task = null;
+    private Menu menu = null;
 
     public PlayingField(Location referencePoint, Vector direction, Vector incomingDirection, WorldBoundingBox boundingBox,
                         WorldBoundingBox effectBox, String environment, int length, int height) {
@@ -98,6 +100,7 @@ public class PlayingField implements Listener {
         if (players.isEmpty()) {
             throw new IllegalStateException("There are no players!");
         }
+        removeMenu();
         spawnTextDisplays();
         task = tickLoop();
     }
@@ -407,5 +410,23 @@ public class PlayingField implements Listener {
 
     public String getEnvironment() {
         return environment;
+    }
+
+    public void createMenu() {
+        if (players.isEmpty()) return;
+        Player player = players.iterator().next();
+        Location loc = getReferencePoint().add(fieldDirection.clone().multiply((double) length / 2))
+                .add(new Vector(0, 1, 0).multiply((double) height / 2));
+        menu = new Menu(player, loc, this);
+        menu.display();
+    }
+
+    public void removeMenu() {
+        this.menu.despawn();
+        this.menu = null;
+    }
+
+    public boolean hasMenu() {
+        return menu != null;
     }
 }

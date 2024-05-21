@@ -1,5 +1,6 @@
 package com.articreep.holeinthewall;
 
+import com.articreep.holeinthewall.menu.Menu;
 import com.articreep.holeinthewall.utils.WorldBoundingBox;
 import org.bukkit.*;
 import org.bukkit.block.BlockFace;
@@ -102,7 +103,10 @@ public class PlayingFieldManager implements Listener {
     public static void newGame(Player player, WorldBoundingBox box) {
         PlayingField field = playingFieldLocations.get(box);
         field.players.add(player);
-        if (!field.hasStarted()) field.start();
+        if (!field.hasStarted() && !field.hasMenu()) {
+            // Display a new menu
+            field.createMenu();
+        }
 
         activePlayingFields.put(player, field);
     }
@@ -113,7 +117,8 @@ public class PlayingFieldManager implements Listener {
             field.players.remove(player);
             activePlayingFields.remove(player);
             if (field.getPlayers().isEmpty()) {
-                field.stop();
+                if (field.hasStarted()) field.stop();
+                else field.removeMenu();
             }
         }
     }
