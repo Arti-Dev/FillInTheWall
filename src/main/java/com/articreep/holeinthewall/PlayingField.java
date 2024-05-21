@@ -1,6 +1,7 @@
 package com.articreep.holeinthewall;
 
 import com.articreep.holeinthewall.environments.TheVoid;
+import com.articreep.holeinthewall.menu.Gamemode;
 import com.articreep.holeinthewall.menu.Menu;
 import com.articreep.holeinthewall.modifiers.ModifierEvent;
 import com.articreep.holeinthewall.modifiers.Rush;
@@ -48,6 +49,7 @@ public class PlayingField implements Listener {
     private TextDisplay accuracyDisplay = null;
     private TextDisplay speedDisplay = null;
     private TextDisplay wallDisplay = null;
+    private TextDisplay timeDisplay = null;
     private boolean scoreDisplayOverride = false;
 
     private final PlayingFieldScorer scorer;
@@ -91,7 +93,7 @@ public class PlayingField implements Listener {
         queue.addWall(wall1);
     }
 
-    public void start() {
+    public void start(Gamemode mode) {
         // Silently fail if this is already running
         if (hasStarted()) {
             Bukkit.getLogger().severe("Tried to start game that's already been started");
@@ -100,6 +102,11 @@ public class PlayingField implements Listener {
         if (players.isEmpty()) {
             throw new IllegalStateException("There are no players!");
         }
+        if (mode == null) {
+            throw new IllegalArgumentException("Gamemode cannot be null");
+        }
+        // Pass gamemode to scorer
+        scorer.setGamemode(mode);
         removeMenu();
         spawnTextDisplays();
         task = tickLoop();
@@ -120,7 +127,10 @@ public class PlayingField implements Listener {
             event.end();
             event = null;
         }
+        scorer.announceFinalScore();
         scorer.reset();
+
+        clearField();
     }
 
     /**
@@ -280,6 +290,7 @@ public class PlayingField implements Listener {
                 if (!scoreDisplayOverride) {
                     scoreDisplay.setText(ChatColor.GREEN + "Score: " + scorer.getScore());
                 }
+                timeDisplay.setText(ChatColor.AQUA + "Time: " + scorer.getFormattedTime());
 
 
                 if (!eventActive() || event.actionBarOverride() == null) {
@@ -302,6 +313,7 @@ public class PlayingField implements Listener {
                         endEvent();
                     }
                 }
+                scorer.tick();
 
                 // todo Effects
                 // Do not do effects if an event is active
@@ -337,7 +349,8 @@ public class PlayingField implements Listener {
 
     public void spawnTextDisplays() {
         Location loc = getReferencePoint().add(fieldDirection.clone().multiply(-1.5)
-                .add(incomingDirection.clone().multiply(-3)));
+                .add(incomingDirection.clone().multiply(-3)))
+                .add(new Vector(0, 0.5, 0));
         wallDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
         wallDisplay.setText(ChatColor.GOLD + "Perfect Walls: " + scorer.getWallsCleared());
         wallDisplay.setBillboard(Display.Billboard.CENTER);
@@ -348,7 +361,8 @@ public class PlayingField implements Listener {
                 new AxisAngle4f(0, 0, 0, 1)));
 
         loc = getReferencePoint().add(fieldDirection.clone().multiply(length + 0.5)
-                .add(incomingDirection.clone().multiply(-3)));
+                .add(incomingDirection.clone().multiply(-3)))
+                .add(new Vector(0, 0.5, 0));
         scoreDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
         scoreDisplay.setText(ChatColor.GREEN + "Score: " + scorer.getScore());
         scoreDisplay.setBillboard(Display.Billboard.CENTER);
@@ -358,8 +372,22 @@ public class PlayingField implements Listener {
                 new Vector3f(1.5f, 1.5f, 1.5f),
                 new AxisAngle4f(0, 0, 0, 1)));
 
+        loc = getReferencePoint().add(fieldDirection.clone().multiply(-1.5))
+                .add(incomingDirection.clone().multiply(-3))
+                .add(new Vector(0, 1.5, 0));
+        timeDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
+        timeDisplay.setText(ChatColor.AQUA + "Time: " + scorer.getFormattedTime());
+        timeDisplay.setBillboard(Display.Billboard.CENTER);
+        timeDisplay.setTransformation(new Transformation(
+                new Vector3f(0, 0, 0),
+                new AxisAngle4f(0, 0, 0, 1),
+                new Vector3f(1.5f, 1.5f, 1.5f),
+                new AxisAngle4f(0, 0, 0, 1)));
+
         textDisplays.add(wallDisplay);
         textDisplays.add(scoreDisplay);
+        textDisplays.add(timeDisplay);
+
     }
 
     public Material getDefaultBorderMaterial() {
@@ -415,18 +443,23 @@ public class PlayingField implements Listener {
     public void createMenu() {
         if (players.isEmpty()) return;
         Player player = players.iterator().next();
-        Location loc = getReferencePoint().add(fieldDirection.clone().multiply((double) length / 2))
-                .add(new Vector(0, 1, 0).multiply((double) height / 2));
-        menu = new Menu(player, loc, this);
+        if (hasMenu()) removeMenu();
+        menu = new Menu(player, getCenter(), this);
         menu.display();
     }
 
     public void removeMenu() {
-        this.menu.despawn();
+        if (menu != null) this.menu.despawn();
         this.menu = null;
     }
 
     public boolean hasMenu() {
         return menu != null;
+    }
+
+    public Location getCenter() {
+        Location loc = getReferencePoint().add(fieldDirection.clone().multiply((double) length / 2))
+                .add(new Vector(0, 1, 0).multiply((double) height / 2));
+        return loc;
     }
 }

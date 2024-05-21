@@ -1,14 +1,18 @@
 package com.articreep.holeinthewall;
 
+import com.articreep.holeinthewall.menu.Gamemode;
 import com.articreep.holeinthewall.modifiers.ModifierEvent;
 import com.articreep.holeinthewall.modifiers.Rush;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Display;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TextDisplay;
+import org.bukkit.util.Transformation;
 import org.javatuples.Pair;
+import org.joml.AxisAngle4f;
+import org.joml.Vector3f;
 
 import java.util.Map;
 
@@ -17,6 +21,9 @@ public class PlayingFieldScorer {
     private int score = 0;
     private double bonus = 0;
     private int wallsCleared = 0;
+    // time in ticks
+    private int time = 0;
+    private Gamemode gamemode;
 
     public PlayingFieldScorer(PlayingField field) {
         this.field = field;
@@ -124,5 +131,55 @@ public class PlayingFieldScorer {
         score = 0;
         bonus = 0;
         wallsCleared = 0;
+        time = 0;
+        gamemode = null;
+    }
+
+    public String getFormattedTime() {
+        return String.format("%02d:%02d", (time/20) / 60, (time/20) % 60);
+    }
+
+    public int getRawTime() {
+        return time;
+    }
+
+    public void tick() {
+        if (gamemode == Gamemode.SCORE_ATTACK) time--;
+        else time++;
+
+        if (gamemode == Gamemode.SCORE_ATTACK) {
+            if (time <= 0) {
+                for (Player player : field.getPlayers()) {
+                    player.sendMessage(ChatColor.RED + "Time's up!");
+                }
+                field.stop();
+            } else if (time == 20 * 60) {
+                for (Player player : field.getPlayers()) {
+                    player.sendTitle("",ChatColor.YELLOW + "1 minute remaining!", 0, 40, 5);
+                }
+            } else if (time == 20 * 30) {
+                for (Player player : field.getPlayers()) {
+                    player.sendTitle("", ChatColor.YELLOW + "30 seconds remaining!", 0, 40, 5);
+                }
+            } else if (time < 20 * 10 && time % 20 == 0) {
+                for (Player player : field.getPlayers()) {
+                    player.sendTitle("", ChatColor.RED + String.valueOf(time / 20), 0, 20, 5);
+                }
+            }
+        }
+    }
+
+    public void announceFinalScore() {
+        for (Player player : field.getPlayers()) {
+            player.sendMessage(ChatColor.GREEN + "Your final score was " + ChatColor.BOLD + score);
+        }
+
+    }
+
+    public void setGamemode(Gamemode gamemode) {
+        this.gamemode = gamemode;
+        if (gamemode == Gamemode.SCORE_ATTACK) {
+            time = 20 * 120;
+        }
     }
 }
