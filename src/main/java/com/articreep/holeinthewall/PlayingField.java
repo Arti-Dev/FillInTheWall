@@ -127,6 +127,7 @@ public class PlayingField implements Listener {
             event.end();
             event = null;
         }
+        // todo this does not work if player walks off
         scorer.announceFinalScore();
         scorer.reset();
 

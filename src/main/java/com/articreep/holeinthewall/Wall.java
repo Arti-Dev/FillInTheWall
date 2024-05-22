@@ -24,7 +24,9 @@ public class Wall {
     private int maxTime = -1;
     private int timeRemaining = -1;
     private Vector movementDirection = null;
-    private List<BlockDisplay> entities = new ArrayList<>();
+    private Set<BlockDisplay> entities = new HashSet<>();
+    private List<BlockDisplay> blocks = new ArrayList<>();
+    private List<BlockDisplay> border = new ArrayList<>();
     private List<BlockDisplay> toRemove = new ArrayList<>();
     private final Random random = new Random();
 
@@ -79,6 +81,7 @@ public class Wall {
         movementDirection = field.getIncomingDirection();
         spawnReferencePoint.subtract(movementDirection.clone().multiply(queue.getFullLength()));
 
+        World world = spawnReferencePoint.getWorld();
         for (int x = 0; x < length; x++) {
             for (int y = 0; y < height; y++) {
                 Location loc = spawnReferencePoint.clone()
@@ -90,8 +93,6 @@ public class Wall {
                 BlockDisplay display = (BlockDisplay) loc.getWorld().spawnEntity(loc, EntityType.BLOCK_DISPLAY);
                 // make invisible for now
                 display.setBlock(Material.AIR.createBlockData());
-                display.setTeleportDuration(1);
-                display.setInterpolationDuration(20);
                 display.setTransformation(new Transformation(
                        new Vector3f(-0.5f, -0.5f, -0.5f),
                         new AxisAngle4f(0, 0, 0, 1), new Vector3f(1, 1, 1),
@@ -100,16 +101,109 @@ public class Wall {
                 if (holes.contains(Pair.with(x, y))) {
                     toRemove.add(display);
                 }
+                blocks.add(display);
                 entities.add(display);
             }
         }
+
+        // borders
+
+        Vector offset = field.getIncomingDirection().multiply(0.5);
+        if (Math.abs(offset.getX()) > 0) offset.multiply(-1);
+
+        // todo this code is ugly
+        // horizontal ones
+
+        // stretch block in field direction by a factor of its length
+        // compress block in y direction by a factor of 10 (x0.1)
+        // leave last direction as zero
+
+        // Start with a vector with all 1s except for y direction
+        Vector scaleVector = new Vector(1, 0.1, 1);
+        // Subtract 1 from this to factor for the 1s in the existing vector
+        scaleVector.add(field.getFieldDirection().multiply(length));
+
+        BlockDisplay bottomBorder = (BlockDisplay) world.spawnEntity(spawnReferencePoint.clone()
+                // middle of the wall
+                .add(field.getFieldDirection().multiply((double) length / 2))
+                // dip down a little
+                .add(0, -0.05, 0)
+                .add(offset), EntityType.BLOCK_DISPLAY);
+        bottomBorder.setTransformation(new Transformation(
+                // translation - half of the scale vectors and negative
+                scaleVector.clone().multiply(-0.5).toVector3f(),
+                new AxisAngle4f(0, 0, 0, 1), scaleVector.toVector3f(),
+                new AxisAngle4f(0, 0, 0, 1)));
+        bottomBorder.setBlock(Material.IRON_BLOCK.createBlockData());
+
+        BlockDisplay topBorder = (BlockDisplay) world.spawnEntity(spawnReferencePoint.clone()
+                // middle of the wall
+                .add(field.getFieldDirection().multiply((double) length / 2))
+                // go up and go up a little more
+                .add(0, height + 0.05, 0)
+                .add(offset), EntityType.BLOCK_DISPLAY);
+        topBorder.setTransformation(new Transformation(
+                // translation - half of the scale vectors and negative
+                scaleVector.clone().multiply(-0.5).toVector3f(),
+                new AxisAngle4f(0, 0, 0, 1), scaleVector.toVector3f(),
+                new AxisAngle4f(0, 0, 0, 1)));
+        topBorder.setBlock(Material.IRON_BLOCK.createBlockData());
+
+        // vertical ones
+        // Start with a vector with all 1s except for y direction
+        scaleVector = new Vector(1, 1, 1);
+        // Compress
+        // todo this is dumb
+        scaleVector.subtract(field.getFieldDirection().multiply(0.9));
+        // Stretch in the y direction
+        scaleVector.add(new Vector(0, height, 0));
+
+        BlockDisplay leftBorder = (BlockDisplay) world.spawnEntity(spawnReferencePoint.clone()
+                // middle of the wall
+                .add(0, (double) height / 2, 0)
+                // left a little;
+                .subtract(field.getFieldDirection().multiply(0.05))
+                .add(offset), EntityType.BLOCK_DISPLAY);
+        leftBorder.setTransformation(new Transformation(
+                // translation - half of the scale vectors and negative
+                scaleVector.clone().multiply(-0.5).toVector3f(),
+                new AxisAngle4f(0, 0, 0, 1), scaleVector.toVector3f(),
+                new AxisAngle4f(0, 0, 0, 1)));
+        leftBorder.setBlock(Material.IRON_BLOCK.createBlockData());
+
+        BlockDisplay rightBorder = (BlockDisplay) world.spawnEntity(spawnReferencePoint.clone()
+                // middle of the wall
+                .add(0, (double) height / 2, 0)
+                // right a little;
+                .add(field.getFieldDirection().multiply(length + 0.05))
+                .add(offset), EntityType.BLOCK_DISPLAY);
+        rightBorder.setTransformation(new Transformation(
+                // translation - half of the scale vectors and negative
+                scaleVector.clone().multiply(-0.5).toVector3f(),
+                new AxisAngle4f(0, 0, 0, 1), scaleVector.toVector3f(),
+                new AxisAngle4f(0, 0, 0, 1)));
+        rightBorder.setBlock(Material.IRON_BLOCK.createBlockData());
+
+
+        border.addAll(Arrays.asList(bottomBorder, topBorder, leftBorder, rightBorder));
+        entities.addAll(border);
+
+        for (BlockDisplay display : entities) {
+            display.setTeleportDuration(1);
+            display.setInterpolationDuration(20);
+        }
+
     }
 
     public void animateWall(Set<Player> players) {
         state = WallState.ANIMATING;
         // make them visible immediately
-        for (BlockDisplay display : entities) {
+        for (BlockDisplay display : blocks) {
             display.setBlock(material.createBlockData());
+        }
+
+        for (BlockDisplay display : border) {
+            display.setBlock(Material.IRON_BLOCK.createBlockData());
         }
 
         // Block break animation
@@ -119,6 +213,7 @@ public class Wall {
                 for (BlockDisplay display : toRemove) {
                     display.remove();
                     entities.remove(display);
+                    blocks.remove(display);
                     for (Player player : players) {
                         player.getWorld().spawnParticle(Particle.BLOCK, display.getLocation(), 10,
                                 0.5, 0.5, 0.5, 0.1, material.createBlockData());
@@ -136,9 +231,13 @@ public class Wall {
         if (state != WallState.VISIBLE) return -1;
 
         int length = queue.getFullLength();
-        for (BlockDisplay display : entities) {
+        for (BlockDisplay display : blocks) {
             display.teleport(display.getLocation().add(movementDirection.clone().multiply((double) length/maxTime)));
         }
+        for (BlockDisplay display : border) {
+            display.teleport(display.getLocation().add(movementDirection.clone().multiply((double) length/maxTime)));
+        }
+
         if (timeRemaining > 0) {
             timeRemaining--;
         }
@@ -153,7 +252,7 @@ public class Wall {
         for (BlockDisplay entity : entities) {
             entity.remove();
         }
-        entities.clear();
+        blocks.clear();
         state = WallState.HIDDEN;
     }
 
@@ -162,7 +261,7 @@ public class Wall {
             int i = 0;
             @Override
             public void run() {
-                for (BlockDisplay display : entities) {
+                for (BlockDisplay display : blocks) {
                     Location loc = display.getLocation();
                     loc.setYaw(loc.getYaw() + 10);
                     display.teleport(loc);
