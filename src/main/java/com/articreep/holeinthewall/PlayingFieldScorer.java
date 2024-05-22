@@ -17,7 +17,7 @@ public class PlayingFieldScorer {
     private int wallsCleared = 0;
     // time in ticks
     private int time = 0;
-    private Gamemode gamemode;
+    private Gamemode gamemode = Gamemode.INFINITE;
 
     // Levels (if enabled)
     boolean doLevels = false;
@@ -275,5 +275,9 @@ public class PlayingFieldScorer {
 
     public int getLevel() {
         return level;
+    }
+
+    public Gamemode getGamemode() {
+        return gamemode;
     }
 }

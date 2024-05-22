@@ -112,7 +112,9 @@ public class Rush extends ModifierEvent {
         field.clearField();
         queue.clearAllWalls();
         field.getScorer().scoreEvent(this);
-        TheVoid.resetTime(field);
+        if (field.getEnvironment().equalsIgnoreCase("VOID")) {
+            TheVoid.resetTime(field);
+        }
         for (Player player : field.getPlayers()) {
             player.playSound(player, Sound.ENTITY_GENERIC_EXPLODE, 1, 1);
             player.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, player.getLocation(), 1);

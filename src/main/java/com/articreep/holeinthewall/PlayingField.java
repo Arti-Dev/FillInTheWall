@@ -43,7 +43,7 @@ public class PlayingField implements Listener {
     private final WorldBoundingBox effectBox;
     private String environment;
 
-    private final Set<TextDisplay> textDisplays = new HashSet<>();
+    private final Set<TextDisplay> textDisplays = new LinkedHashSet<>();
     private TextDisplay scoreDisplay = null;
     private TextDisplay accuracyDisplay = null;
     private TextDisplay speedDisplay = null;
@@ -400,10 +400,29 @@ public class PlayingField implements Listener {
                 new Vector3f(1.5f, 1.5f, 1.5f),
                 new AxisAngle4f(0, 0, 0, 1)));
 
+        loc = getReferencePoint().add(getFieldDirection().multiply((double) length / 2))
+                .add(new Vector(0, 1, 0).multiply(height + 3));
+        TextDisplay nameDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
+        nameDisplay.setText(ChatColor.AQUA + players.iterator().next().getName());
+        nameDisplay.setBillboard(Display.Billboard.CENTER);
+        nameDisplay.setTransformation(new Transformation(
+                new Vector3f(0, 0, 0),
+                new AxisAngle4f(0, 0, 0, 1),
+                new Vector3f(3f, 3f, 3f),
+                new AxisAngle4f(0, 0, 0, 1)));
+
+        loc.subtract(new Vector(0, 1, 0).multiply(0.5));
+        TextDisplay modeDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
+        modeDisplay.setText("Playing " + scorer.getGamemode().getTitle());
+        modeDisplay.setBillboard(Display.Billboard.CENTER);
+
+
         textDisplays.add(wallDisplay);
         textDisplays.add(scoreDisplay);
         textDisplays.add(timeDisplay);
         textDisplays.add(levelDisplay);
+        textDisplays.add(modeDisplay);
+        textDisplays.add(nameDisplay);
 
     }
 
