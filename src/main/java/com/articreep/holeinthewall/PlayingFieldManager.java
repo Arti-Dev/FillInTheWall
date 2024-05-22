@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -21,6 +22,7 @@ import org.javatuples.Pair;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 public class PlayingFieldManager implements Listener {
     public static Map<Player, PlayingField> activePlayingFields = new HashMap<>();
@@ -64,8 +66,19 @@ public class PlayingFieldManager implements Listener {
                             Material.CRACKED_STONE_BRICKS.createBlockData());
                     Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
                             () -> event.getClickedBlock().breakNaturally(new ItemStack(Material.LEAD)));
+                    event.getPlayer().playSound(event.getPlayer(), Sound.BLOCK_DEEPSLATE_BREAK, 0.7f, 1);
                 }
             }
+        }
+    }
+
+    @EventHandler
+    public void onBlockPlace(BlockPlaceEvent event) {
+        Player player = event.getPlayer();
+        if (event.getBlockPlaced().getType() == Material.CRACKED_STONE_BRICKS &&
+                activePlayingFields.containsKey(player)) {
+            Random random = new Random();
+            player.playSound(player, Sound.BLOCK_CHAIN_PLACE, 0.7f, random.nextFloat(0.5f, 2));
         }
     }
 
