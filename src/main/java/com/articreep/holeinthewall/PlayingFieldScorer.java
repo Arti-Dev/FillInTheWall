@@ -219,6 +219,7 @@ public class PlayingFieldScorer {
             field.getQueue().setRandomizeFurther(true);
             field.getQueue().setRandomHoleCount(2);
             field.getQueue().setConnectedHoleCount(4);
+            field.getQueue().setWallActiveTime(160);
             setMeterMax(10);
         } else if (gamemode == Gamemode.RAPID_SCORE_ATTACK) {
             time = 20 * 60;
@@ -226,6 +227,7 @@ public class PlayingFieldScorer {
             field.getQueue().setRandomizeFurther(false);
             field.getQueue().setRandomHoleCount(1);
             field.getQueue().setConnectedHoleCount(2);
+            field.getQueue().setWallActiveTime(160);
             setMeterMax(5);
         }
     }
