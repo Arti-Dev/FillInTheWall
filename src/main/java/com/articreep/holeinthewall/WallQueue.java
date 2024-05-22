@@ -3,6 +3,7 @@ package com.articreep.holeinthewall;
 import com.articreep.holeinthewall.modifiers.Rush;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
@@ -12,7 +13,7 @@ public class WallQueue {
     /**
      * This is in ticks.
      */
-    private final int timeToFill = 160;
+    private int wallActiveTime = 160;
     private PlayingField field = null;
     private final int fullLength = 20;
     // todo this number will change if "garbage walls" accumulate in the queue
@@ -27,6 +28,11 @@ public class WallQueue {
     public List<Wall> visibleWalls;
     private int pauseLoop = 0;
 
+    // Wall generation settings
+    int randomHoleCount = 2;
+    int connectedHoleCount = 4;
+    boolean randomizeFurther = true;
+
     public WallQueue(PlayingField field) {
         hiddenWalls = new LinkedList<>();
         animatingWall = null;
@@ -38,7 +44,7 @@ public class WallQueue {
         hiddenWalls.add(wall);
         if (wall.getTimeRemaining() == -1) {
             // default wall speed
-            wall.setTimeRemaining(timeToFill);
+            wall.setTimeRemaining(wallActiveTime);
         }
     }
 
@@ -69,9 +75,8 @@ public class WallQueue {
         }
 
         if (hiddenWalls.isEmpty() && !field.eventActive()) {
-            Random random = new Random();
             Wall newWall = new Wall(field.getLength(), field.getHeight());
-            newWall.generateHoles(2, random.nextInt(1,5));
+            newWall.generateHoles(randomHoleCount, connectedHoleCount, randomizeFurther);
             addWall(newWall);
         }
 
@@ -128,6 +133,26 @@ public class WallQueue {
             animatingWall.despawn();
             animatingWall = null;
         }
+        hiddenWalls.clear();
+    }
+
+    public void setWallActiveTime(int wallActiveTime) {
+        this.wallActiveTime = wallActiveTime;
+    }
+
+    public void setRandomHoleCount(int randomHoleCount) {
+        this.randomHoleCount = randomHoleCount;
+    }
+
+    public void setConnectedHoleCount(int connectedHoleCount) {
+        this.connectedHoleCount = connectedHoleCount;
+    }
+
+    public void setRandomizeFurther(boolean randomizeFurther) {
+        this.randomizeFurther = randomizeFurther;
+    }
+
+    public void clearHiddenWalls() {
         hiddenWalls.clear();
     }
 }

@@ -17,7 +17,6 @@ import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.Listener;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.javatuples.Pair;
@@ -44,12 +43,13 @@ public class PlayingField implements Listener {
     private final WorldBoundingBox effectBox;
     private String environment;
 
-    private final List<TextDisplay> textDisplays = new ArrayList<>();
+    private final Set<TextDisplay> textDisplays = new HashSet<>();
     private TextDisplay scoreDisplay = null;
     private TextDisplay accuracyDisplay = null;
     private TextDisplay speedDisplay = null;
     private TextDisplay wallDisplay = null;
     private TextDisplay timeDisplay = null;
+    private TextDisplay levelDisplay = null;
     private boolean scoreDisplayOverride = false;
 
     private final PlayingFieldScorer scorer;
@@ -87,10 +87,10 @@ public class PlayingField implements Listener {
                 }
             }
         }
-        // starter wall
-        Wall wall1 = new Wall(length, height);
-        wall1.insertHoles(new Pair<>(3, 1), new Pair<>(4, 1));
-        queue.addWall(wall1);
+//        // starter wall
+//        Wall wall1 = new Wall(length, height);
+//        wall1.insertHoles(new Pair<>(3, 1), new Pair<>(4, 1));
+//        queue.addWall(wall1);
     }
 
     public void start(Gamemode mode) {
@@ -291,10 +291,13 @@ public class PlayingField implements Listener {
                     scoreDisplay.setText(ChatColor.GREEN + "Score: " + scorer.getScore());
                 }
                 timeDisplay.setText(ChatColor.AQUA + "Time: " + scorer.getFormattedTime());
+                levelDisplay.setText(ChatColor.DARK_AQUA + "Level " + scorer.getLevel());
 
 
                 if (!eventActive() || event.actionBarOverride() == null) {
-                    double bonus = scorer.getBonus();
+                    double bonus = scorer.getMeter();
+                    int bonusMax = scorer.getMeterMax();
+                    // todo change this so it can work with leveling instead of just rush
                     ChatColor color;
                     if (bonus <= 3) {
                         color = ChatColor.GRAY;
@@ -304,7 +307,7 @@ public class PlayingField implements Listener {
                         color = ChatColor.GREEN;
                     }
                     for (Player player : players) player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                            new TextComponent(color + "Rush Meter: " + String.format("%.2f", bonus) + "/10"));
+                            new TextComponent(color + "Meter: " + String.format("%.2f", bonus) + "/" + bonusMax));
                 }
                 queue.tick();
                 if (eventActive()) {
@@ -315,7 +318,7 @@ public class PlayingField implements Listener {
                 }
                 scorer.tick();
 
-                // todo Effects
+                // todo Effects, start them at a slower pace and intensify them as the game goes on
                 // Do not do effects if an event is active
                 if (environment.equalsIgnoreCase("VOID") && !eventActive()) {
                     if (ticks % 10 == 0) {
@@ -360,8 +363,8 @@ public class PlayingField implements Listener {
                 new Vector3f(1.5f, 1.5f, 1.5f),
                 new AxisAngle4f(0, 0, 0, 1)));
 
-        loc = getReferencePoint().add(fieldDirection.clone().multiply(length + 0.5)
-                .add(incomingDirection.clone().multiply(-3)))
+        loc = getReferencePoint().add(fieldDirection.clone().multiply(length + 0.5))
+                .add(incomingDirection.clone().multiply(-3))
                 .add(new Vector(0, 0.5, 0));
         scoreDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
         scoreDisplay.setText(ChatColor.GREEN + "Score: " + scorer.getScore());
@@ -371,6 +374,19 @@ public class PlayingField implements Listener {
                 new AxisAngle4f(0, 0, 0, 1),
                 new Vector3f(1.5f, 1.5f, 1.5f),
                 new AxisAngle4f(0, 0, 0, 1)));
+
+        loc = getReferencePoint().add(fieldDirection.clone().multiply(length + 0.5))
+                .add(incomingDirection.clone().multiply(-3))
+                .add(new Vector(0, 1.5, 0));
+        levelDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
+        levelDisplay.setText(ChatColor.DARK_AQUA + "Level " + scorer.getLevel());
+        levelDisplay.setBillboard(Display.Billboard.CENTER);
+        levelDisplay.setTransformation(new Transformation(
+                new Vector3f(0, 0, 0),
+                new AxisAngle4f(0, 0, 0, 1),
+                new Vector3f(1.5f, 1.5f, 1.5f),
+                new AxisAngle4f(0, 0, 0, 1)));
+
 
         loc = getReferencePoint().add(fieldDirection.clone().multiply(-1.5))
                 .add(incomingDirection.clone().multiply(-3))
@@ -387,6 +403,7 @@ public class PlayingField implements Listener {
         textDisplays.add(wallDisplay);
         textDisplays.add(scoreDisplay);
         textDisplays.add(timeDisplay);
+        textDisplays.add(levelDisplay);
 
     }
 

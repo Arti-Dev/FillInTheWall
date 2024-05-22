@@ -5,25 +5,24 @@ import com.articreep.holeinthewall.modifiers.ModifierEvent;
 import com.articreep.holeinthewall.modifiers.Rush;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Display;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.TextDisplay;
-import org.bukkit.util.Transformation;
 import org.javatuples.Pair;
-import org.joml.AxisAngle4f;
-import org.joml.Vector3f;
 
 import java.util.Map;
 
 public class PlayingFieldScorer {
     PlayingField field;
     private int score = 0;
-    private double bonus = 0;
+    private double meter = 0;
     private int wallsCleared = 0;
     // time in ticks
     private int time = 0;
     private Gamemode gamemode;
+
+    // Levels (if enabled)
+    boolean doLevels = false;
+    private int level = 1;
+    private int meterMax = 10;
 
     public PlayingFieldScorer(PlayingField field) {
         this.field = field;
@@ -66,22 +65,34 @@ public class PlayingFieldScorer {
             judgement = Judgement.MISS;
         }
 
-        // Add/subtract to bonus and maybe even trigger rush
+        // Add/subtract to bonus
         if (percent >= 0.5) {
-            bonus += percent;
-            if (bonus >= 10) {
-                bonus = 0;
-                // tell playingfield to not show title
-                // todo temporary
-                title = null;
-                // activate rush next tick
-                Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(), () -> {
-                    field.activateEvent(new Rush(field));
-                });
+            meter += percent;
+            if (meter >= meterMax) {
+                meter = 0;
+                if (gamemode == Gamemode.INFINITE) {
+                    // tell playingfield to not show title
+                    // todo temporary
+                    title = null;
+                    // activate rush next tick
+                    Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(), () -> {
+                        field.activateEvent(new Rush(field));
+                    });
+                } else if (gamemode == Gamemode.SCORE_ATTACK) {
+                    title = null;
+                    setLevel(level + 1);
+                    for (Player player : field.getPlayers()) {
+                        player.sendTitle("", ChatColor.GREEN + "Level up!", 0, 10, 5);
+                    }
+                }
             }
         } else {
-            bonus -= 2;
-            if (bonus < 0) bonus = 0;
+            // You cannot lose progress if levels are enabled
+            if (!doLevels) {
+                meter -= 2;
+            }
+
+            if (meter < 0) meter = 0;
         }
 
         return new PlayingFieldState(border, color, title, score, judgement);
@@ -123,16 +134,18 @@ public class PlayingFieldScorer {
         return score;
     }
 
-    public double getBonus() {
-        return bonus;
+    public double getMeter() {
+        return meter;
     }
 
     public void reset() {
         score = 0;
-        bonus = 0;
+        meter = 0;
         wallsCleared = 0;
         time = 0;
         gamemode = null;
+        level = 1;
+        doLevels = false;
     }
 
     public String getFormattedTime() {
@@ -161,7 +174,7 @@ public class PlayingFieldScorer {
                 for (Player player : field.getPlayers()) {
                     player.sendTitle("", ChatColor.YELLOW + "30 seconds remaining!", 0, 40, 5);
                 }
-            } else if (time < 20 * 10 && time % 20 == 0) {
+            } else if (time <= 20 * 10 && time % 20 == 0) {
                 for (Player player : field.getPlayers()) {
                     player.sendTitle("", ChatColor.RED + String.valueOf(time / 20), 0, 20, 5);
                 }
@@ -173,13 +186,65 @@ public class PlayingFieldScorer {
         for (Player player : field.getPlayers()) {
             player.sendMessage(ChatColor.GREEN + "Your final score was " + ChatColor.BOLD + score);
         }
-
     }
 
     public void setGamemode(Gamemode gamemode) {
         this.gamemode = gamemode;
         if (gamemode == Gamemode.SCORE_ATTACK) {
             time = 20 * 120;
+            doLevels = true;
+            field.getQueue().setRandomizeFurther(false);
+            setLevel(1);
+        } else if (gamemode == Gamemode.INFINITE) {
+            doLevels = false;
+            field.getQueue().setRandomizeFurther(true);
+            field.getQueue().setRandomHoleCount(2);
+            field.getQueue().setConnectedHoleCount(4);
         }
+    }
+
+    // levels
+    public void setMeterMax(int meterMax) {
+        this.meterMax = meterMax;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
+        setDifficulty(level);
+        setMeterMax(level);
+        // when we level up, delete all pending walls in the queue and force a new wall to be made.
+        // todo subject to change
+        field.getQueue().clearHiddenWalls();
+    }
+
+    private void setDifficulty(int level) {
+        WallQueue queue = field.getQueue();
+        queue.setWallActiveTime(Math.max(200 - level * 20, 60));
+
+        if (level == 1) {
+            queue.setRandomHoleCount(1);
+            queue.setConnectedHoleCount(0);
+        } else if (level == 2) {
+            queue.setRandomHoleCount(1);
+            queue.setConnectedHoleCount(1);
+        } else {
+            int remainingHoles = (level/2) + 1;
+            if (level >= 5) {
+                queue.setRandomHoleCount(2);
+                remainingHoles -= 2;
+            } else {
+                queue.setRandomHoleCount(1);
+                remainingHoles -= 1;
+            }
+            queue.setConnectedHoleCount(remainingHoles);
+        }
+    }
+
+    public int getMeterMax() {
+        return meterMax;
+    }
+
+    public int getLevel() {
+        return level;
     }
 }

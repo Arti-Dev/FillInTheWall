@@ -295,12 +295,27 @@ public class Wall {
         return null;
     }
 
-    public void generateHoles(int random, int cluster) {
+    // todo this is super unclear
+    /**
+     * Generates holes on the wall.
+     * The algorithm works as follows:
+     * Generate x random holes on the wall.
+     * Generate y holes that are connected to existing holes, either horizontally, vertically, or diagonally.
+     * @param random Number of random holes to generate
+     * @param cluster Number of connected holes to generate. This can be random as well with the next argument.
+     * @param randomizeFurther Whether to instead randomize the number of connected holes and use the provided
+     *                         cluster argument as the maximum number of connected holes to generate.
+     */
+    public void generateHoles(int random, int cluster, boolean randomizeFurther) {
         for (int i = 0; i < random; i++) {
             Pair<Integer, Integer> hole = randomCoordinates();
             insertHole(hole);
         }
 
+        if (randomizeFurther) {
+            Random rng = new Random();
+            cluster = rng.nextInt(0, cluster + 1);
+        }
         for (int i = 0; i < cluster; i++) {
             Pair<Integer, Integer> hole = (randomCoordinatesConnected());
             if (hole != null) {
