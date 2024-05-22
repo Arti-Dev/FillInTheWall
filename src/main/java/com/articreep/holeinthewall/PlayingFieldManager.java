@@ -150,7 +150,7 @@ public class PlayingFieldManager implements Listener {
             int fieldHeight = config.getInt(key + ".field_height");
             String environment = config.getString(key + ".environment");
 
-            WorldBoundingBox box = playingFieldActivationBox(refPoint, incomingDirection, fieldDirection, standingDistance, queueLength, fieldLength, fieldHeight);
+            WorldBoundingBox box = playingFieldActivationBox(refPoint.clone().subtract(0, 1, 0), incomingDirection, fieldDirection, standingDistance, queueLength, fieldLength, fieldHeight);
             WorldBoundingBox effectBox = effectBox(refPoint, incomingDirection, fieldDirection, queueLength, fieldLength, fieldHeight);
             playingFieldLocations.put(box, new PlayingField(
                     refPoint, fieldDirection, incomingDirection, box, effectBox, environment, fieldLength, fieldHeight));
