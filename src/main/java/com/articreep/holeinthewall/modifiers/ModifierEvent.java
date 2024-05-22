@@ -10,6 +10,7 @@ public abstract class ModifierEvent {
     public final boolean overrideScoring;
     public final boolean allowMultipleWalls;
     public final int pauseTime;
+    public final boolean timeFreeze;
 
     protected WallQueue queue;
     protected int ticksRemaining;
@@ -17,13 +18,14 @@ public abstract class ModifierEvent {
 
 
     // todo this constructor is yucky
-    protected ModifierEvent(PlayingField field, int ticks, int pauseTime, boolean pauseScoring, boolean allowMultipleWalls) {
+    protected ModifierEvent(PlayingField field, int ticks, int pauseTime, boolean pauseScoring, boolean allowMultipleWalls, boolean timeFreeze) {
         this.field = field;
         this.queue = field.getQueue();
         this.overrideScoring = pauseScoring;
         this.ticksRemaining = ticks;
         this.pauseTime = pauseTime;
         this.allowMultipleWalls = allowMultipleWalls;
+        this.timeFreeze = timeFreeze;
     }
 
     public int getTicksRemaining() {

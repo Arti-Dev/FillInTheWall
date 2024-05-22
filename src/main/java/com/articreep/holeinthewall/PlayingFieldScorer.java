@@ -70,7 +70,7 @@ public class PlayingFieldScorer {
             meter += percent;
             if (meter >= meterMax) {
                 meter = 0;
-                if (gamemode == Gamemode.INFINITE) {
+                if (!doLevels) {
                     // tell playingfield to not show title
                     // todo temporary
                     title = null;
@@ -89,7 +89,7 @@ public class PlayingFieldScorer {
         } else {
             // You cannot lose progress if levels are enabled
             if (!doLevels) {
-                meter -= 2;
+                meter -= 1;
             }
 
             if (meter < 0) meter = 0;
@@ -157,7 +157,8 @@ public class PlayingFieldScorer {
     }
 
     public void tick() {
-        if (gamemode == Gamemode.SCORE_ATTACK) time--;
+        if (field.eventActive() && field.getEvent().timeFreeze) return;
+        if (gamemode == Gamemode.SCORE_ATTACK || gamemode == Gamemode.RAPID_SCORE_ATTACK) time--;
         else time++;
 
         if (gamemode == Gamemode.SCORE_ATTACK) {
@@ -180,11 +181,29 @@ public class PlayingFieldScorer {
                 }
             }
         }
+
+        if (gamemode == Gamemode.RAPID_SCORE_ATTACK) {
+            if (time <= 0) {
+                for (Player player : field.getPlayers()) {
+                    player.sendMessage(ChatColor.RED + "Time's up!");
+                }
+                field.stop();
+            }
+            if (time == 20 * 20) {
+                for (Player player : field.getPlayers()) {
+                    player.sendTitle("", ChatColor.YELLOW + "20 seconds remaining!", 0, 40, 5);
+                }
+            } else if (time <= 20 * 10 && time % 20 == 0) {
+                for (Player player : field.getPlayers()) {
+                    player.sendTitle("", ChatColor.RED + String.valueOf(time / 20), 0, 20, 5);
+                }
+            }
+        }
     }
 
     public void announceFinalScore() {
         for (Player player : field.getPlayers()) {
-            player.sendMessage(ChatColor.GREEN + "Your final score was " + ChatColor.BOLD + score);
+            player.sendMessage(ChatColor.GREEN + "Your final score is " + ChatColor.BOLD + score);
         }
     }
 
@@ -200,6 +219,14 @@ public class PlayingFieldScorer {
             field.getQueue().setRandomizeFurther(true);
             field.getQueue().setRandomHoleCount(2);
             field.getQueue().setConnectedHoleCount(4);
+            setMeterMax(10);
+        } else if (gamemode == Gamemode.RAPID_SCORE_ATTACK) {
+            time = 20 * 60;
+            doLevels = false;
+            field.getQueue().setRandomizeFurther(false);
+            field.getQueue().setRandomHoleCount(1);
+            field.getQueue().setConnectedHoleCount(2);
+            setMeterMax(5);
         }
     }
 

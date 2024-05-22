@@ -25,7 +25,7 @@ public class Rush extends ModifierEvent {
     private int boardsCleared = 0;
     private boolean active = false;
     public Rush(PlayingField field) {
-        super(field, 600, 5, true, true);
+        super(field, 600, 5, true, true, true);
         nextWall = new Wall(randomMaterial(), field.getLength(), field.getHeight());
         nextWall.insertHoles(nextWall.randomCoordinates());
     }
