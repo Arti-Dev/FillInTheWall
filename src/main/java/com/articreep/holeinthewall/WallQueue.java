@@ -53,7 +53,7 @@ public class WallQueue {
         if (animatingWall != null) return;
         if (hiddenWalls.isEmpty()) return;
         animatingWall = hiddenWalls.removeFirst();
-        animatingWall.spawnWall(field, this);
+        animatingWall.spawnWall(field, this, hideBottomBorder);
         animatingWall.animateWall(field.getPlayers());
         new BukkitRunnable() {
             @Override
@@ -76,7 +76,7 @@ public class WallQueue {
         }
 
         if (hiddenWalls.isEmpty() && !field.eventActive()) {
-            Wall newWall = new Wall(field.getLength(), field.getHeight(), hideBottomBorder);
+            Wall newWall = new Wall(field.getLength(), field.getHeight());
             newWall.generateHoles(randomHoleCount, connectedHoleCount, randomizeFurther);
             addWall(newWall);
         }

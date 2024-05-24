@@ -29,26 +29,24 @@ public class Wall {
     private List<BlockDisplay> border = new ArrayList<>();
     private List<BlockDisplay> toRemove = new ArrayList<>();
     private final Random random = new Random();
-    private boolean hideBottomBorder = false;
 
-    public Wall(HashSet<Pair<Integer, Integer>> holes, Material material, int length, int height, boolean hideBottomBorder) {
+    public Wall(HashSet<Pair<Integer, Integer>> holes, Material material, int length, int height) {
         this.holes = holes;
         this.material = material;
         this.length = length;
         this.height = height;
-        this.hideBottomBorder = hideBottomBorder;
     }
 
-    public Wall(HashSet<Pair<Integer, Integer>> holes, int length, int height, boolean hideBottomBorder) {
-        this(holes, Material.BLUE_CONCRETE, length, height, hideBottomBorder);
+    public Wall(HashSet<Pair<Integer, Integer>> holes, int length, int height) {
+        this(holes, Material.BLUE_CONCRETE, length, height);
     }
 
-    public Wall(int length, int height, boolean hideBottomBorder) {
-        this(new HashSet<>(), Material.BLUE_CONCRETE, length, height, hideBottomBorder);
+    public Wall(int length, int height) {
+        this(new HashSet<>(), Material.BLUE_CONCRETE, length, height);
     }
 
-    public Wall(Material material, int length, int height, boolean hideBottomBorder) {
-        this(new HashSet<>(), material, length, height, hideBottomBorder);
+    public Wall(Material material, int length, int height) {
+        this(new HashSet<>(), material, length, height);
     }
 
     public HashSet<Pair<Integer, Integer>> getHoles() {
@@ -72,7 +70,7 @@ public class Wall {
         return state;
     }
 
-    public void spawnWall(PlayingField field, WallQueue queue) {
+    public void spawnWall(PlayingField field, WallQueue queue, boolean hideBottomBorder) {
         if (state != WallState.HIDDEN) return;
         // go to the end of the queue
         // spawn block display entities
