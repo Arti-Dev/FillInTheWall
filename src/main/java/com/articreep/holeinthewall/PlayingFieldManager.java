@@ -149,11 +149,12 @@ public class PlayingFieldManager implements Listener {
             int fieldLength = config.getInt(key + ".field_length");
             int fieldHeight = config.getInt(key + ".field_height");
             String environment = config.getString(key + ".environment");
+            boolean hideBottomBorder = config.getBoolean(key + ".hide_bottom_border");
 
             WorldBoundingBox box = playingFieldActivationBox(refPoint.clone().subtract(0, 1, 0), incomingDirection, fieldDirection, standingDistance, queueLength, fieldLength, fieldHeight);
             WorldBoundingBox effectBox = effectBox(refPoint, incomingDirection, fieldDirection, queueLength, fieldLength, fieldHeight);
             playingFieldLocations.put(box, new PlayingField(
-                    refPoint, fieldDirection, incomingDirection, box, effectBox, environment, fieldLength, fieldHeight));
+                    refPoint, fieldDirection, incomingDirection, box, effectBox, environment, fieldLength, fieldHeight, hideBottomBorder));
 
 
         }

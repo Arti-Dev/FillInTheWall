@@ -18,3 +18,4 @@ field_1:
   incoming_direction: "NORTH"
   # Direction parallel to the field.
   field_direction: "WEST"
+  hide_bottom_border: false

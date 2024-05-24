@@ -59,7 +59,7 @@ public class PlayingField implements Listener {
     private Menu menu = null;
 
     public PlayingField(Location referencePoint, Vector direction, Vector incomingDirection, WorldBoundingBox boundingBox,
-                        WorldBoundingBox effectBox, String environment, int length, int height) {
+                        WorldBoundingBox effectBox, String environment, int length, int height, boolean hideBottomBorder) {
         // define playing field in a very scuffed way
         this.fieldReferencePoint = referencePoint;
         this.fieldDirection = direction;
@@ -72,6 +72,7 @@ public class PlayingField implements Listener {
         this.length = length;
         this.environment = environment;
         if (this.environment == null) this.environment = "";
+        queue.setHideBottomBorder(hideBottomBorder);
 
         for (int x = 0; x < length + 2; x++) {
             for (int y = 0; y < height + 1; y++) {

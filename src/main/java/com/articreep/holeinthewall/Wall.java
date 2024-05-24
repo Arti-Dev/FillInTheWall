@@ -29,24 +29,26 @@ public class Wall {
     private List<BlockDisplay> border = new ArrayList<>();
     private List<BlockDisplay> toRemove = new ArrayList<>();
     private final Random random = new Random();
+    private boolean hideBottomBorder = false;
 
-    public Wall(HashSet<Pair<Integer, Integer>> holes, Material material, int length, int height) {
+    public Wall(HashSet<Pair<Integer, Integer>> holes, Material material, int length, int height, boolean hideBottomBorder) {
         this.holes = holes;
         this.material = material;
         this.length = length;
         this.height = height;
+        this.hideBottomBorder = hideBottomBorder;
     }
 
-    public Wall(HashSet<Pair<Integer, Integer>> holes, int length, int height) {
-        this(holes, Material.BLUE_CONCRETE, length, height);
+    public Wall(HashSet<Pair<Integer, Integer>> holes, int length, int height, boolean hideBottomBorder) {
+        this(holes, Material.BLUE_CONCRETE, length, height, hideBottomBorder);
     }
 
-    public Wall(int length, int height) {
-        this(new HashSet<>(), Material.BLUE_CONCRETE, length, height);
+    public Wall(int length, int height, boolean hideBottomBorder) {
+        this(new HashSet<>(), Material.BLUE_CONCRETE, length, height, hideBottomBorder);
     }
 
-    public Wall(Material material, int length, int height) {
-        this(new HashSet<>(), material, length, height);
+    public Wall(Material material, int length, int height, boolean hideBottomBorder) {
+        this(new HashSet<>(), material, length, height, hideBottomBorder);
     }
 
     public HashSet<Pair<Integer, Integer>> getHoles() {
@@ -94,7 +96,7 @@ public class Wall {
                 // make invisible for now
                 display.setBlock(Material.AIR.createBlockData());
                 display.setTransformation(new Transformation(
-                       new Vector3f(-0.5f, -0.5f, -0.5f),
+                        new Vector3f(-0.5f, -0.5f, -0.5f),
                         new AxisAngle4f(0, 0, 0, 1), new Vector3f(1, 1, 1),
                         new AxisAngle4f(0, 0, 0, 1)));
 
@@ -121,20 +123,23 @@ public class Wall {
         // Start with a vector with all 1s except for y direction
         Vector scaleVector = new Vector(1, 0.1, 1);
         // Subtract 1 from this to factor for the 1s in the existing vector
-        scaleVector.add(field.getFieldDirection().multiply(length));
+        scaleVector.add(field.getFieldDirection().multiply(length - 1 + 0.2 /*to fill in the corners */));
 
-        BlockDisplay bottomBorder = (BlockDisplay) world.spawnEntity(spawnReferencePoint.clone()
-                // middle of the wall
-                .add(field.getFieldDirection().multiply((double) length / 2))
-                // dip down a little
-                .add(0, -0.05, 0)
-                .add(offset), EntityType.BLOCK_DISPLAY);
-        bottomBorder.setTransformation(new Transformation(
-                // translation - half of the scale vectors and negative
-                scaleVector.clone().multiply(-0.5).toVector3f(),
-                new AxisAngle4f(0, 0, 0, 1), scaleVector.toVector3f(),
-                new AxisAngle4f(0, 0, 0, 1)));
-        bottomBorder.setBlock(Material.IRON_BLOCK.createBlockData());
+        BlockDisplay bottomBorder = null;
+        if (!hideBottomBorder) {
+            bottomBorder = (BlockDisplay) world.spawnEntity(spawnReferencePoint.clone()
+                    // middle of the wall
+                    .add(field.getFieldDirection().multiply((double) length / 2))
+                    // dip down a little
+                    .add(0, -0.05, 0)
+                    .add(offset), EntityType.BLOCK_DISPLAY);
+            bottomBorder.setTransformation(new Transformation(
+                    // translation - half of the scale vectors and negative
+                    scaleVector.clone().multiply(-0.5).toVector3f(),
+                    new AxisAngle4f(0, 0, 0, 1), scaleVector.toVector3f(),
+                    new AxisAngle4f(0, 0, 0, 1)));
+            bottomBorder.setBlock(Material.IRON_BLOCK.createBlockData());
+        }
 
         BlockDisplay topBorder = (BlockDisplay) world.spawnEntity(spawnReferencePoint.clone()
                 // middle of the wall
@@ -156,7 +161,7 @@ public class Wall {
         // todo this is dumb
         scaleVector.subtract(field.getFieldDirection().multiply(0.9));
         // Stretch in the y direction
-        scaleVector.add(new Vector(0, height, 0));
+        scaleVector.add(new Vector(0, height - 1, 0));
 
         BlockDisplay leftBorder = (BlockDisplay) world.spawnEntity(spawnReferencePoint.clone()
                 // middle of the wall
@@ -185,7 +190,8 @@ public class Wall {
         rightBorder.setBlock(Material.IRON_BLOCK.createBlockData());
 
 
-        border.addAll(Arrays.asList(bottomBorder, topBorder, leftBorder, rightBorder));
+        border.addAll(Arrays.asList(topBorder, leftBorder, rightBorder));
+        if (!hideBottomBorder) border.add(bottomBorder);
         entities.addAll(border);
 
         for (BlockDisplay display : entities) {

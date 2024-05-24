@@ -32,6 +32,7 @@ public class WallQueue {
     int randomHoleCount = 2;
     int connectedHoleCount = 4;
     boolean randomizeFurther = true;
+    boolean hideBottomBorder = false;
 
     public WallQueue(PlayingField field) {
         hiddenWalls = new LinkedList<>();
@@ -75,7 +76,7 @@ public class WallQueue {
         }
 
         if (hiddenWalls.isEmpty() && !field.eventActive()) {
-            Wall newWall = new Wall(field.getLength(), field.getHeight());
+            Wall newWall = new Wall(field.getLength(), field.getHeight(), hideBottomBorder);
             newWall.generateHoles(randomHoleCount, connectedHoleCount, randomizeFurther);
             addWall(newWall);
         }
@@ -85,7 +86,7 @@ public class WallQueue {
             animateNextWall();
         } else if (!hiddenWalls.isEmpty() && field.eventActive() && field.getEvent().allowMultipleWalls) {
             // Multiple walls can be on if an event allows it
-            // todo this does not allow for a cooldown between walls. subject to change
+            // todo this does not allow for a cooldown between walls and very rarely makes rush bug out
             animateNextWall();
         }
 
@@ -154,5 +155,13 @@ public class WallQueue {
 
     public void clearHiddenWalls() {
         hiddenWalls.clear();
+    }
+
+    public void setHideBottomBorder(boolean hideBottomBorder) {
+        this.hideBottomBorder = hideBottomBorder;
+    }
+
+    public boolean isHideBottomBorder() {
+        return hideBottomBorder;
     }
 }
