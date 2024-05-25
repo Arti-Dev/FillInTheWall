@@ -58,6 +58,9 @@ public class PlayingField implements Listener {
     private BukkitTask task = null;
     private Menu menu = null;
 
+    // Whether to tick the scorer or let another class handle it (e.g. multiplayer)
+    private boolean tickScorer = true;
+
     public PlayingField(Location referencePoint, Vector direction, Vector incomingDirection, WorldBoundingBox boundingBox,
                         WorldBoundingBox effectBox, String environment, int length, int height, boolean hideBottomBorder) {
         // define playing field in a very scuffed way
@@ -65,13 +68,13 @@ public class PlayingField implements Listener {
         this.fieldDirection = direction;
         this.incomingDirection = incomingDirection;
         this.scorer = new PlayingFieldScorer(this);
-        this.queue = new WallQueue(this);
         this.boundingBox = boundingBox;
         this.effectBox = effectBox;
         this.height = height;
         this.length = length;
         this.environment = environment;
         if (this.environment == null) this.environment = "";
+        this.queue = new WallQueue(this);
         queue.setHideBottomBorder(hideBottomBorder);
 
         for (int x = 0; x < length + 2; x++) {
@@ -318,7 +321,7 @@ public class PlayingField implements Listener {
                         endEvent();
                     }
                 }
-                scorer.tick();
+                if (tickScorer) scorer.tick();
 
                 // todo Effects, start them at a slower pace and intensify them as the game goes on
                 // Do not do effects if an event is active
@@ -499,5 +502,9 @@ public class PlayingField implements Listener {
         Location loc = getReferencePoint().add(fieldDirection.clone().multiply((double) length / 2))
                 .add(new Vector(0, 1, 0).multiply((double) height / 2));
         return loc;
+    }
+
+    public void doTickScorer(boolean tickScorer) {
+        this.tickScorer = tickScorer;
     }
 }

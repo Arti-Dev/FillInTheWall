@@ -26,7 +26,8 @@ public class Rush extends ModifierEvent {
     private boolean active = false;
     public Rush(PlayingField field) {
         super(field, 600, 5, true, true, true);
-        nextWall = new Wall(randomMaterial(), field.getLength(), field.getHeight());
+        nextWall = new Wall(field.getLength(), field.getHeight());
+        nextWall.setMaterial(randomMaterial());
         nextWall.insertHoles(nextWall.randomCoordinates());
     }
 
@@ -45,10 +46,8 @@ public class Rush extends ModifierEvent {
 
     private Wall generateNextWall() {
         // Copy data from old wall
-        Wall wall = new Wall(randomMaterial(), field.getLength(), field.getHeight());
-        for (Pair<Integer, Integer> hole : nextWall.getHoles()) {
-            wall.insertHole(hole);
-        }
+        Wall wall = nextWall.copy();
+        wall.setMaterial(randomMaterial());
 
         if (wall.getHoles().size() < 2 || (Math.random() < 0.75 && wall.getHoles().size() < 5)) {
             for (int i = 0; i < 1; i++) {

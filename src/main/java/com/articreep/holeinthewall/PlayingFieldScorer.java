@@ -139,6 +139,7 @@ public class PlayingFieldScorer {
     }
 
     public void reset() {
+        // todo should probably keep the score around for longer since the multiplayer game needs to read it
         score = 0;
         meter = 0;
         wallsCleared = 0;
@@ -157,8 +158,15 @@ public class PlayingFieldScorer {
     }
 
     public void tick() {
-        if (field.eventActive() && field.getEvent().timeFreeze) return;
-        if (gamemode == Gamemode.SCORE_ATTACK || gamemode == Gamemode.RAPID_SCORE_ATTACK) time--;
+        // todo assign "attributes" to gamemodes, such as "singleplayer" and "multiplayer"
+        // instead of checking each gamemode
+
+        // if an timefreeze modifier event is active and we're in a singleplayer game, pause the timer
+        if (field.eventActive() && field.getEvent().timeFreeze
+                && gamemode == Gamemode.RAPID_SCORE_ATTACK) return;
+        // if we're in a score attack game, decrement the time
+        if (gamemode == Gamemode.SCORE_ATTACK || gamemode == Gamemode.RAPID_SCORE_ATTACK
+                || gamemode == Gamemode.MULTIPLAYER_SCORE_ATTACK) time--;
         else time++;
 
         if (gamemode == Gamemode.SCORE_ATTACK) {
@@ -182,7 +190,7 @@ public class PlayingFieldScorer {
             }
         }
 
-        if (gamemode == Gamemode.RAPID_SCORE_ATTACK) {
+        if (gamemode == Gamemode.RAPID_SCORE_ATTACK /* todo temporary remove later */ || gamemode == Gamemode.MULTIPLAYER_SCORE_ATTACK) {
             if (time <= 0) {
                 for (Player player : field.getPlayers()) {
                     player.sendMessage(ChatColor.RED + "Time's up!");
@@ -279,5 +287,9 @@ public class PlayingFieldScorer {
 
     public Gamemode getGamemode() {
         return gamemode;
+    }
+
+    public void setTime(int time) {
+        this.time = time;
     }
 }

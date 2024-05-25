@@ -19,7 +19,6 @@ public class Wall {
     private final int length;
     private final int height;
     private final HashSet<Pair<Integer, Integer>> holes;
-    private final Material material;
     private WallState state = WallState.HIDDEN;
     private int maxTime = -1;
     private int timeRemaining = -1;
@@ -29,24 +28,16 @@ public class Wall {
     private List<BlockDisplay> border = new ArrayList<>();
     private List<BlockDisplay> toRemove = new ArrayList<>();
     private final Random random = new Random();
+    private Material material = null;
 
-    public Wall(HashSet<Pair<Integer, Integer>> holes, Material material, int length, int height) {
+    public Wall(HashSet<Pair<Integer, Integer>> holes, int length, int height) {
         this.holes = holes;
-        this.material = material;
         this.length = length;
         this.height = height;
     }
 
-    public Wall(HashSet<Pair<Integer, Integer>> holes, int length, int height) {
-        this(holes, Material.BLUE_CONCRETE, length, height);
-    }
-
     public Wall(int length, int height) {
-        this(new HashSet<>(), Material.BLUE_CONCRETE, length, height);
-    }
-
-    public Wall(Material material, int length, int height) {
-        this(new HashSet<>(), material, length, height);
+        this(new HashSet<>(), length, height);
     }
 
     public HashSet<Pair<Integer, Integer>> getHoles() {
@@ -56,10 +47,6 @@ public class Wall {
     public void setTimeRemaining(int timeRemaining) {
         this.timeRemaining = timeRemaining;
         this.maxTime = timeRemaining;
-    }
-
-    public Material getMaterial() {
-        return material;
     }
 
     public int getTimeRemaining() {
@@ -199,9 +186,12 @@ public class Wall {
 
     }
 
-    public void animateWall(Set<Player> players) {
+    public void animateWall(Set<Player> players, Material defaultMaterial) {
         state = WallState.ANIMATING;
         // make them visible immediately
+        if (this.material == null) {
+            material = defaultMaterial;
+        }
         for (BlockDisplay display : blocks) {
             display.setBlock(material.createBlockData());
         }
@@ -211,6 +201,7 @@ public class Wall {
         }
 
         // Block break animation
+        Material finalMaterial = material;
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -220,7 +211,7 @@ public class Wall {
                     blocks.remove(display);
                     for (Player player : players) {
                         player.getWorld().spawnParticle(Particle.BLOCK, display.getLocation(), 10,
-                                0.5, 0.5, 0.5, 0.1, material.createBlockData());
+                                0.5, 0.5, 0.5, 0.1, finalMaterial.createBlockData());
                         player.playSound(player, Sound.BLOCK_STONE_BREAK, 1, 1);
                     }
                 }
@@ -425,5 +416,25 @@ public class Wall {
                 insertHole(hole);
             }
         }
+    }
+
+    public void setMaterial(Material material) {
+        this.material = material;
+    }
+
+    public Material getMaterial() {
+        return material;
+    }
+
+    /**
+     * Returns an un-summoned copy of this wall and the holes in it.
+     * @return A new wall with the same holes as this one.
+     */
+    public Wall copy() {
+        Wall newWall = new Wall(length, height);
+        for (Pair<Integer, Integer> hole : getHoles()) {
+            newWall.insertHole(hole);
+        }
+        return newWall;
     }
 }

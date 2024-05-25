@@ -1,6 +1,7 @@
 package com.articreep.holeinthewall;
 
 import com.articreep.holeinthewall.menu.Menu;
+import com.articreep.holeinthewall.multiplayer.MultiplayerGame;
 import com.articreep.holeinthewall.utils.WorldBoundingBox;
 import org.bukkit.*;
 import org.bukkit.block.BlockFace;
@@ -27,6 +28,7 @@ import java.util.Random;
 public class PlayingFieldManager implements Listener {
     public static Map<Player, PlayingField> activePlayingFields = new HashMap<>();
     public static Map<WorldBoundingBox, PlayingField> playingFieldLocations = new HashMap<>();
+    public static MultiplayerGame game = null;
 
     @EventHandler
     public void onLeverFlick(PlayerInteractEvent event) {
@@ -130,7 +132,14 @@ public class PlayingFieldManager implements Listener {
             field.players.remove(player);
             activePlayingFields.remove(player);
             if (field.getPlayers().isEmpty()) {
-                if (field.hasStarted()) field.stop();
+                if (field.hasStarted()) {
+                    field.stop();
+                    // todo temporary solution: nuke the multiplayer game i don't care
+                    if (game != null) {
+                        game.stop();
+                        game = null;
+                    }
+                }
                 else field.removeMenu();
             }
         }

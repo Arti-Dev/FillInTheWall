@@ -2,6 +2,8 @@ package com.articreep.holeinthewall.menu;
 
 import com.articreep.holeinthewall.HoleInTheWall;
 import com.articreep.holeinthewall.PlayingField;
+import com.articreep.holeinthewall.PlayingFieldManager;
+import com.articreep.holeinthewall.multiplayer.MultiplayerGame;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Display;
@@ -66,7 +68,23 @@ public class Menu implements Listener {
     }
 
     public void confirmAndDespawn() {
-        field.start(Gamemode.values()[gamemodeIndex]);
+        Gamemode mode = Gamemode.values()[gamemodeIndex];
+        if (mode == Gamemode.MULTIPLAYER_SCORE_ATTACK) {
+            // todo temporary
+            if (PlayingFieldManager.game == null) {
+                PlayingFieldManager.game = new MultiplayerGame(field);
+                for (PlayingField field : PlayingFieldManager.activePlayingFields.values()) {
+                    PlayingFieldManager.game.addPlayingField(field);
+                }
+                PlayingFieldManager.game.start();
+            } else {
+                for (Player player : field.getPlayers()) {
+                    player.sendMessage(ChatColor.RED + "A multiplayer game is already in progress!");
+                }
+            }
+        } else {
+            field.start(Gamemode.values()[gamemodeIndex]);
+        }
         despawn();
     }
 

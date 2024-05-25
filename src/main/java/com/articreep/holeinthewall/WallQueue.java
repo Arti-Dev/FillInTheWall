@@ -1,8 +1,10 @@
 package com.articreep.holeinthewall;
 
 import com.articreep.holeinthewall.modifiers.Rush;
+import com.articreep.holeinthewall.multiplayer.WallGenerator;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -29,16 +31,16 @@ public class WallQueue {
     private int pauseLoop = 0;
 
     // Wall generation settings
-    int randomHoleCount = 2;
-    int connectedHoleCount = 4;
-    boolean randomizeFurther = true;
+    private WallGenerator generator;
     boolean hideBottomBorder = false;
+    Material wallMaterial = Material.BLUE_CONCRETE;
 
     public WallQueue(PlayingField field) {
         hiddenWalls = new LinkedList<>();
         animatingWall = null;
         visibleWalls = new ArrayList<>();
         this.field = field;
+        setGenerator(new WallGenerator(field.getLength(), field.getHeight(), 2, 4));
     }
 
     public void addWall(Wall wall) {
@@ -54,7 +56,7 @@ public class WallQueue {
         if (hiddenWalls.isEmpty()) return;
         animatingWall = hiddenWalls.removeFirst();
         animatingWall.spawnWall(field, this, hideBottomBorder);
-        animatingWall.animateWall(field.getPlayers());
+        animatingWall.animateWall(field.getPlayers(), wallMaterial);
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -76,9 +78,8 @@ public class WallQueue {
         }
 
         if (hiddenWalls.isEmpty() && !field.eventActive()) {
-            Wall newWall = new Wall(field.getLength(), field.getHeight());
-            newWall.generateHoles(randomHoleCount, connectedHoleCount, randomizeFurther);
-            addWall(newWall);
+            // Tell generator to add a new wall to all queues
+            generator.addNewWallToQueues();
         }
 
         // Animate the next wall when possible
@@ -142,15 +143,15 @@ public class WallQueue {
     }
 
     public void setRandomHoleCount(int randomHoleCount) {
-        this.randomHoleCount = randomHoleCount;
+        generator.setRandomHoleCount(randomHoleCount);
     }
 
     public void setConnectedHoleCount(int connectedHoleCount) {
-        this.connectedHoleCount = connectedHoleCount;
+        generator.setConnectedHoleCount(connectedHoleCount);
     }
 
     public void setRandomizeFurther(boolean randomizeFurther) {
-        this.randomizeFurther = randomizeFurther;
+        generator.setRandomizeFurther(randomizeFurther);
     }
 
     public void clearHiddenWalls() {
@@ -163,5 +164,15 @@ public class WallQueue {
 
     public boolean isHideBottomBorder() {
         return hideBottomBorder;
+    }
+
+    public void setGenerator(WallGenerator generator) {
+        this.generator = generator;
+        generator.addQueue(this);
+    }
+
+    public void resetGenerator() {
+        this.generator = new WallGenerator(field.getLength(), field.getHeight(), 2, 4);
+        generator.addQueue(this);
     }
 }
