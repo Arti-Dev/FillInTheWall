@@ -4,7 +4,6 @@ import com.articreep.holeinthewall.HoleInTheWall;
 import com.articreep.holeinthewall.Judgement;
 import com.articreep.holeinthewall.PlayingField;
 import com.articreep.holeinthewall.modifiers.Rush;
-import com.articreep.holeinthewall.utils.WorldBoundingBox;
 import org.bukkit.*;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.EntityType;
@@ -160,7 +159,7 @@ public class TheVoid implements Listener {
                 location.add(field.getFieldDirection());
                 location.getWorld().spawnParticle(Particle.SONIC_BOOM, location, 1, 0, 0, 0, 0);
             }
-        }, field.getPauseTime());
+        }, field.getClearDelay());
 
     }
 
@@ -219,7 +218,7 @@ public class TheVoid implements Listener {
                 Location bottomRight = bottomLeft.clone().add(fieldDirection.clone().multiply(across));
                 connectLocations(bottomRight, bottomRight.clone().add(0, height, 0), 30, Particle.END_ROD);
             }
-        }.runTaskTimer(HoleInTheWall.getInstance(), field.getPauseTime(), 5);
+        }.runTaskTimer(HoleInTheWall.getInstance(), field.getClearDelay(), 5);
     }
 
     // VOID_BIG_PUDDLE

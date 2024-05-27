@@ -1,5 +1,6 @@
 package com.articreep.holeinthewall;
 
+import com.articreep.holeinthewall.display.DisplayType;
 import com.articreep.holeinthewall.environments.TheVoid;
 import com.articreep.holeinthewall.menu.Gamemode;
 import com.articreep.holeinthewall.menu.Menu;
@@ -35,7 +36,10 @@ public class PlayingField implements Listener {
     private final Vector incomingDirection; // normal to the field
     private final int height;
     private final int length;
-    private final int pauseTime = 10;
+    /**
+     * Amount of ticks to show wall results after clearing a wall
+     */
+    private final int clearDelay = 10;
 
     private final List<Block> borderBlocks = new ArrayList<>();
     private final Material defaultBorderMaterial = Material.GRAY_CONCRETE;
@@ -43,13 +47,9 @@ public class PlayingField implements Listener {
     private final WorldBoundingBox effectBox;
     private String environment;
 
-    private final Set<TextDisplay> textDisplays = new LinkedHashSet<>();
-    private TextDisplay scoreDisplay = null;
-    private TextDisplay accuracyDisplay = null;
-    private TextDisplay speedDisplay = null;
-    private TextDisplay wallDisplay = null;
-    private TextDisplay timeDisplay = null;
-    private TextDisplay levelDisplay = null;
+    private final int displaySlotsLength = 6;
+    private final DisplayType[] displaySlots = new DisplayType[displaySlotsLength];
+    private final TextDisplay[] textDisplays = new TextDisplay[displaySlotsLength];
     private boolean scoreDisplayOverride = false;
 
     private final PlayingFieldScorer scorer;
@@ -76,6 +76,7 @@ public class PlayingField implements Listener {
         if (this.environment == null) this.environment = "";
         this.queue = new WallQueue(this);
         queue.setHideBottomBorder(hideBottomBorder);
+        setDefaultDisplaySlots();
 
         for (int x = 0; x < length + 2; x++) {
             for (int y = 0; y < height + 1; y++) {
@@ -215,7 +216,7 @@ public class PlayingField implements Listener {
         Map<Pair<Integer, Integer>, Block> missingBlocks = wall.getMissingBlocks(this);
 
         // Visually display what blocks were correct and what were wrong
-        int pauseTime = this.pauseTime;
+        int pauseTime = this.clearDelay;
         if (eventActive()) pauseTime = event.pauseTime;
         fillField(wall.getMaterial());
         for (Block block : extraBlocks.values()) {
@@ -291,13 +292,7 @@ public class PlayingField implements Listener {
             int beats = 0;
             @Override
             public void run() {
-                wallDisplay.setText(ChatColor.GOLD + "Perfect Walls: " + scorer.getWallsCleared());
-                if (!scoreDisplayOverride) {
-                    scoreDisplay.setText(ChatColor.GREEN + "Score: " + scorer.getScore());
-                }
-                timeDisplay.setText(ChatColor.AQUA + "Time: " + scorer.getFormattedTime());
-                levelDisplay.setText(ChatColor.DARK_AQUA + "Level " + scorer.getLevel());
-
+                updateTextDisplays();
 
                 if (!eventActive() || event.actionBarOverride() == null) {
                     double bonus = scorer.getMeter();
@@ -355,80 +350,72 @@ public class PlayingField implements Listener {
         event = null;
     }
 
+    public void setDefaultDisplaySlots() {
+        displaySlots[0] = DisplayType.TIME;
+        displaySlots[1] = DisplayType.PERFECT_WALLS;
+        displaySlots[2] = DisplayType.LEVEL;
+        displaySlots[3] = DisplayType.SCORE;
+        displaySlots[4] = DisplayType.NAME;
+        displaySlots[5] = DisplayType.GAMEMODE;
+    }
+
     public void spawnTextDisplays() {
-        Location loc = getReferencePoint().add(fieldDirection.clone().multiply(-1.5)
-                .add(incomingDirection.clone().multiply(-3)))
-                .add(new Vector(0, 0.5, 0));
-        wallDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
-        wallDisplay.setText(ChatColor.GOLD + "Perfect Walls: " + scorer.getWallsCleared());
-        wallDisplay.setBillboard(Display.Billboard.CENTER);
-        wallDisplay.setTransformation(new Transformation(
-                new Vector3f(0, 0, 0),
-                new AxisAngle4f(0, 0, 0, 1),
-                new Vector3f(1.5f, 1.5f, 1.5f),
-                new AxisAngle4f(0, 0, 0, 1)));
-
-        loc = getReferencePoint().add(fieldDirection.clone().multiply(length + 0.5))
-                .add(incomingDirection.clone().multiply(-3))
-                .add(new Vector(0, 0.5, 0));
-        scoreDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
-        scoreDisplay.setText(ChatColor.GREEN + "Score: " + scorer.getScore());
-        scoreDisplay.setBillboard(Display.Billboard.CENTER);
-        scoreDisplay.setTransformation(new Transformation(
-                new Vector3f(0, 0, 0),
-                new AxisAngle4f(0, 0, 0, 1),
-                new Vector3f(1.5f, 1.5f, 1.5f),
-                new AxisAngle4f(0, 0, 0, 1)));
-
-        loc = getReferencePoint().add(fieldDirection.clone().multiply(length + 0.5))
-                .add(incomingDirection.clone().multiply(-3))
+        Location slot0 = getReferencePoint().subtract(fieldDirection.clone().multiply(1.5))
+                .subtract(incomingDirection.clone().multiply(3))
                 .add(new Vector(0, 1.5, 0));
-        levelDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
-        levelDisplay.setText(ChatColor.DARK_AQUA + "Level " + scorer.getLevel());
-        levelDisplay.setBillboard(Display.Billboard.CENTER);
-        levelDisplay.setTransformation(new Transformation(
-                new Vector3f(0, 0, 0),
-                new AxisAngle4f(0, 0, 0, 1),
-                new Vector3f(1.5f, 1.5f, 1.5f),
-                new AxisAngle4f(0, 0, 0, 1)));
-
-
-        loc = getReferencePoint().add(fieldDirection.clone().multiply(-1.5))
-                .add(incomingDirection.clone().multiply(-3))
-                .add(new Vector(0, 1.5, 0));
-        timeDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
-        timeDisplay.setText(ChatColor.AQUA + "Time: " + scorer.getFormattedTime());
-        timeDisplay.setBillboard(Display.Billboard.CENTER);
-        timeDisplay.setTransformation(new Transformation(
-                new Vector3f(0, 0, 0),
-                new AxisAngle4f(0, 0, 0, 1),
-                new Vector3f(1.5f, 1.5f, 1.5f),
-                new AxisAngle4f(0, 0, 0, 1)));
-
-        loc = getReferencePoint().add(getFieldDirection().multiply((double) length / 2))
+        Location slot1 = slot0.clone().subtract(new Vector(0, 1, 0));
+        Location slot2 = slot0.clone().add(fieldDirection.clone().multiply(length + 1.5*2));
+        Location slot3 = slot2.clone().subtract(new Vector(0, 1, 0));
+        Location slot4 = getReferencePoint().add(getFieldDirection().multiply((double) length / 2))
                 .add(new Vector(0, 1, 0).multiply(height + 3));
-        TextDisplay nameDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
-        nameDisplay.setText(ChatColor.AQUA + players.iterator().next().getName());
-        nameDisplay.setBillboard(Display.Billboard.CENTER);
-        nameDisplay.setTransformation(new Transformation(
-                new Vector3f(0, 0, 0),
-                new AxisAngle4f(0, 0, 0, 1),
-                new Vector3f(3f, 3f, 3f),
-                new AxisAngle4f(0, 0, 0, 1)));
+        Location slot5 = slot4.clone().subtract(new Vector(0, 1, 0).multiply(0.5));
 
-        loc.subtract(new Vector(0, 1, 0).multiply(0.5));
-        TextDisplay modeDisplay = (TextDisplay) loc.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
-        modeDisplay.setText("Playing " + scorer.getGamemode().getTitle());
-        modeDisplay.setBillboard(Display.Billboard.CENTER);
+        for (int i = 0; i < displaySlotsLength; i++) {
+            float size = switch (i) {
+                case 4 -> 3f;
+                case 5 -> 1f;
+                default -> 1.5f;
+            };
 
+            Location loc = switch (i) {
+                case 0 -> slot0;
+                case 1 -> slot1;
+                case 2 -> slot2;
+                case 3 -> slot3;
+                case 4 -> slot4;
+                case 5 -> slot5;
+                default -> throw new IllegalStateException("Unexpected value: " + i);
+            };
 
-        textDisplays.add(wallDisplay);
-        textDisplays.add(scoreDisplay);
-        textDisplays.add(timeDisplay);
-        textDisplays.add(levelDisplay);
-        textDisplays.add(modeDisplay);
-        textDisplays.add(nameDisplay);
+            textDisplays[i] = (TextDisplay) slot1.getWorld().spawnEntity(loc, EntityType.TEXT_DISPLAY);
+            textDisplays[i].setBillboard(Display.Billboard.CENTER);
+            textDisplays[i].setTransformation(new Transformation(
+                    new Vector3f(0, 0, 0),
+                    new AxisAngle4f(0, 0, 0, 1),
+                    new Vector3f(size, size, size),
+                    new AxisAngle4f(0, 0, 0, 1)));
+            textDisplays[i].setText(ChatColor.DARK_GRAY + "Loading...");
+        }
+    }
 
+    public void updateTextDisplays() {
+        // todo in theory we don't need to tick the gamemode/name displays, but we can for now
+        for (int i = 0; i < displaySlotsLength; i++) {
+            Object data;
+            DisplayType type = displaySlots[i];
+            if (type == DisplayType.SCORE && scoreDisplayOverride) continue;
+            data = switch (type) {
+                case SCORE -> scorer.getScore();
+                case ACCURACY -> "null";
+                case SPEED -> "null";
+                case PERFECT_WALLS -> scorer.getWallsCleared();
+                case TIME -> scorer.getFormattedTime();
+                case LEVEL -> scorer.getLevel();
+                case NAME -> players.iterator().next().getName();
+                case GAMEMODE -> scorer.getGamemode().getTitle();
+            };
+            textDisplays[i].setText(type.getFormattedText(data));
+        }
     }
 
     public Material getDefaultBorderMaterial() {
@@ -449,7 +436,11 @@ public class PlayingField implements Listener {
 
     public void overrideScoreDisplay(int ticks, String message) {
         scoreDisplayOverride = true;
-        scoreDisplay.setText(message);
+        for (int i = 0; i < displaySlotsLength; i++) {
+            if (displaySlots[i] == DisplayType.SCORE) {
+                textDisplays[i].setText(message);
+            }
+        }
         Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), () -> scoreDisplayOverride = false, ticks);
     }
 
@@ -473,8 +464,8 @@ public class PlayingField implements Listener {
         return effectBox;
     }
 
-    public int getPauseTime() {
-        return pauseTime;
+    public int getClearDelay() {
+        return clearDelay;
     }
 
     public String getEnvironment() {
