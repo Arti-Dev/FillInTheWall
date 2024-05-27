@@ -357,9 +357,9 @@ public class TheVoid implements Listener {
         if (random.nextDouble() > 0.8) return;
         List<EnvironmentEffect> effects = new ArrayList<>();
         switch (judgement) {
-            case Judgement.PERFECT: effects.add(EnvironmentEffect.VOID_VERTICAL_LINES);
+            case PERFECT: effects.add(EnvironmentEffect.VOID_VERTICAL_LINES);
             effects.add(EnvironmentEffect.VOID_BIG_PUDDLE);
-            case Judgement.COOL: effects.add(EnvironmentEffect.VOID_BLOCK_FALLING);
+            case COOL: effects.add(EnvironmentEffect.VOID_BLOCK_FALLING);
             effects.add(EnvironmentEffect.VOID_SONIC_BOOM);
         }
         if (effects.isEmpty()) return;

@@ -129,9 +129,7 @@ public class PlayingFieldManager implements Listener {
     public static void removeGame(Player player) {
         PlayingField field = activePlayingFields.get(player);
         if (field != null) {
-            field.players.remove(player);
-            activePlayingFields.remove(player);
-            if (field.getPlayers().isEmpty()) {
+            if (field.players.size() == 1) {
                 if (field.hasStarted()) {
                     field.stop();
                     // todo temporary solution: nuke the multiplayer game i don't care
@@ -142,6 +140,8 @@ public class PlayingFieldManager implements Listener {
                 }
                 else field.removeMenu();
             }
+            field.players.remove(player);
+            activePlayingFields.remove(player);
         }
     }
 

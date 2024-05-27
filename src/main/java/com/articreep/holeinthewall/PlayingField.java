@@ -54,7 +54,7 @@ public class PlayingField implements Listener {
 
     private final PlayingFieldScorer scorer;
     private ModifierEvent event = null;
-    private WallQueue queue = null;
+    private WallQueue queue;
     private BukkitTask task = null;
     private Menu menu = null;
 
@@ -78,6 +78,7 @@ public class PlayingField implements Listener {
         queue.setHideBottomBorder(hideBottomBorder);
         setDefaultDisplaySlots();
 
+        // Track border blocks
         for (int x = 0; x < length + 2; x++) {
             for (int y = 0; y < height + 1; y++) {
                 Location loc = getReferencePoint().clone()
@@ -92,14 +93,10 @@ public class PlayingField implements Listener {
                 }
             }
         }
-//        // starter wall
-//        Wall wall1 = new Wall(length, height);
-//        wall1.insertHoles(new Pair<>(3, 1), new Pair<>(4, 1));
-//        queue.addWall(wall1);
     }
 
     public void start(Gamemode mode) {
-        // Silently fail if this is already running
+        // Log fail if this is already running
         if (hasStarted()) {
             Bukkit.getLogger().severe("Tried to start game that's already been started");
             return;
@@ -132,7 +129,6 @@ public class PlayingField implements Listener {
             event.end();
             event = null;
         }
-        // todo this does not work if player walks off
         scorer.announceFinalScore();
         scorer.reset();
 
