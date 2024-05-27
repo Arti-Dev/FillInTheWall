@@ -298,19 +298,8 @@ public class PlayingField implements Listener {
                                 new TextComponent(event.actionBarOverride()));
                     }
                 } else {
-                    double bonus = scorer.getMeter();
-                    int bonusMax = scorer.getMeterMax();
-                    // todo change this so it can work with leveling instead of just rush
-                    ChatColor color;
-                    if (bonus <= 3) {
-                        color = ChatColor.GRAY;
-                    } else if (bonus <= 7) {
-                        color = ChatColor.YELLOW;
-                    } else {
-                        color = ChatColor.GREEN;
-                    }
                     for (Player player : players) player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                            new TextComponent(color + "Meter: " + String.format("%.2f", bonus) + "/" + bonusMax));
+                            new TextComponent(scorer.getFormattedMeter()));
                 }
                 queue.tick();
                 if (eventActive()) {

@@ -3,6 +3,8 @@ package com.articreep.holeinthewall;
 import com.articreep.holeinthewall.menu.Gamemode;
 import com.articreep.holeinthewall.modifiers.ModifierEvent;
 import com.articreep.holeinthewall.modifiers.Rush;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -251,6 +253,20 @@ public class PlayingFieldScorer {
     // levels
     public void setMeterMax(int meterMax) {
         this.meterMax = meterMax;
+    }
+
+    public String getFormattedMeter() {
+        double percentFilled = meter / meterMax;
+        // todo change this so it can work with leveling instead of just rush
+        ChatColor color;
+        if (percentFilled <= 0.3) {
+            color = ChatColor.GRAY;
+        } else if (percentFilled <= 0.7) {
+            color = ChatColor.YELLOW;
+        } else {
+            color = ChatColor.GREEN;
+        }
+        return color + "Meter: " + String.format("%.2f", meter) + "/" + meterMax;
     }
 
     public void setLevel(int level) {
