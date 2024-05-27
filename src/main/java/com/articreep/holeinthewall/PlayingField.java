@@ -292,7 +292,12 @@ public class PlayingField implements Listener {
             public void run() {
                 updateTextDisplays();
 
-                if (!eventActive() || event.actionBarOverride() == null) {
+                if (eventActive() && event.actionBarOverride() != null) {
+                    for (Player player : players) {
+                        player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                                new TextComponent(event.actionBarOverride()));
+                    }
+                } else {
                     double bonus = scorer.getMeter();
                     int bonusMax = scorer.getMeterMax();
                     // todo change this so it can work with leveling instead of just rush
