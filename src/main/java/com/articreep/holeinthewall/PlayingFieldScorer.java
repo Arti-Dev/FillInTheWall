@@ -257,7 +257,6 @@ public class PlayingFieldScorer {
 
     public String getFormattedMeter() {
         double percentFilled = meter / meterMax;
-        // todo change this so it can work with leveling instead of just rush
         ChatColor color;
         if (percentFilled <= 0.3) {
             color = ChatColor.GRAY;
