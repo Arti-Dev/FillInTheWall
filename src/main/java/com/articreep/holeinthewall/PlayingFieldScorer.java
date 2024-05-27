@@ -13,6 +13,7 @@ import java.util.Map;
 public class PlayingFieldScorer {
     PlayingField field;
     private int score = 0;
+    private int finalScore = 0;
     private double meter = 0;
     private int wallsCleared = 0;
     // time in ticks
@@ -139,7 +140,6 @@ public class PlayingFieldScorer {
     }
 
     public void reset() {
-        // todo should probably keep the score around for longer since the multiplayer game needs to read it
         score = 0;
         meter = 0;
         wallsCleared = 0;
@@ -147,6 +147,10 @@ public class PlayingFieldScorer {
         gamemode = null;
         level = 1;
         doLevels = false;
+    }
+
+    public void resetFinalScore() {
+        finalScore = 0;
     }
 
     public String getFormattedTime() {
@@ -209,9 +213,13 @@ public class PlayingFieldScorer {
         }
     }
 
+    public void saveFinalScore() {
+        finalScore = score;
+    }
+
     public void announceFinalScore() {
         for (Player player : field.getPlayers()) {
-            player.sendMessage(ChatColor.GREEN + "Your final score is " + ChatColor.BOLD + score);
+            player.sendMessage(ChatColor.GREEN + "Your final score is " + ChatColor.BOLD + finalScore);
         }
     }
 
@@ -291,5 +299,9 @@ public class PlayingFieldScorer {
 
     public void setTime(int time) {
         this.time = time;
+    }
+
+    public int getFinalScore() {
+        return finalScore;
     }
 }

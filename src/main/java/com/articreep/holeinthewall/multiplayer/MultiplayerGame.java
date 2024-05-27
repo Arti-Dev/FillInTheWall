@@ -59,7 +59,7 @@ public class MultiplayerGame {
 
         for (PlayingField field : playingFields) {
             // todo temporary broadcast
-            Bukkit.broadcastMessage(field.getPlayers().toString() + "with " + field.getScorer().getScore() + " score");
+            Bukkit.broadcastMessage(field.getPlayers().toString() + "with " + field.getScorer().getFinalScore() + " score");
             field.stop();
             field.getQueue().resetGenerator();
             field.doTickScorer(true);

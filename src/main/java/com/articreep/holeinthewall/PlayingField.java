@@ -109,6 +109,7 @@ public class PlayingField implements Listener {
         }
         // Pass gamemode to scorer
         scorer.setGamemode(mode);
+        scorer.resetFinalScore();
         removeMenu();
         spawnTextDisplays();
         task = tickLoop();
@@ -129,6 +130,7 @@ public class PlayingField implements Listener {
             event.end();
             event = null;
         }
+        scorer.saveFinalScore();
         scorer.announceFinalScore();
         scorer.reset();
 
