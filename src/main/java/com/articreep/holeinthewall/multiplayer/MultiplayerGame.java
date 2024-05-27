@@ -3,12 +3,11 @@ package com.articreep.holeinthewall.multiplayer;
 import com.articreep.holeinthewall.HoleInTheWall;
 import com.articreep.holeinthewall.PlayingField;
 import com.articreep.holeinthewall.PlayingFieldManager;
-import com.articreep.holeinthewall.menu.Gamemode;
+import com.articreep.holeinthewall.Gamemode;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 

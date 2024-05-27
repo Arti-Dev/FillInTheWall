@@ -1,4 +1,4 @@
-package com.articreep.holeinthewall.menu;
+package com.articreep.holeinthewall;
 
 import org.bukkit.ChatColor;
 
@@ -23,4 +23,6 @@ public enum Gamemode {
     public String getDescription() {
         return description;
     }
+
+    // todo add text display layouts to this enum
 }
