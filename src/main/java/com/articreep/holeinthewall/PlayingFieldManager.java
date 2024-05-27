@@ -1,88 +1,25 @@
 package com.articreep.holeinthewall;
 
-import com.articreep.holeinthewall.menu.Menu;
 import com.articreep.holeinthewall.multiplayer.MultiplayerGame;
 import com.articreep.holeinthewall.utils.WorldBoundingBox;
-import org.bukkit.*;
+import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerSwapHandItemsEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.Vector;
-import org.javatuples.Pair;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 public class PlayingFieldManager implements Listener {
     public static Map<Player, PlayingField> activePlayingFields = new HashMap<>();
     public static Map<WorldBoundingBox, PlayingField> playingFieldLocations = new HashMap<>();
     public static MultiplayerGame game = null;
-
-    @EventHandler
-    public void onLeverFlick(PlayerInteractEvent event) {
-        if (event.getAction() == Action.RIGHT_CLICK_BLOCK &&
-                event.getClickedBlock().getType() == Material.LEVER) {
-            PlayingField field = activePlayingFields.get(event.getPlayer());
-            if (field != null) {
-                field.getQueue().instantSend();
-            }
-        }
-    }
-
-    @EventHandler
-    public void onSwitchToOffhand(PlayerSwapHandItemsEvent event) {
-        PlayingField field = activePlayingFields.get(event.getPlayer());
-        if (field != null) {
-            event.setCancelled(true);
-            field.getQueue().instantSend();
-            PlayerInventory inventory = event.getPlayer().getInventory();
-            ItemStack mainHand = inventory.getItemInMainHand();
-            inventory.setItemInMainHand(confirmItem());
-            Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), () -> {
-                inventory.setItemInMainHand(mainHand);
-            }, 10);
-        }
-    }
-
-    @EventHandler
-    public void onCrackedStoneClick(PlayerInteractEvent event) {
-        if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-            if (event.getClickedBlock().getType() == Material.CRACKED_STONE_BRICKS) {
-                PlayingField field = activePlayingFields.get(event.getPlayer());
-                if (field != null) {
-                    event.getPlayer().getWorld().spawnParticle(Particle.BLOCK,
-                            event.getClickedBlock().getLocation(),
-                            10, 0.5, 0.5, 0.5, 0.1,
-                            Material.CRACKED_STONE_BRICKS.createBlockData());
-                    Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
-                            () -> event.getClickedBlock().breakNaturally(new ItemStack(Material.LEAD)));
-                    event.getPlayer().playSound(event.getPlayer(), Sound.BLOCK_DEEPSLATE_BREAK, 0.7f, 1);
-                }
-            }
-        }
-    }
-
-    @EventHandler
-    public void onBlockPlace(BlockPlaceEvent event) {
-        Player player = event.getPlayer();
-        if (event.getBlockPlaced().getType() == Material.CRACKED_STONE_BRICKS &&
-                activePlayingFields.containsKey(player)) {
-            Random random = new Random();
-            player.playSound(player, Sound.BLOCK_CHAIN_PLACE, 0.7f, random.nextFloat(0.5f, 2));
-        }
-    }
 
     @EventHandler
     public void onPlayerEnterField(PlayerMoveEvent event) {
@@ -104,14 +41,6 @@ public class PlayingFieldManager implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         removeGame(event.getPlayer());
-    }
-
-    public static ItemStack confirmItem() {
-        ItemStack item = new ItemStack(Material.GREEN_CONCRETE);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "CONFIRM");
-        item.setItemMeta(meta);
-        return item;
     }
 
     // Managing games

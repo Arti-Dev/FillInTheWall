@@ -3,9 +3,10 @@ package com.articreep.holeinthewall;
 import com.articreep.holeinthewall.menu.Gamemode;
 import com.articreep.holeinthewall.modifiers.ModifierEvent;
 import com.articreep.holeinthewall.modifiers.Rush;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.javatuples.Pair;
@@ -78,9 +79,8 @@ public class PlayingFieldScorer {
                     // todo temporary
                     title = null;
                     // activate rush next tick
-                    Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(), () -> {
-                        field.activateEvent(new Rush(field));
-                    });
+                    Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
+                            () -> field.activateEvent(new Rush(field)));
                 } else if (gamemode == Gamemode.SCORE_ATTACK) {
                     title = null;
                     setLevel(level + 1);
@@ -256,6 +256,7 @@ public class PlayingFieldScorer {
     }
 
     public String getFormattedMeter() {
+        // todo add the type of meter to the string - such as "rush meter" or "freeze meter"
         double percentFilled = meter / meterMax;
         ChatColor color;
         if (percentFilled <= 0.3) {

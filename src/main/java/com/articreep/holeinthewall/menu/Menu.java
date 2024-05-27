@@ -15,15 +15,15 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 
 public class Menu implements Listener {
-    private Location location;
+    private final Location location;
     private TextDisplay select;
-    private PlayingField field;
+    private final PlayingField field;
     private int gamemodeIndex = 0;
 
-    public Menu(Player player, Location location, PlayingField field) {
+    public Menu(Location location, PlayingField field) {
         this.location = location;
         this.field = field;
     }
@@ -44,12 +44,11 @@ public class Menu implements Listener {
     }
 
     @EventHandler
-    public void onPlayerSneak(PlayerToggleSneakEvent event) {
+    public void onPlayerSwap(PlayerSwapHandItemsEvent event) {
         if (!field.getPlayers().contains(event.getPlayer())) return;
-        if (event.isSneaking()) {
-            // Confirm gamemode
-            confirmAndDespawn();
-        }
+        event.setCancelled(true);
+        // Confirm gamemode
+        confirmAndDespawn();
     }
 
     private void nextGamemode() {
@@ -64,7 +63,7 @@ public class Menu implements Listener {
         select.setText("Select a gamemode\n" +
                 ChatColor.BOLD + mode.getTitle() + "\n" +
                 ChatColor.RESET + "Left click to change gamemode\n" +
-                "Sneak to confirm");
+                "Press [F] or your offhand key to confirm");
     }
 
     public void confirmAndDespawn() {

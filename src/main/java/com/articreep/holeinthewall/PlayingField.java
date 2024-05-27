@@ -15,7 +15,16 @@ import org.bukkit.entity.Display;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Transformation;
@@ -57,6 +66,7 @@ public class PlayingField implements Listener {
     private WallQueue queue;
     private BukkitTask task = null;
     private Menu menu = null;
+    private boolean confirmOnCooldown = false;
 
     // Whether to tick the scorer or let another class handle it (e.g. multiplayer)
     private boolean tickScorer = true;
@@ -95,6 +105,14 @@ public class PlayingField implements Listener {
         }
     }
 
+    public void createMenu() {
+        if (players.isEmpty()) return;
+        Player player = players.iterator().next();
+        if (hasMenu()) removeMenu();
+        menu = new Menu(getCenter(), this);
+        menu.display();
+    }
+
     public void start(Gamemode mode) {
         // Log fail if this is already running
         if (hasStarted()) {
@@ -107,6 +125,7 @@ public class PlayingField implements Listener {
         if (mode == null) {
             throw new IllegalArgumentException("Gamemode cannot be null");
         }
+        HoleInTheWall.getInstance().getServer().getPluginManager().registerEvents(this, HoleInTheWall.getInstance());
         // Pass gamemode to scorer
         scorer.setGamemode(mode);
         scorer.resetFinalScore();
@@ -135,6 +154,61 @@ public class PlayingField implements Listener {
         scorer.reset();
 
         clearField();
+        HandlerList.unregisterAll(this);
+    }
+
+    // Listeners
+    @EventHandler
+    public void onLeverFlick(PlayerInteractEvent event) {
+        if (!players.contains(event.getPlayer())) return;
+        if (event.getAction() == Action.RIGHT_CLICK_BLOCK &&
+                event.getClickedBlock().getType() == Material.LEVER) {
+            queue.instantSend();
+        }
+    }
+
+    @EventHandler
+    public void onSwitchToOffhand(PlayerSwapHandItemsEvent event) {
+        if (!players.contains(event.getPlayer())) return;
+        event.setCancelled(true);
+
+        if (confirmOnCooldown) return;
+        queue.instantSend();
+        PlayerInventory inventory = event.getPlayer().getInventory();
+        ItemStack mainHand = inventory.getItemInMainHand();
+        inventory.setItemInMainHand(confirmItem());
+        confirmOnCooldown = true;
+        Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), () -> {
+            inventory.setItemInMainHand(mainHand);
+            confirmOnCooldown = false;
+        }, 10);
+    }
+
+    @EventHandler
+    public void onBlockPlace(BlockPlaceEvent event) {
+        // todo also include canceling blocks placed/broken that aren't in the playing field
+        Player player = event.getPlayer();
+        if (event.getBlockPlaced().getType() == Material.CRACKED_STONE_BRICKS) {
+            Random random = new Random();
+            player.playSound(player.getLocation(), Sound.BLOCK_CHAIN_PLACE, 0.7f, random.nextFloat(0.5f, 2));
+        }
+    }
+
+    @EventHandler
+    public void onCrackedStoneClick(PlayerInteractEvent event) {
+        if (!players.contains(event.getPlayer())) return;
+        Player player = event.getPlayer();
+        if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            if (event.getClickedBlock().getType() == Material.CRACKED_STONE_BRICKS) {
+                player.getWorld().spawnParticle(Particle.BLOCK,
+                        event.getClickedBlock().getLocation(),
+                        10, 0.5, 0.5, 0.5, 0.1,
+                        Material.CRACKED_STONE_BRICKS.createBlockData());
+                Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
+                        () -> event.getClickedBlock().breakNaturally(new ItemStack(Material.LEAD)));
+                player.playSound(player.getLocation(), Sound.BLOCK_DEEPSLATE_BREAK, 0.7f, 1);
+            }
+        }
     }
 
     /**
@@ -281,12 +355,11 @@ public class PlayingField implements Listener {
         changeBorderBlocks(defaultBorderMaterial);
     }
 
-    // Events and ticking
+    // Events, ticking, and effects
 
     public BukkitTask tickLoop() {
         return new BukkitRunnable() {
             int ticks = 0;
-            // todo this is exclusively for the void environment, but I haven't decided on a good way on doing this
             int beats = 0;
             @Override
             public void run() {
@@ -319,8 +392,6 @@ public class PlayingField implements Listener {
                             if (beats % 2 == 0) TheVoid.randomShape(PlayingField.this);
                         } else if (beats <= 32) {
                             if (beats % 2 == 0) TheVoid.randomPetal(PlayingField.this);
-//                        } else if (beats <= 48) {
-//                            TheVoid.randomFallingBlockDisplay(PlayingField.this);
                         } else {
                             beats = 0;
                         }
@@ -464,14 +535,6 @@ public class PlayingField implements Listener {
         return environment;
     }
 
-    public void createMenu() {
-        if (players.isEmpty()) return;
-        Player player = players.iterator().next();
-        if (hasMenu()) removeMenu();
-        menu = new Menu(player, getCenter(), this);
-        menu.display();
-    }
-
     public void removeMenu() {
         if (menu != null) this.menu.despawn();
         this.menu = null;
@@ -482,12 +545,19 @@ public class PlayingField implements Listener {
     }
 
     public Location getCenter() {
-        Location loc = getReferencePoint().add(fieldDirection.clone().multiply((double) length / 2))
+        return getReferencePoint().add(fieldDirection.clone().multiply((double) length / 2))
                 .add(new Vector(0, 1, 0).multiply((double) height / 2));
-        return loc;
     }
 
     public void doTickScorer(boolean tickScorer) {
         this.tickScorer = tickScorer;
+    }
+
+    public static ItemStack confirmItem() {
+        ItemStack item = new ItemStack(Material.GREEN_CONCRETE);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "CONFIRM");
+        item.setItemMeta(meta);
+        return item;
     }
 }
