@@ -38,6 +38,7 @@ public class Rush extends ModifierEvent {
         nextWall = generateNextWall();
         toReturn.setTimeRemaining(wallSpeed);
         wallSpeed -= 9;
+        if (wallSpeed < 7) wallSpeed = 7;
 
         queue.addWall(toReturn);
     }
