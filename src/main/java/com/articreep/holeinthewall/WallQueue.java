@@ -5,7 +5,6 @@ import com.articreep.holeinthewall.multiplayer.WallGenerator;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
@@ -16,7 +15,7 @@ public class WallQueue {
      * This is in ticks.
      */
     private int wallActiveTime = 160;
-    private PlayingField field = null;
+    private final PlayingField field;
     private final int fullLength = 20;
     // todo this number will change if "garbage walls" accumulate in the queue
     private int effectiveLength = 20;
@@ -24,11 +23,13 @@ public class WallQueue {
     /**
      * Walls that are spawned but are invisible.
      */
-    protected List<Wall> hiddenWalls;
-    // todo public for now
-    public Wall animatingWall;
-    public List<Wall> visibleWalls;
-    private int pauseLoop = 0;
+    private final List<Wall> hiddenWalls;
+    private Wall animatingWall;
+    private final List<Wall> visibleWalls;
+    private int pauseTickLoop = 0;
+    private boolean allowMultipleWalls = false;
+    private int maxSpawnCooldown = 80;
+    private int spawnCooldown = 80;
 
     // Wall generation settings
     private WallGenerator generator;
@@ -57,6 +58,7 @@ public class WallQueue {
         animatingWall = hiddenWalls.removeFirst();
         animatingWall.spawnWall(field, this, hideBottomBorder);
         animatingWall.animateWall(field.getPlayers(), wallMaterial);
+        field.sendMessageToPlayers("Wall time: " + animatingWall.getTimeRemaining());
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -72,8 +74,8 @@ public class WallQueue {
     }
 
     public void tick() {
-        if (pauseLoop > 0) {
-            pauseLoop--;
+        if (pauseTickLoop > 0) {
+            pauseTickLoop--;
             return;
         }
 
@@ -84,10 +86,11 @@ public class WallQueue {
 
         // Animate the next wall when possible
         if (visibleWalls.isEmpty() && !hiddenWalls.isEmpty()) {
+            spawnCooldown = maxSpawnCooldown;
             animateNextWall();
-        } else if (!hiddenWalls.isEmpty() && field.eventActive() && field.getEvent().allowMultipleWalls) {
-            // Multiple walls can be on if an event allows it
-            // todo this does not allow for a cooldown between walls and very rarely makes rush bug out
+        // only decrement spawnCooldown if allowMultipleWalls is true
+        } else if (allowMultipleWalls && spawnCooldown-- <= 0) {
+            spawnCooldown = maxSpawnCooldown;
             animateNextWall();
         }
 
@@ -96,6 +99,7 @@ public class WallQueue {
         while (it.hasNext()) {
             Wall wall = it.next();
             int remaining = wall.tick(WallQueue.this);
+            // If wall runs out of time -
             if (remaining <= 0 && wall.getWallState() == WallState.VISIBLE) {
                 wall.despawn();
                 field.matchAndScore(wall);
@@ -103,7 +107,8 @@ public class WallQueue {
                 if (field.eventActive() && field.getEvent() instanceof Rush) {
                     field.endEvent();
                 }
-                pauseLoop = 10;
+
+                pauseTickLoop = field.getClearDelay();
             } else if (wall.getWallState() != WallState.VISIBLE) {
                 Bukkit.getLogger().severe(ChatColor.RED + "Attempted to tick wall before spawned..");
             }
@@ -114,12 +119,17 @@ public class WallQueue {
      * Insta-sends the current wall to the playing field for matching.
      */
     public void instantSend() {
-        // todo closest wall will ALWAYS be the first element for now.
         if (visibleWalls.isEmpty()) return;
+        // sort walls by time remaining
+        sortActiveWalls();
         Wall wall = visibleWalls.getFirst();
         field.matchAndScore(wall);
         visibleWalls.remove(wall);
         wall.despawn();
+    }
+
+    public void sortActiveWalls() {
+        visibleWalls.sort(Comparator.comparingInt(Wall::getTimeRemaining));
     }
 
     public int getFullLength() {
@@ -158,12 +168,20 @@ public class WallQueue {
         hiddenWalls.clear();
     }
 
-    public void setHideBottomBorder(boolean hideBottomBorder) {
-        this.hideBottomBorder = hideBottomBorder;
+    /**
+     * Counts all walls that are visible, including the wall currently being animated.
+     * @return The number of visible walls.
+     */
+    public int countVisibleWalls() {
+        return visibleWalls.size() + (animatingWall != null ? 1 : 0);
     }
 
-    public boolean isHideBottomBorder() {
-        return hideBottomBorder;
+    public int countHiddenWalls() {
+        return hiddenWalls.size();
+    }
+
+    public void setHideBottomBorder(boolean hideBottomBorder) {
+        this.hideBottomBorder = hideBottomBorder;
     }
 
     public void setGenerator(WallGenerator generator) {
@@ -174,5 +192,14 @@ public class WallQueue {
     public void resetGenerator() {
         this.generator = new WallGenerator(field.getLength(), field.getHeight(), 2, 4);
         generator.addQueue(this);
+    }
+
+    public void allowMultipleWalls(boolean allow) {
+        allowMultipleWalls = allow;
+    }
+
+    public void setMaxSpawnCooldown(int maxSpawnCooldown) {
+        this.maxSpawnCooldown = maxSpawnCooldown;
+        spawnCooldown = maxSpawnCooldown;
     }
 }

@@ -144,6 +144,7 @@ public class PlayingField implements Listener {
             display.remove();
         }
         queue.clearAllWalls();
+        queue.allowMultipleWalls(false);
         if (event != null) {
             event.end();
             event = null;
@@ -361,13 +362,9 @@ public class PlayingField implements Listener {
                 updateTextDisplays();
 
                 if (eventActive() && event.actionBarOverride() != null) {
-                    for (Player player : players) {
-                        player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                                new TextComponent(event.actionBarOverride()));
-                    }
+                    sendActionBarToPlayers(new TextComponent(event.actionBarOverride()));
                 } else {
-                    for (Player player : players) player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                            new TextComponent(scorer.getFormattedMeter()));
+                    sendActionBarToPlayers(new TextComponent(scorer.getFormattedMeter()));
                 }
                 queue.tick();
                 if (eventActive()) {
@@ -554,5 +551,23 @@ public class PlayingField implements Listener {
         meta.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "CONFIRM");
         item.setItemMeta(meta);
         return item;
+    }
+
+    public void sendMessageToPlayers(String message) {
+        for (Player player : players) {
+            player.sendMessage(message);
+        }
+    }
+
+    public void sendTitleToPlayers(String title, String subtitle, int fadeIn, int stay, int fadeOut) {
+        for (Player player : players) {
+            player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
+        }
+    }
+
+    public void sendActionBarToPlayers(TextComponent component) {
+        for (Player player : players) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, component);
+        }
     }
 }

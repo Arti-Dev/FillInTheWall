@@ -8,20 +8,17 @@ import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.javatuples.Pair;
 
 public class Rush extends ModifierEvent {
     /*
     A rush lasts for 30 seconds.
     Boards come at you in quick succession, however the blocks you place do not disappear
     The walls cascade into the floor when they hit your field.
-    The differences from consecutive boards are miniscule (1-2 clicks) but do increase the further you get
+    The differences from consecutive boards are minuscule (1-2 clicks) but do increase the further you get
      */
     private boolean firstWallCleared = false;
     private Wall nextWall;
     private int wallSpeed = 200;
-    private final int spawnSpeed = 30;
-    private int nextSpawn = spawnSpeed;
     private int boardsCleared = 0;
     private boolean active = false;
     public Rush(PlayingField field) {
@@ -40,12 +37,8 @@ public class Rush extends ModifierEvent {
         Wall toReturn = nextWall;
         nextWall = generateNextWall();
         toReturn.setTimeRemaining(wallSpeed);
-        if (spawnSpeed > 0) {
-            wallSpeed -= 4;
-        }
-        wallSpeed -= 5;
+        wallSpeed -= 9;
 
-        nextSpawn = spawnSpeed;
         queue.addWall(toReturn);
     }
 
@@ -79,11 +72,8 @@ public class Rush extends ModifierEvent {
     @Override
     public void tick() {
         super.tick();
-        nextSpawn--;
 
-        if (queue.visibleWalls.isEmpty() && queue.animatingWall == null) {
-            deploy();
-        } else if (nextSpawn == 0) {
+        if (queue.countHiddenWalls() < 5) {
             deploy();
         }
     }
@@ -106,6 +96,8 @@ public class Rush extends ModifierEvent {
         field.clearField();
 
         queue.clearAllWalls();
+        queue.allowMultipleWalls(true);
+        queue.setMaxSpawnCooldown(30);
 
         TheVoid.spawnRotatingBlocks(field, this);
     }
@@ -115,6 +107,8 @@ public class Rush extends ModifierEvent {
         active = false;
         field.clearField();
         queue.clearAllWalls();
+        queue.setMaxSpawnCooldown(80);
+        queue.allowMultipleWalls(false);
         field.getScorer().scoreEvent(this);
         if (field.getEnvironment().equalsIgnoreCase("VOID")) {
             TheVoid.resetTime(field);

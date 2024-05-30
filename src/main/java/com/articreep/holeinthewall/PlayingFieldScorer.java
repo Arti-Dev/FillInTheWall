@@ -57,9 +57,7 @@ public class PlayingFieldScorer {
 
                 if (doLevels) {
                     setLevel(level + 1);
-                    for (Player player : field.getPlayers()) {
-                        player.sendTitle("", ChatColor.GREEN + "Level up!", 0, 10, 5);
-                    }
+                    field.sendTitleToPlayers("", ChatColor.GREEN + "Level up!", 0, 10, 5);
                 // todo replace with attribute check
                 } else if (gamemode == Gamemode.RAPID_SCORE_ATTACK || gamemode == Gamemode.INFINITE) {
                     // activate rush next tick
@@ -77,17 +75,21 @@ public class PlayingFieldScorer {
         }
 
         if (showScoreTitle) displayScoreTitle(judgement, score);
+        playJudgementSound(judgement);
 
         return judgement;
     }
 
     public void displayScoreTitle(Judgement judgement, int score) {
+        field.sendTitleToPlayers(
+                judgement.getColor() + judgement.getText(),
+                judgement.getColor() + "+" + score + " points",
+                0, 10, 5);
+    }
+
+    public void playJudgementSound(Judgement judgement) {
         for (Player player : field.getPlayers()) {
-            player.sendTitle(
-                    judgement.getColor() + judgement.getText(),
-                    judgement.getColor() + "+" + score + " points",
-                    0, 10, 5);
-            player.playSound(player, judgement.getSound(), 1, 1);
+            player.playSound(player.getLocation(), judgement.getSound(), 1, 1);
         }
     }
 
@@ -113,10 +115,6 @@ public class PlayingFieldScorer {
 
     public double calculatePercent(Wall wall, PlayingField field) {
         return (double) calculateScore(wall, field) / wall.getHoles().size();
-    }
-
-    public void addScore(int score) {
-        this.score += score;
     }
 
     public int getWallsCleared() {
@@ -167,40 +165,26 @@ public class PlayingFieldScorer {
 
         if (gamemode == Gamemode.SCORE_ATTACK) {
             if (time <= 0) {
-                for (Player player : field.getPlayers()) {
-                    player.sendMessage(ChatColor.RED + "Time's up!");
-                }
+                field.sendMessageToPlayers(ChatColor.RED + "Time's up!");
                 field.stop();
             } else if (time == 20 * 60) {
-                for (Player player : field.getPlayers()) {
-                    player.sendTitle("",ChatColor.YELLOW + "1 minute remaining!", 0, 40, 5);
-                }
+                field.sendTitleToPlayers("",ChatColor.YELLOW + "1 minute remaining!", 0, 40, 5);
             } else if (time == 20 * 30) {
-                for (Player player : field.getPlayers()) {
-                    player.sendTitle("", ChatColor.YELLOW + "30 seconds remaining!", 0, 40, 5);
-                }
+                field.sendTitleToPlayers("", ChatColor.YELLOW + "30 seconds remaining!", 0, 40, 5);
             } else if (time <= 20 * 10 && time % 20 == 0) {
-                for (Player player : field.getPlayers()) {
-                    player.sendTitle("", ChatColor.RED + String.valueOf(time / 20), 0, 20, 5);
-                }
+                field.sendTitleToPlayers("", ChatColor.RED + String.valueOf(time / 20), 0, 20, 5);
             }
         }
 
         if (gamemode == Gamemode.RAPID_SCORE_ATTACK /* todo temporary remove later */ || gamemode == Gamemode.MULTIPLAYER_SCORE_ATTACK) {
             if (time <= 0) {
-                for (Player player : field.getPlayers()) {
-                    player.sendMessage(ChatColor.RED + "Time's up!");
-                }
+                field.sendMessageToPlayers(ChatColor.RED + "Time's up!");
                 field.stop();
             }
             if (time == 20 * 20) {
-                for (Player player : field.getPlayers()) {
-                    player.sendTitle("", ChatColor.YELLOW + "20 seconds remaining!", 0, 40, 5);
-                }
+                field.sendTitleToPlayers("", ChatColor.YELLOW + "20 seconds remaining!", 0, 40, 5);
             } else if (time <= 20 * 10 && time % 20 == 0) {
-                for (Player player : field.getPlayers()) {
-                    player.sendTitle("", ChatColor.RED + String.valueOf(time / 20), 0, 20, 5);
-                }
+                field.sendTitleToPlayers("", ChatColor.RED + String.valueOf(time / 20), 0, 20, 5);
             }
         }
     }
@@ -210,9 +194,7 @@ public class PlayingFieldScorer {
     }
 
     public void announceFinalScore() {
-        for (Player player : field.getPlayers()) {
-            player.sendMessage(ChatColor.GREEN + "Your final score is " + ChatColor.BOLD + finalScore);
-        }
+        field.sendMessageToPlayers(ChatColor.GREEN + "Your final score is " + ChatColor.BOLD + finalScore);
     }
 
     public void setGamemode(Gamemode gamemode) {
@@ -263,8 +245,7 @@ public class PlayingFieldScorer {
         this.level = level;
         setDifficulty(level);
         setMeterMax(level);
-        // when we level up, delete all pending walls in the queue and force a new wall to be made.
-        // todo subject to change
+        // when we level up, delete all pending walls in the queue which forces a new wall to be made.
         field.getQueue().clearHiddenWalls();
     }
 
@@ -289,10 +270,6 @@ public class PlayingFieldScorer {
             }
             queue.setConnectedHoleCount(remainingHoles);
         }
-    }
-
-    public int getMeterMax() {
-        return meterMax;
     }
 
     public int getLevel() {
