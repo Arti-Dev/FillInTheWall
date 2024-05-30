@@ -4,8 +4,6 @@ import com.articreep.holeinthewall.modifiers.ModifierEvent;
 import com.articreep.holeinthewall.modifiers.Rush;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.javatuples.Pair;
@@ -31,61 +29,42 @@ public class PlayingFieldScorer {
         this.field = field;
     }
 
-    public PlayingFieldState scoreWall(Wall wall, PlayingField field) {
+    public Judgement scoreWall(Wall wall, PlayingField field) {
 
         int score = calculateScore(wall, field);
         this.score += score;
 
         double percent = calculatePercent(wall, score);
-        // todo this basically serves the same purpose as percent and should be tweaked
         Judgement judgement = Judgement.MISS;
 
-        String title = "";
-        ChatColor color = ChatColor.GREEN;
-        Material border = field.getDefaultBorderMaterial();
-        if (percent == 1) {
-            for (Player player : field.getPlayers()) {
-                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+        // Determine judgement
+        for (Judgement j : Judgement.values()) {
+            if (percent >= j.getPercent()) {
+                judgement = j;
+                break;
             }
-            color = ChatColor.GOLD;
-            title = ChatColor.BOLD + "PERFECT!";
-            border = Material.GLOWSTONE;
-            judgement = Judgement.PERFECT;
-            wallsCleared++;
-        } else {
-            for (Player player : field.getPlayers()) {
-                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
-            }
-        }
-        if (percent < 1 && percent >= 0.5) {
-            title = "Cool!";
-            border = Material.LIME_CONCRETE;
-            judgement = Judgement.COOL;
-        } else if (percent < 0.5) {
-            title = "Miss..";
-            color = ChatColor.RED;
-            border = Material.REDSTONE_BLOCK;
-            judgement = Judgement.MISS;
         }
 
+        if (judgement == Judgement.PERFECT) wallsCleared++;
+
+        boolean showScoreTitle = true;
         // Add/subtract to bonus
-        if (percent >= 0.5) {
+        if (percent >= Judgement.COOL.getPercent()) {
             meter += percent;
             if (meter >= meterMax) {
                 meter = 0;
-                if (!doLevels) {
-                    // tell playingfield to not show title
-                    // todo temporary
-                    title = null;
-                    // activate rush next tick
-                    Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
-                            () -> field.activateEvent(new Rush(field)));
-                } else if (gamemode == Gamemode.SCORE_ATTACK) {
-                    title = null;
+                showScoreTitle = false;
+
+                if (doLevels) {
                     setLevel(level + 1);
                     for (Player player : field.getPlayers()) {
                         player.sendTitle("", ChatColor.GREEN + "Level up!", 0, 10, 5);
                     }
+                // todo replace with attribute check
+                } else if (gamemode == Gamemode.RAPID_SCORE_ATTACK || gamemode == Gamemode.INFINITE) {
+                    // activate rush next tick
+                    Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
+                            () -> field.activateEvent(new Rush(field)));
                 }
             }
         } else {
@@ -97,7 +76,19 @@ public class PlayingFieldScorer {
             if (meter < 0) meter = 0;
         }
 
-        return new PlayingFieldState(border, color, title, score, judgement);
+        if (showScoreTitle) displayScoreTitle(judgement, score);
+
+        return judgement;
+    }
+
+    public void displayScoreTitle(Judgement judgement, int score) {
+        for (Player player : field.getPlayers()) {
+            player.sendTitle(
+                    judgement.getColor() + judgement.getText(),
+                    judgement.getColor() + "+" + score + " points",
+                    0, 10, 5);
+            player.playSound(player, judgement.getSound(), 1, 1);
+        }
     }
 
     public int calculateScore(Wall wall, PlayingField field) {

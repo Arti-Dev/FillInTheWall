@@ -269,14 +269,10 @@ public class PlayingField implements Listener {
         // Check score
         // Events can override scoring
         if (!eventActive() || !event.overrideScoring) {
-            PlayingFieldState state = scorer.scoreWall(wall, this);
-            if (state.title != null) {
-                for (Player player : players) player.sendTitle(
-                        state.titleColor + state.title, state.titleColor + "+" + state.score + " points", 0, 10, 5);
-            }
-            changeBorderBlocks(state.borderMaterial);
+            Judgement judgement = scorer.scoreWall(wall, this);
+            changeBorderBlocks(judgement.getBorder());
             if (environment.equalsIgnoreCase("VOID")) {
-                TheVoid.judgementEffect(this, state.judgement);
+                TheVoid.judgementEffect(this, judgement);
             }
         } else {
             event.score(wall);
