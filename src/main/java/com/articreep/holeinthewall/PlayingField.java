@@ -391,10 +391,8 @@ public class PlayingField implements Listener {
                         }
                     }
                 }
+
                 ticks++;
-
-                fieldReferencePoint.getWorld().spawnParticle(Particle.HEART, fieldReferencePoint, 1);
-
             }
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
     }
