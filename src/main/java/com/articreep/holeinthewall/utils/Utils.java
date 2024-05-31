@@ -34,4 +34,8 @@ public class Utils {
         // centralize this location
         return blockLocation.add(0.5, 0.5, 0.5);
     }
+
+    public static boolean withinBounds(double bound1, double bound2, double value) {
+        return value >= Math.min(bound1, bound2) && value <= Math.max(bound1, bound2);
+    }
 }

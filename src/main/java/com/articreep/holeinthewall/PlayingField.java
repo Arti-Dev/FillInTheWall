@@ -19,6 +19,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
@@ -188,8 +189,14 @@ public class PlayingField implements Listener {
 
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent event) {
-        // todo also include canceling blocks placed/broken that aren't in the playing field
+        if (!players.contains(event.getPlayer())) return;
+
         Player player = event.getPlayer();
+        if (!isInField(event.getBlock().getLocation())) {
+            event.setCancelled(true);
+            player.sendMessage(ChatColor.RED + "Can't place blocks here!");
+            return;
+        }
         if (event.getBlockPlaced().getType() == Material.CRACKED_STONE_BRICKS) {
             Random random = new Random();
             player.playSound(player.getLocation(), Sound.BLOCK_CHAIN_PLACE, 0.7f, random.nextFloat(0.5f, 2));
@@ -197,18 +204,36 @@ public class PlayingField implements Listener {
     }
 
     @EventHandler
+    public void onBlockBreak(BlockBreakEvent event) {
+        if (!players.contains(event.getPlayer())) return;
+        Player player = event.getPlayer();
+        if (!isInField(event.getBlock().getLocation())) {
+            event.setCancelled(true);
+            player.sendMessage(ChatColor.RED + "Can't break blocks here!");
+        }
+    }
+
+    @EventHandler
     public void onCrackedStoneClick(PlayerInteractEvent event) {
         if (!players.contains(event.getPlayer())) return;
         Player player = event.getPlayer();
+        // Player must click with an item in hand
+        if (player.getInventory().getItemInMainHand().getType() == Material.AIR) return;
+
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             if (event.getClickedBlock().getType() == Material.CRACKED_STONE_BRICKS) {
-                player.getWorld().spawnParticle(Particle.BLOCK,
-                        event.getClickedBlock().getLocation(),
-                        10, 0.5, 0.5, 0.5, 0.1,
-                        Material.CRACKED_STONE_BRICKS.createBlockData());
-                Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
-                        () -> event.getClickedBlock().breakNaturally(new ItemStack(Material.LEAD)));
-                player.playSound(player.getLocation(), Sound.BLOCK_DEEPSLATE_BREAK, 0.7f, 1);
+                // Check to make sure the block placement wasn't an accident
+                Location newBlock = event.getClickedBlock().getLocation().add(event.getBlockFace().getDirection());
+                if (isInField(newBlock)) {
+                    // Despawn the cracked stone bricks
+                    player.getWorld().spawnParticle(Particle.BLOCK,
+                            event.getClickedBlock().getLocation(),
+                            10, 0.5, 0.5, 0.5, 0.1,
+                            Material.CRACKED_STONE_BRICKS.createBlockData());
+                    Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
+                            () -> event.getClickedBlock().breakNaturally(new ItemStack(Material.LEAD)));
+                    player.playSound(player.getLocation(), Sound.BLOCK_DEEPSLATE_BREAK, 0.7f, 1);
+                }
             }
         }
     }
@@ -331,6 +356,18 @@ public class PlayingField implements Listener {
                 loc.getBlock().setType(material);
             }
         }
+    }
+
+    public boolean isInField(Location location) {
+        // decentralize the reference point for this
+        Location bottomLeft = getReferencePoint().subtract(0.5, 0.5, 0.5);
+        Location topRight = bottomLeft.clone()
+                .add(fieldDirection.clone().multiply(length))
+                .add(new Vector(0, height, 0));
+        // haha copilot go brr
+        return (Utils.withinBounds(bottomLeft.getX(), topRight.getX(), location.getX()) &&
+                Utils.withinBounds(bottomLeft.getY(), topRight.getY(), location.getY()) &&
+                Utils.withinBounds(bottomLeft.getZ(), topRight.getZ(), location.getZ()));
     }
 
     public void clearField() {
