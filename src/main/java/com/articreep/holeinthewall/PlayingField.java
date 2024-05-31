@@ -5,6 +5,7 @@ import com.articreep.holeinthewall.environments.TheVoid;
 import com.articreep.holeinthewall.menu.Menu;
 import com.articreep.holeinthewall.modifiers.ModifierEvent;
 import com.articreep.holeinthewall.modifiers.Rush;
+import com.articreep.holeinthewall.utils.Utils;
 import com.articreep.holeinthewall.utils.WorldBoundingBox;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -38,6 +39,7 @@ public class PlayingField implements Listener {
     Set<Player> players = new HashSet<>();
     /**
      * Must be the bottom left corner of the playing field (NOT including the border blocks)
+     * The location is situated in the CENTER of the target block when it is set by the constructor.
      */
     private final Location fieldReferencePoint;
     private final Vector fieldDirection; // parallel to the field, positive x direction
@@ -73,7 +75,7 @@ public class PlayingField implements Listener {
     public PlayingField(Location referencePoint, Vector direction, Vector incomingDirection, WorldBoundingBox boundingBox,
                         WorldBoundingBox effectBox, String environment, int length, int height, boolean hideBottomBorder) {
         // define playing field in a very scuffed way
-        this.fieldReferencePoint = referencePoint;
+        this.fieldReferencePoint = Utils.centralizeLocation(referencePoint);
         this.fieldDirection = direction;
         this.incomingDirection = incomingDirection;
         this.scorer = new PlayingFieldScorer(this);
@@ -391,6 +393,8 @@ public class PlayingField implements Listener {
                 }
                 ticks++;
 
+                fieldReferencePoint.getWorld().spawnParticle(Particle.HEART, fieldReferencePoint, 1);
+
             }
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
     }
@@ -419,7 +423,7 @@ public class PlayingField implements Listener {
                 .subtract(incomingDirection.clone().multiply(3))
                 .add(new Vector(0, 1.5, 0));
         Location slot1 = slot0.clone().subtract(new Vector(0, 1, 0));
-        Location slot2 = slot0.clone().add(fieldDirection.clone().multiply(length + 1.5*2));
+        Location slot2 = slot0.clone().add(fieldDirection.clone().multiply(length + 2));
         Location slot3 = slot2.clone().subtract(new Vector(0, 1, 0));
         Location slot4 = getReferencePoint().add(getFieldDirection().multiply((double) length / 2))
                 .add(new Vector(0, 1, 0).multiply(height + 3));
@@ -537,8 +541,10 @@ public class PlayingField implements Listener {
     }
 
     public Location getCenter() {
-        return getReferencePoint().add(fieldDirection.clone().multiply((double) length / 2))
-                .add(new Vector(0, 1, 0).multiply((double) height / 2));
+        return getReferencePoint()
+                // There's a -1 on the length because the reference point is in the center of the target block.
+                .add(fieldDirection.clone().multiply((double) (length - 1) / 2))
+                .add(new Vector(0, 1, 0).multiply((double) (height - 1) / 2));
     }
 
     public void doTickScorer(boolean tickScorer) {

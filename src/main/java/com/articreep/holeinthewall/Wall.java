@@ -1,5 +1,6 @@
 package com.articreep.holeinthewall;
 
+import com.articreep.holeinthewall.utils.Utils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.BlockDisplay;
@@ -23,11 +24,10 @@ public class Wall {
     private int maxTime = -1;
     private int timeRemaining = -1;
     private Vector movementDirection = null;
-    private Set<BlockDisplay> entities = new HashSet<>();
-    private List<BlockDisplay> blocks = new ArrayList<>();
-    private List<BlockDisplay> border = new ArrayList<>();
-    private List<BlockDisplay> toRemove = new ArrayList<>();
-    private final Random random = new Random();
+    private final Set<BlockDisplay> entities = new HashSet<>();
+    private final List<BlockDisplay> blocks = new ArrayList<>();
+    private final List<BlockDisplay> border = new ArrayList<>();
+    private final List<BlockDisplay> toRemove = new ArrayList<>();
     private Material material = null;
 
     public Wall(HashSet<Pair<Integer, Integer>> holes, int length, int height) {
@@ -66,6 +66,7 @@ public class Wall {
         // interpolate towards the playing field
         Location spawnReferencePoint = field.getReferencePoint();
         movementDirection = field.getIncomingDirection();
+        // todo should be effective length, in the future
         spawnReferencePoint.subtract(movementDirection.clone().multiply(queue.getFullLength()));
 
         World world = spawnReferencePoint.getWorld();
@@ -73,9 +74,7 @@ public class Wall {
             for (int y = 0; y < height; y++) {
                 Location loc = spawnReferencePoint.clone()
                         .add(field.getFieldDirection().multiply(x))
-                        .add(0, y, 0)
-                        // to centralize origin point
-                        .add(0.5, 0.5, 0.5);
+                        .add(0, y, 0);
                 // spawn block display entity
                 BlockDisplay display = (BlockDisplay) loc.getWorld().spawnEntity(loc, EntityType.BLOCK_DISPLAY);
                 // make invisible for now
@@ -95,8 +94,7 @@ public class Wall {
 
         // borders
 
-        Vector offset = field.getIncomingDirection().multiply(0.5);
-        if (Math.abs(offset.getX()) > 0) offset.multiply(-1);
+        Location centerOfWall = field.getCenter().subtract(movementDirection.clone().multiply(queue.getFullLength()));
 
         // todo this code is ugly
         // horizontal ones
@@ -106,18 +104,18 @@ public class Wall {
         // leave last direction as zero
 
         // Start with a vector with all 1s except for y direction
-        Vector scaleVector = new Vector(1, 0.1, 1);
+        Vector scaleVector = new Vector(0, 0.1, 0);
         // Subtract 1 from this to factor for the 1s in the existing vector
-        scaleVector.add(field.getFieldDirection().multiply(length - 1 + 0.2 /*to fill in the corners */));
+        scaleVector.add(field.getFieldDirection().multiply(length + 0.2 /*to fill in the corners */));
+        scaleVector.add(field.getIncomingDirection());
+        Utils.vectorAbs(scaleVector);
 
         BlockDisplay bottomBorder = null;
         if (!hideBottomBorder) {
-            bottomBorder = (BlockDisplay) world.spawnEntity(spawnReferencePoint.clone()
-                    // middle of the wall
-                    .add(field.getFieldDirection().multiply((double) length / 2))
+            bottomBorder = (BlockDisplay) world.spawnEntity(centerOfWall.clone()
                     // dip down a little
-                    .add(0, -0.05, 0)
-                    .add(offset), EntityType.BLOCK_DISPLAY);
+                    .subtract(0, ((double) height /2)+0.05, 0),
+                    EntityType.BLOCK_DISPLAY);
             bottomBorder.setTransformation(new Transformation(
                     // translation - half of the scale vectors and negative
                     scaleVector.clone().multiply(-0.5).toVector3f(),
@@ -126,12 +124,11 @@ public class Wall {
             bottomBorder.setBlock(Material.IRON_BLOCK.createBlockData());
         }
 
-        BlockDisplay topBorder = (BlockDisplay) world.spawnEntity(spawnReferencePoint.clone()
+        BlockDisplay topBorder = (BlockDisplay) world.spawnEntity(centerOfWall.clone()
                 // middle of the wall
-                .add(field.getFieldDirection().multiply((double) length / 2))
+                .add(0, ((double) height/2)+0.05, 0),
                 // go up and go up a little more
-                .add(0, height + 0.05, 0)
-                .add(offset), EntityType.BLOCK_DISPLAY);
+                EntityType.BLOCK_DISPLAY);
         topBorder.setTransformation(new Transformation(
                 // translation - half of the scale vectors and negative
                 scaleVector.clone().multiply(-0.5).toVector3f(),
@@ -140,20 +137,18 @@ public class Wall {
         topBorder.setBlock(Material.IRON_BLOCK.createBlockData());
 
         // vertical ones
-        // Start with a vector with all 1s except for y direction
-        scaleVector = new Vector(1, 1, 1);
+        scaleVector = new Vector(0, 0, 0);
         // Compress
-        // todo this is dumb
-        scaleVector.subtract(field.getFieldDirection().multiply(0.9));
+        scaleVector.add(field.getFieldDirection().multiply(0.1));
         // Stretch in the y direction
-        scaleVector.add(new Vector(0, height - 1, 0));
+        scaleVector.add(new Vector(0, height, 0));
+        scaleVector.add(field.getIncomingDirection());
+        Utils.vectorAbs(scaleVector);
 
-        BlockDisplay leftBorder = (BlockDisplay) world.spawnEntity(spawnReferencePoint.clone()
-                // middle of the wall
-                .add(0, (double) height / 2, 0)
+        BlockDisplay leftBorder = (BlockDisplay) world.spawnEntity(centerOfWall.clone()
                 // left a little;
-                .subtract(field.getFieldDirection().multiply(0.05))
-                .add(offset), EntityType.BLOCK_DISPLAY);
+                .subtract(field.getFieldDirection().multiply((double) length/2 + 0.05)),
+                EntityType.BLOCK_DISPLAY);
         leftBorder.setTransformation(new Transformation(
                 // translation - half of the scale vectors and negative
                 scaleVector.clone().multiply(-0.5).toVector3f(),
@@ -161,12 +156,10 @@ public class Wall {
                 new AxisAngle4f(0, 0, 0, 1)));
         leftBorder.setBlock(Material.IRON_BLOCK.createBlockData());
 
-        BlockDisplay rightBorder = (BlockDisplay) world.spawnEntity(spawnReferencePoint.clone()
-                // middle of the wall
-                .add(0, (double) height / 2, 0)
+        BlockDisplay rightBorder = (BlockDisplay) world.spawnEntity(centerOfWall.clone()
                 // right a little;
-                .add(field.getFieldDirection().multiply(length + 0.05))
-                .add(offset), EntityType.BLOCK_DISPLAY);
+                .add(field.getFieldDirection().multiply((double) length /2 + 0.05)),
+                EntityType.BLOCK_DISPLAY);
         rightBorder.setTransformation(new Transformation(
                 // translation - half of the scale vectors and negative
                 scaleVector.clone().multiply(-0.5).toVector3f(),
@@ -227,10 +220,10 @@ public class Wall {
 
         int length = queue.getFullLength();
         for (BlockDisplay display : blocks) {
-            display.teleport(display.getLocation().add(movementDirection.clone().multiply((double) length/maxTime)));
+            display.teleport(display.getLocation().add(movementDirection.clone().multiply((double) length / maxTime)));
         }
         for (BlockDisplay display : border) {
-            display.teleport(display.getLocation().add(movementDirection.clone().multiply((double) length/maxTime)));
+            display.teleport(display.getLocation().add(movementDirection.clone().multiply((double) length / maxTime)));
         }
 
         if (timeRemaining > 0) {
@@ -389,7 +382,6 @@ public class Wall {
         return null;
     }
 
-    // todo this is super unclear
     /**
      * Generates holes on the wall.
      * The algorithm works as follows:

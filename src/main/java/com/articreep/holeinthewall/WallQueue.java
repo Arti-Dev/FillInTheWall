@@ -58,7 +58,6 @@ public class WallQueue {
         animatingWall = hiddenWalls.removeFirst();
         animatingWall.spawnWall(field, this, hideBottomBorder);
         animatingWall.animateWall(field.getPlayers(), wallMaterial);
-        field.sendMessageToPlayers("Wall time: " + animatingWall.getTimeRemaining());
         new BukkitRunnable() {
             @Override
             public void run() {
