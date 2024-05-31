@@ -130,6 +130,7 @@ public class PlayingField implements Listener {
         HoleInTheWall.getInstance().getServer().getPluginManager().registerEvents(this, HoleInTheWall.getInstance());
         // Pass gamemode to scorer
         scorer.setGamemode(mode);
+        setDisplaySlotsFromGamemode(mode);
         scorer.resetFinalScore();
         removeMenu();
         spawnTextDisplays();
@@ -453,6 +454,13 @@ public class PlayingField implements Listener {
         displaySlots[5] = DisplayType.GAMEMODE;
     }
 
+    public void setDisplaySlotsFromGamemode(Gamemode mode) {
+        displaySlots[0] = (DisplayType) mode.getAttribute(GamemodeAttribute.DISPLAY_SLOT_0);
+        displaySlots[1] = (DisplayType) mode.getAttribute(GamemodeAttribute.DISPLAY_SLOT_1);
+        displaySlots[2] = (DisplayType) mode.getAttribute(GamemodeAttribute.DISPLAY_SLOT_2);
+        displaySlots[3] = (DisplayType) mode.getAttribute(GamemodeAttribute.DISPLAY_SLOT_3);
+    }
+
     public void spawnTextDisplays() {
         Location slot0 = getReferencePoint().subtract(fieldDirection.clone().multiply(1.5))
                 .subtract(incomingDirection.clone().multiply(3))
@@ -499,6 +507,7 @@ public class PlayingField implements Listener {
             DisplayType type = displaySlots[i];
             if (type == DisplayType.SCORE && scoreDisplayOverride) continue;
             data = switch (type) {
+                case NONE -> "";
                 case SCORE -> scorer.getScore();
                 case ACCURACY -> "null";
                 case SPEED -> "null";

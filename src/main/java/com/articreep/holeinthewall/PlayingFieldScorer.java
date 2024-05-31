@@ -58,8 +58,7 @@ public class PlayingFieldScorer {
                 if (doLevels) {
                     setLevel(level + 1);
                     field.sendTitleToPlayers("", ChatColor.GREEN + "Level up!", 0, 10, 5);
-                // todo replace with attribute check
-                } else if (gamemode == Gamemode.RAPID_SCORE_ATTACK || gamemode == Gamemode.INFINITE) {
+                } else if (gamemode.getModifier() == Rush.class) {
                     // activate rush next tick
                     Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
                             () -> field.activateEvent(new Rush(field)));
@@ -152,39 +151,36 @@ public class PlayingFieldScorer {
     }
 
     public void tick() {
-        // todo assign "attributes" to gamemodes, such as "singleplayer" and "multiplayer"
-        // instead of checking each gamemode
 
-        // if an timefreeze modifier event is active and we're in a singleplayer game, pause the timer
+        // if a timefreeze modifier event is active and we're in a singleplayer game, pause the timer
         if (field.eventActive() && field.getEvent().timeFreeze
-                && gamemode == Gamemode.RAPID_SCORE_ATTACK) return;
+                && gamemode.hasAttribute(GamemodeAttribute.SINGLEPLAYER)) return;
         // if we're in a score attack game, decrement the time
-        if (gamemode == Gamemode.SCORE_ATTACK || gamemode == Gamemode.RAPID_SCORE_ATTACK
-                || gamemode == Gamemode.MULTIPLAYER_SCORE_ATTACK) time--;
+        if (gamemode.hasAttribute(GamemodeAttribute.TIME_LIMIT)) time--;
         else time++;
 
-        if (gamemode == Gamemode.SCORE_ATTACK) {
-            if (time <= 0) {
-                field.sendMessageToPlayers(ChatColor.RED + "Time's up!");
-                field.stop();
-            } else if (time == 20 * 60) {
-                field.sendTitleToPlayers("",ChatColor.YELLOW + "1 minute remaining!", 0, 40, 5);
-            } else if (time == 20 * 30) {
-                field.sendTitleToPlayers("", ChatColor.YELLOW + "30 seconds remaining!", 0, 40, 5);
-            } else if (time <= 20 * 10 && time % 20 == 0) {
-                field.sendTitleToPlayers("", ChatColor.RED + String.valueOf(time / 20), 0, 20, 5);
-            }
-        }
-
-        if (gamemode == Gamemode.RAPID_SCORE_ATTACK /* todo temporary remove later */ || gamemode == Gamemode.MULTIPLAYER_SCORE_ATTACK) {
-            if (time <= 0) {
-                field.sendMessageToPlayers(ChatColor.RED + "Time's up!");
-                field.stop();
-            }
-            if (time == 20 * 20) {
-                field.sendTitleToPlayers("", ChatColor.YELLOW + "20 seconds remaining!", 0, 40, 5);
-            } else if (time <= 20 * 10 && time % 20 == 0) {
-                field.sendTitleToPlayers("", ChatColor.RED + String.valueOf(time / 20), 0, 20, 5);
+        if (gamemode.hasAttribute(GamemodeAttribute.TIME_LIMIT)) {
+            if ((int) gamemode.getAttribute(GamemodeAttribute.TIME_LIMIT) >= 120 * 20) {
+                if (time <= 0) {
+                    field.sendMessageToPlayers(ChatColor.RED + "Time's up!");
+                    field.stop();
+                } else if (time == 20 * 60) {
+                    field.sendTitleToPlayers("", ChatColor.YELLOW + "1 minute remaining!", 0, 40, 5);
+                } else if (time == 20 * 30) {
+                    field.sendTitleToPlayers("", ChatColor.YELLOW + "30 seconds remaining!", 0, 40, 5);
+                } else if (time <= 20 * 10 && time % 20 == 0) {
+                    field.sendTitleToPlayers("", ChatColor.RED + String.valueOf(time / 20), 0, 20, 5);
+                }
+            } else {
+                if (time <= 0) {
+                    field.sendMessageToPlayers(ChatColor.RED + "Time's up!");
+                    field.stop();
+                }
+                if (time == 20 * 20) {
+                    field.sendTitleToPlayers("", ChatColor.YELLOW + "20 seconds remaining!", 0, 40, 5);
+                } else if (time <= 20 * 10 && time % 20 == 0) {
+                    field.sendTitleToPlayers("", ChatColor.RED + String.valueOf(time / 20), 0, 20, 5);
+                }
             }
         }
     }
@@ -198,28 +194,34 @@ public class PlayingFieldScorer {
     }
 
     public void setGamemode(Gamemode gamemode) {
-        this.gamemode = gamemode;
-        if (gamemode == Gamemode.SCORE_ATTACK) {
-            time = 20 * 120;
-            doLevels = true;
-            field.getQueue().setRandomizeFurther(false);
-            setLevel(1);
-        } else if (gamemode == Gamemode.INFINITE) {
-            doLevels = false;
-            field.getQueue().setRandomizeFurther(true);
-            field.getQueue().setRandomHoleCount(2);
-            field.getQueue().setConnectedHoleCount(4);
-            field.getQueue().setWallActiveTime(160);
-            setMeterMax(10);
-        } else if (gamemode == Gamemode.RAPID_SCORE_ATTACK) {
-            time = 20 * 60;
-            doLevels = false;
-            field.getQueue().setRandomizeFurther(false);
-            field.getQueue().setRandomHoleCount(1);
-            field.getQueue().setConnectedHoleCount(2);
-            field.getQueue().setWallActiveTime(160);
-            setMeterMax(5);
+        for (GamemodeAttribute attribute : GamemodeAttribute.values()) {
+            Object value = gamemode.getAttribute(attribute);
+            if (value == null) continue;
+
+            switch (attribute) {
+                case TIME_LIMIT -> setTime((int) value);
+                case DO_LEVELS -> {
+                    doLevels = (boolean) value;
+                    if (doLevels) setLevel(1);
+                }
+                case CONSISTENT_HOLE_COUNT -> {
+                    if (!doLevels) field.getQueue().setRandomizeFurther(!(boolean) value);
+                }
+                case RANDOM_HOLE_COUNT -> {
+                    if (!doLevels) field.getQueue().setRandomHoleCount((int) value);
+                }
+                case CONNECTED_HOLE_COUNT -> {
+                    if (!doLevels) field.getQueue().setConnectedHoleCount((int) value);
+                }
+                case STARTING_WALL_ACTIVE_TIME -> {
+                    if (!doLevels) field.getQueue().setWallActiveTime((int) value);
+                }
+                case METER_MAX -> {
+                    if (!doLevels) setMeterMax((int) value);
+                }
+            }
         }
+        this.gamemode = gamemode;
     }
 
     // levels
@@ -228,9 +230,10 @@ public class PlayingFieldScorer {
     }
 
     public String getFormattedMeter() {
-        // todo add the type of meter to the string - such as "rush meter" or "freeze meter"
         double percentFilled = meter / meterMax;
         ChatColor color;
+        String modifier = "";
+        if (gamemode.getModifier() != null) modifier = gamemode.getModifier().getSimpleName() + " ";
         if (percentFilled <= 0.3) {
             color = ChatColor.GRAY;
         } else if (percentFilled <= 0.7) {
@@ -238,10 +241,11 @@ public class PlayingFieldScorer {
         } else {
             color = ChatColor.GREEN;
         }
-        return color + "Meter: " + String.format("%.2f", meter) + "/" + meterMax;
+        return color + modifier + "Meter: " + String.format("%.2f", meter) + "/" + meterMax;
     }
 
     public void setLevel(int level) {
+        field.getQueue().setRandomizeFurther(false);
         this.level = level;
         setDifficulty(level);
         setMeterMax(level);

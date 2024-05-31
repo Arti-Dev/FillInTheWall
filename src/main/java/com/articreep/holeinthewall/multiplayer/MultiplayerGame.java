@@ -13,7 +13,7 @@ import java.util.Set;
 
 public class MultiplayerGame {
     private final Set<PlayingField> playingFields = new HashSet<>();
-    private WallGenerator generator;
+    private final WallGenerator generator;
     private int time;
     private BukkitTask task;
 
@@ -41,6 +41,7 @@ public class MultiplayerGame {
             @Override
             public void run() {
                 for (PlayingField field : playingFields) {
+                    if (!field.hasStarted()) continue;
                     field.getScorer().setTime(time);
                     field.getScorer().tick();
                 }

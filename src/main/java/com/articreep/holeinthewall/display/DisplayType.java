@@ -3,6 +3,7 @@ package com.articreep.holeinthewall.display;
 import org.bukkit.ChatColor;
 
 public enum DisplayType {
+    NONE(""),
     SCORE(ChatColor.GREEN + "Score: %s"),
     ACCURACY(ChatColor.DARK_RED + "Accuracy: %s"),
     SPEED(ChatColor.WHITE + "Speed: %s"),
