@@ -1,5 +1,6 @@
 package com.articreep.holeinthewall;
 
+import com.articreep.holeinthewall.modifiers.Freeze;
 import com.articreep.holeinthewall.modifiers.ModifierEvent;
 import com.articreep.holeinthewall.modifiers.Rush;
 import org.bukkit.Bukkit;
@@ -49,7 +50,7 @@ public class PlayingFieldScorer {
 
         boolean showScoreTitle = true;
         // Add/subtract to bonus
-        if (percent >= Judgement.COOL.getPercent()) {
+        if (percent >= Judgement.COOL.getPercent() && !field.eventActive()) {
             meter += percent;
             if (meter >= meterMax) {
                 meter = 0;
@@ -62,9 +63,13 @@ public class PlayingFieldScorer {
                     // activate rush next tick
                     Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
                             () -> field.activateEvent(new Rush(field)));
+                } else if (gamemode.getModifier() == Freeze.class) {
+                    Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
+                            () -> field.activateEvent(new Freeze(field, 20*10)));
+                    // todo should be based on how full the meter was
                 }
             }
-        } else {
+        } else if (!field.eventActive()) {
             // You cannot lose progress if levels are enabled
             if (!doLevels) {
                 meter -= 1;

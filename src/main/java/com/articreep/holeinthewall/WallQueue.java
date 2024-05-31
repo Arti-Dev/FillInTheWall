@@ -78,9 +78,12 @@ public class WallQueue {
             return;
         }
 
-        if (hiddenWalls.isEmpty() && !field.eventActive()) {
-            // Tell generator to add a new wall to all queues
-            generator.addNewWallToQueues();
+        if (hiddenWalls.isEmpty()) {
+            // If there's an event going on that overrides generation, don't generate a new wall
+            if (!(field.eventActive() && field.getEvent().overrideGeneration)) {
+                // Tell generator to add a new wall to all queues
+                generator.addNewWallToQueues();
+            }
         }
 
         // Animate the next wall when possible
@@ -94,6 +97,8 @@ public class WallQueue {
         }
 
         // Tick all visible walls
+        if (field.eventActive() && field.getEvent().wallFreeze) return;
+
         Iterator<Wall> it = visibleWalls.iterator();
         while (it.hasNext()) {
             Wall wall = it.next();

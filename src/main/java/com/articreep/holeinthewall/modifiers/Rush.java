@@ -23,8 +23,9 @@ public class Rush extends ModifierEvent {
     private boolean active = false;
     public Rush(PlayingField field) {
         super(field, 600);
-        pauseTime = 5;
+        clearDelay = 5;
         overrideScoring = true;
+        overrideGeneration = true;
         allowMultipleWalls = true;
         timeFreeze = true;
 

@@ -3,15 +3,16 @@ package com.articreep.holeinthewall.modifiers;
 import com.articreep.holeinthewall.PlayingField;
 import com.articreep.holeinthewall.Wall;
 import com.articreep.holeinthewall.WallQueue;
-import org.bukkit.entity.Player;
 
 /** Represents an event that affects the playing field and/or queue. */
 public abstract class ModifierEvent {
     /* Settings. Child classes should change these as fit */
     public boolean overrideScoring = false;
+    public boolean overrideGeneration = false;
     public boolean allowMultipleWalls = false;
-    public int pauseTime;
+    public int clearDelay;
     public boolean timeFreeze = false;
+    public boolean wallFreeze = false;
 
     protected WallQueue queue;
     protected int ticksRemaining;
@@ -21,6 +22,7 @@ public abstract class ModifierEvent {
     protected ModifierEvent(PlayingField field, int ticks) {
         this.field = field;
         this.queue = field.getQueue();
+        clearDelay = field.getClearDelay();
 
         this.ticksRemaining = ticks;
     }

@@ -343,7 +343,7 @@ public class PlayingField implements Listener {
 
         // Visually display what blocks were correct and what were wrong
         int pauseTime = this.clearDelay;
-        if (eventActive()) pauseTime = event.pauseTime;
+        if (eventActive()) pauseTime = event.clearDelay;
         fillField(wall.getMaterial());
         for (Block block : extraBlocks.values()) {
             block.setType(Material.RED_WOOL);
