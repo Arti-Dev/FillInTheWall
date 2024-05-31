@@ -37,7 +37,8 @@ import org.joml.Vector3f;
 import java.util.*;
 
 public class PlayingField implements Listener {
-    Set<Player> players = new HashSet<>();
+    private final Set<Player> players = new HashSet<>();
+    private final HashMap<Player, GameMode> previousGamemodes = new HashMap<>();
     /**
      * Must be the bottom left corner of the playing field (NOT including the border blocks)
      * The location is situated in the CENTER of the target block when it is set by the constructor.
@@ -134,7 +135,36 @@ public class PlayingField implements Listener {
         scorer.resetFinalScore();
         removeMenu();
         spawnTextDisplays();
+        for (Player player : players) setCreative(player);
         task = tickLoop();
+    }
+
+    public void addNewPlayer(Player player) {
+        players.add(player);
+        if (!hasStarted() && !hasMenu()) {
+            // Display a new menu
+            createMenu();
+        } else if (hasStarted()) {
+            setCreative(player);
+        }
+    }
+
+    public int playerCount() {
+        return players.size();
+    }
+
+    public void removePlayer(Player player) {
+        players.remove(player);
+        if (previousGamemodes.containsKey(player)) {
+            GameMode previousGamemode = previousGamemodes.get(player);
+            if (previousGamemode != null) player.setGameMode(previousGamemode);
+            previousGamemodes.remove(player);
+        }
+    }
+
+    public void setCreative(Player player) {
+        previousGamemodes.put(player, player.getGameMode());
+        player.setGameMode(GameMode.CREATIVE);
     }
 
     public void stop() {

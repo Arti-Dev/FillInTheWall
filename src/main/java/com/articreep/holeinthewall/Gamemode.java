@@ -38,6 +38,7 @@ public enum Gamemode {
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.DO_LEVELS, false);
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.RANDOM_HOLE_COUNT, 1);
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.CONNECTED_HOLE_COUNT, 2);
+        RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.METER_MAX, 5);
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.PERFECT_WALLS);
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.NONE);

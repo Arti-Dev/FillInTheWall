@@ -46,11 +46,7 @@ public class PlayingFieldManager implements Listener {
     // Managing games
     public static void newGame(Player player, WorldBoundingBox box) {
         PlayingField field = playingFieldLocations.get(box);
-        field.players.add(player);
-        if (!field.hasStarted() && !field.hasMenu()) {
-            // Display a new menu
-            field.createMenu();
-        }
+        field.addNewPlayer(player);
 
         activePlayingFields.put(player, field);
     }
@@ -58,7 +54,7 @@ public class PlayingFieldManager implements Listener {
     public static void removeGame(Player player) {
         PlayingField field = activePlayingFields.get(player);
         if (field != null) {
-            if (field.players.size() == 1) {
+            if (field.playerCount() == 1) {
                 if (field.hasStarted()) {
                     field.stop();
                     // todo temporary solution: nuke the multiplayer game i don't care
@@ -69,7 +65,7 @@ public class PlayingFieldManager implements Listener {
                 }
                 else field.removeMenu();
             }
-            field.players.remove(player);
+            field.removePlayer(player);
             activePlayingFields.remove(player);
         }
     }
