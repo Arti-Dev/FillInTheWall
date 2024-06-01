@@ -115,9 +115,10 @@ public class MultiplayerGame {
             sortTask.cancel();
         }
 
+        rankPlayingFields();
+        broadcastResults();
+
         for (PlayingField field : playingFields) {
-            rankPlayingFields();
-            broadcastResults();
             field.stop();
             field.getQueue().resetGenerator();
             field.doTickScorer(true);
@@ -180,7 +181,7 @@ public class MultiplayerGame {
         Bukkit.broadcastMessage(ChatColor.AQUA + "Hole In The Wall - Results");
         Bukkit.broadcastMessage("");
         for (int i = 0; i < rankings.size(); i++) {
-            Bukkit.broadcastMessage("#" + i + " - " + ChatColor.GREEN + Utils.playersToString(rankings.get(i).getPlayers()) + " with " + rankings.get(i).getScorer().getScore() + " points");
+            Bukkit.broadcastMessage("#" + (i+1) + " - " + ChatColor.GREEN + Utils.playersToString(rankings.get(i).getPlayers()) + " with " + rankings.get(i).getScorer().getScore() + " points");
         }
         Bukkit.broadcastMessage("");
         Bukkit.broadcastMessage("---");
