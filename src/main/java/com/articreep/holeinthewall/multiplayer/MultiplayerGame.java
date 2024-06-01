@@ -9,14 +9,17 @@ import org.bukkit.ChatColor;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
 public class MultiplayerGame {
     private final Set<PlayingField> playingFields = new HashSet<>();
+    private final ArrayList<PlayingField> rankings = new ArrayList<>();
     private final WallGenerator generator;
     private int time;
     private BukkitTask task;
+    private BukkitTask sortTask;
 
     public MultiplayerGame(PlayingField field) {
         playingFields.add(field);
@@ -72,6 +75,7 @@ public class MultiplayerGame {
         }
         generator.addNewWallToQueues();
         task = tickLoop();
+        sortTask = sortLoop();
 
     }
 
@@ -91,14 +95,27 @@ public class MultiplayerGame {
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
     }
 
+    private BukkitTask sortLoop() {
+        return new BukkitRunnable() {
+            @Override
+            public void run() {
+                rankPlayingFields();
+                for (PlayingField field : rankings) {
+                    sendRank(field);
+                }
+            }
+        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 20);
+    }
+
     public void stop() {
         if (task != null) {
             task.cancel();
+            sortTask.cancel();
         }
 
         for (PlayingField field : playingFields) {
             // todo temporary broadcast
-            Bukkit.broadcastMessage(field.getPlayers().toString() + "with " + field.getScorer().getFinalScore() + " score");
+            Bukkit.broadcastMessage(field.getPlayers().toString() + "with " + field.getScorer().getScore() + " score");
             field.stop();
             field.getQueue().resetGenerator();
             field.doTickScorer(true);
@@ -137,5 +154,24 @@ public class MultiplayerGame {
             field.getQueue().resetGenerator();
             field.doTickScorer(true);
         }
+    }
+
+    private void rankPlayingFields() {
+        rankings.clear();
+        rankings.addAll(playingFields);
+        rankings.sort((a, b) -> b.getScorer().getScore() - a.getScorer().getScore());
+    }
+
+    public void sendRank(PlayingField field) {
+        if (field == null || !rankings.contains(field)) return;
+        int position = rankings.indexOf(field);
+        field.getScorer().setPosition(position+1);
+        if (position == 0) {
+            field.getScorer().setPointsBehind(-1);
+        } else {
+            int pointsOfNextRank = rankings.get(position-1).getScorer().getScore();
+            field.getScorer().setPointsBehind(pointsOfNextRank - field.getScorer().getScore());
+        }
+
     }
 }

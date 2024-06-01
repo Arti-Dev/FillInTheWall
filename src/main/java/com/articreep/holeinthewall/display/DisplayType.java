@@ -10,6 +10,7 @@ public enum DisplayType {
     PERFECT_WALLS(ChatColor.GOLD + "Perfect Walls: %s"),
     TIME(ChatColor.AQUA + "Time: %s"),
     LEVEL(ChatColor.DARK_AQUA + "Level %s"),
+    POSITION(ChatColor.YELLOW + "Position: %s\n%s"),
     NAME("%s"),
     GAMEMODE("Playing %s");
 
@@ -22,7 +23,11 @@ public enum DisplayType {
         return text;
     }
 
-    public String getFormattedText(Object... args) {
+    public String getFormattedText(Object arg) {
+        return String.format(text, arg);
+    }
+
+    public String getFormattedText(Object[] args) {
         return String.format(text, args);
     }
 }

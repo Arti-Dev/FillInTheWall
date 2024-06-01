@@ -14,7 +14,6 @@ import java.util.Map;
 public class PlayingFieldScorer {
     PlayingField field;
     private int score = 0;
-    private int finalScore = 0;
     private double meter = 0;
     private int wallsCleared = 0;
     // time in ticks
@@ -25,6 +24,10 @@ public class PlayingFieldScorer {
     boolean doLevels = false;
     private int level = 1;
     private int meterMax = 10;
+
+    // Multiplayer variables
+    private int position;
+    private int pointsBehind;
 
     public PlayingFieldScorer(PlayingField field) {
         this.field = field;
@@ -143,10 +146,6 @@ public class PlayingFieldScorer {
         doLevels = false;
     }
 
-    public void resetFinalScore() {
-        finalScore = 0;
-    }
-
     public String getFormattedTime() {
         return String.format("%02d:%02d", (time/20) / 60, (time/20) % 60);
     }
@@ -190,12 +189,8 @@ public class PlayingFieldScorer {
         }
     }
 
-    public void saveFinalScore() {
-        finalScore = score;
-    }
-
     public void announceFinalScore() {
-        field.sendMessageToPlayers(ChatColor.GREEN + "Your final score is " + ChatColor.BOLD + finalScore);
+        field.sendMessageToPlayers(ChatColor.GREEN + "Your final score is " + ChatColor.BOLD + score);
     }
 
     public void setGamemode(Gamemode gamemode) {
@@ -293,7 +288,19 @@ public class PlayingFieldScorer {
         this.time = time;
     }
 
-    public int getFinalScore() {
-        return finalScore;
+    public void setPosition(int position) {
+        this.position = position;
+    }
+
+    public int getPosition() {
+        return position;
+    }
+
+    public void setPointsBehind(int pointsBehind) {
+        this.pointsBehind = pointsBehind;
+    }
+
+    public int getPointsBehind() {
+        return pointsBehind;
     }
 }

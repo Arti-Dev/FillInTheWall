@@ -155,9 +155,9 @@ public class PlayingField implements Listener {
         }
         HoleInTheWall.getInstance().getServer().getPluginManager().registerEvents(this, HoleInTheWall.getInstance());
         // Pass gamemode to scorer
+        scorer.reset();
         scorer.setGamemode(mode);
         setDisplaySlotsFromGamemode(mode);
-        scorer.resetFinalScore();
         removeMenu();
         spawnTextDisplays();
         for (Player player : players) setCreative(player);
@@ -208,9 +208,7 @@ public class PlayingField implements Listener {
             event.end();
             event = null;
         }
-        scorer.saveFinalScore();
         scorer.announceFinalScore();
-        scorer.reset();
 
         clearField();
         HandlerList.unregisterAll(this);
@@ -558,6 +556,7 @@ public class PlayingField implements Listener {
     public void updateTextDisplays() {
         // todo in theory we don't need to tick the gamemode/name displays, but we can for now
         for (int i = 0; i < displaySlotsLength; i++) {
+            // todo we definitely need to refactor this, especially the position display
             Object data;
             DisplayType type = displaySlots[i];
             if (type == DisplayType.SCORE && scoreDisplayOverride) continue;
@@ -569,10 +568,17 @@ public class PlayingField implements Listener {
                 case PERFECT_WALLS -> scorer.getWallsCleared();
                 case TIME -> scorer.getFormattedTime();
                 case LEVEL -> scorer.getLevel();
+                // todo this is some ugly ternary crap, but it does kind of make sense
+                case POSITION -> new Object[]{(scorer.getPosition() > 0 ? scorer.getPosition() : "None"),
+                        (scorer.getPointsBehind() == -1 ? "Way to go!" : scorer.getPointsBehind() + " behind #" + (scorer.getPosition()-1))};
                 case NAME -> players.iterator().next().getName();
                 case GAMEMODE -> scorer.getGamemode().getTitle();
             };
-            textDisplays[i].setText(type.getFormattedText(data));
+            if (data instanceof Object[]) {
+                textDisplays[i].setText(type.getFormattedText((Object[]) data));
+            } else {
+                textDisplays[i].setText(type.getFormattedText(data));
+            }
         }
     }
 
