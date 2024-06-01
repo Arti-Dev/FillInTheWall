@@ -67,6 +67,7 @@ public class PlayingField implements Listener {
     private final PlayingFieldScorer scorer;
     private ModifierEvent event = null;
     private WallQueue queue;
+    private BukkitTask countdown = null;
     private BukkitTask task = null;
     private Menu menu = null;
     private boolean confirmOnCooldown = false;
@@ -114,6 +115,30 @@ public class PlayingField implements Listener {
         if (hasMenu()) removeMenu();
         menu = new Menu(getCenter(), this);
         menu.display();
+    }
+
+    public void countdownStart(Gamemode mode) {
+        countdown = new BukkitRunnable() {
+            int i = 3;
+            @Override
+            public void run() {
+                if (i == 3) {
+                    sendTitleToPlayers(ChatColor.GREEN + "③", "", 0, 20, 0);
+                } else if (i == 2) {
+                    sendTitleToPlayers(ChatColor.YELLOW + "②", "", 0, 20, 0);
+                } else if (i == 1) {
+                    sendTitleToPlayers(ChatColor.RED + "①", "", 0, 20, 0);
+                } else if (i == 0) {
+                    // It's important that the countdown reference is removed before we start the game
+                    // so that hasStarted() returns false
+                    countdown = null;
+                    start(mode);
+                    sendTitleToPlayers(ChatColor.GREEN + "GO!", "", 0, 5, 3);
+                    cancel();
+                }
+                i--;
+            }
+        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 10);
     }
 
     public void start(Gamemode mode) {
@@ -582,7 +607,7 @@ public class PlayingField implements Listener {
     }
 
     public boolean hasStarted() {
-        return task != null;
+        return task != null || countdown != null;
     }
 
     public int getLength() {

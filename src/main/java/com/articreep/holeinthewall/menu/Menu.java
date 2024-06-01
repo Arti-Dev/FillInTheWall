@@ -83,7 +83,7 @@ public class Menu implements Listener {
                 }
             }
         } else {
-            field.start(Gamemode.values()[gamemodeIndex]);
+            field.countdownStart(Gamemode.values()[gamemodeIndex]);
         }
         despawn();
     }

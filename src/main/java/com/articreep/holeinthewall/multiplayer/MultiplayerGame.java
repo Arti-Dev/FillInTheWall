@@ -5,6 +5,7 @@ import com.articreep.holeinthewall.PlayingField;
 import com.articreep.holeinthewall.PlayingFieldManager;
 import com.articreep.holeinthewall.Gamemode;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -23,13 +24,51 @@ public class MultiplayerGame {
     }
 
     public void start() {
+        if (!verifyFieldDimensions()) {
+            return;
+        }
+
+        new BukkitRunnable() {
+            int i = 3;
+            @Override
+            public void run() {
+                for (PlayingField field : playingFields) {
+                    if (i == 3) {
+                        field.sendTitleToPlayers(ChatColor.BLUE + "\uD83D\uDC65", ChatColor.GREEN + "Multiplayer game starting in 3", 0, 30, 0);
+                    } else if (i == 2) {
+                        field.sendTitleToPlayers(ChatColor.BLUE + "\uD83D\uDC65", ChatColor.YELLOW + "Multiplayer game starting in 2", 0, 30, 0);
+                    } else if (i == 1) {
+                        field.sendTitleToPlayers(ChatColor.BLUE + "\uD83D\uDC65", ChatColor.RED + "Multiplayer game starting in 1", 0, 30, 0);
+                    } else if (i == 0) {
+                        field.sendTitleToPlayers(ChatColor.GREEN + "GO!", "", 0, 5, 3);
+                    }
+                }
+
+                if (i == 0) {
+                    startGame();
+                    cancel();
+                }
+                i--;
+            }
+        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 20);
+    }
+
+    private void startGame() {
+        if (task != null) {
+            Bukkit.getLogger().severe("Tried to start multiplayer game that's already been started");
+            return;
+        }
         time = 20 * 60;
         for (PlayingField field : playingFields) {
             field.stop();
             field.doTickScorer(false);
             field.getQueue().setGenerator(generator);
             generator.addQueue(field.getQueue());
-            field.start(Gamemode.MULTIPLAYER_SCORE_ATTACK);
+            try {
+                field.start(Gamemode.MULTIPLAYER_SCORE_ATTACK);
+            } catch (IllegalStateException e) {
+                removePlayingfield(field);
+            }
         }
         generator.addNewWallToQueues();
         task = tickLoop();
@@ -89,6 +128,14 @@ public class MultiplayerGame {
             return true;
         } else {
             return false;
+        }
+    }
+
+    public void removePlayingfield(PlayingField field) {
+        if (playingFields.contains(field)) {
+            playingFields.remove(field);
+            field.getQueue().resetGenerator();
+            field.doTickScorer(true);
         }
     }
 }
