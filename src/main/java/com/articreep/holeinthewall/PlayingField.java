@@ -72,8 +72,11 @@ public class PlayingField implements Listener {
     private Menu menu = null;
     private boolean confirmOnCooldown = false;
 
-    // Whether to tick the scorer or let another class handle it (e.g. multiplayer)
+    // Multiplayer settings
+    /** Whether to tick the scorer or let another class handle it (e.g. multiplayer) */
     private boolean tickScorer = true;
+    /** Whether to prevent new players from joining and current players from leaving */
+    private boolean bindPlayers = false;
 
     public PlayingField(Location referencePoint, Vector direction, Vector incomingDirection, WorldBoundingBox boundingBox,
                         WorldBoundingBox effectBox, String environment, int length, int height, boolean hideBottomBorder) {
@@ -111,7 +114,6 @@ public class PlayingField implements Listener {
 
     public void createMenu() {
         if (players.isEmpty()) return;
-        Player player = players.iterator().next();
         if (hasMenu()) removeMenu();
         menu = new Menu(getCenter(), this);
         menu.display();
@@ -202,6 +204,7 @@ public class PlayingField implements Listener {
         for (TextDisplay display : textDisplays) {
             display.remove();
         }
+        bindPlayers = false;
         queue.clearAllWalls();
         queue.allowMultipleWalls(false);
         if (event != null) {
@@ -680,5 +683,13 @@ public class PlayingField implements Listener {
         for (Player player : players) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, component);
         }
+    }
+
+    public void setBindPlayers(boolean bindPlayers) {
+        this.bindPlayers = bindPlayers;
+    }
+
+    public boolean isBindPlayers() {
+        return bindPlayers;
     }
 }

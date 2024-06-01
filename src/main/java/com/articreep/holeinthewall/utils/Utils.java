@@ -1,8 +1,11 @@
 package com.articreep.holeinthewall.utils;
 
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+
+import java.util.Collection;
 
 public class Utils {
     public static BoundingBox locationsToBoundingBox(Location corner1, Location corner2) {
@@ -37,5 +40,15 @@ public class Utils {
 
     public static boolean withinBounds(double bound1, double bound2, double value) {
         return value >= Math.min(bound1, bound2) && value <= Math.max(bound1, bound2);
+    }
+
+    public static String playersToString(Collection<Player> players) {
+        StringBuilder builder = new StringBuilder();
+        for (Player player : players) {
+            builder.append(player.getName()).append(", ");
+        }
+        // remove extra commas
+        builder.delete(builder.length() - 2, builder.length());
+        return builder.toString();
     }
 }

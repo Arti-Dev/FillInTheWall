@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class PlayingFieldManager implements Listener {
+    // todo may be better to just store the playing fields in a set instead of player -> field map
     public static Map<Player, PlayingField> activePlayingFields = new HashMap<>();
     public static Map<WorldBoundingBox, PlayingField> playingFieldLocations = new HashMap<>();
     public static MultiplayerGame game = null;
@@ -26,7 +27,9 @@ public class PlayingFieldManager implements Listener {
         // One game per player.
         if (activePlayingFields.containsKey(event.getPlayer())) {
             PlayingField field = activePlayingFields.get(event.getPlayer());
-            if (!field.getBoundingBox().isinBoundingBox(event.getPlayer().getLocation())) {
+            // If player is outside of bounding box and players are not bound to the field, remove the game.
+            if (!field.getBoundingBox().isinBoundingBox(event.getPlayer().getLocation())
+            && !field.isBindPlayers()) {
                 removeGame(event.getPlayer());
             }
         } else {
@@ -46,6 +49,8 @@ public class PlayingFieldManager implements Listener {
     // Managing games
     public static void newGame(Player player, WorldBoundingBox box) {
         PlayingField field = playingFieldLocations.get(box);
+        // todo this is not consistent with the other bind check in the remove method
+        if (field.isBindPlayers()) return;
         field.addNewPlayer(player);
 
         activePlayingFields.put(player, field);
@@ -57,11 +62,6 @@ public class PlayingFieldManager implements Listener {
             if (field.playerCount() == 1) {
                 if (field.hasStarted()) {
                     field.stop();
-                    // todo temporary solution: nuke the multiplayer game i don't care
-                    if (game != null) {
-                        game.stop();
-                        game = null;
-                    }
                 }
                 else field.removeMenu();
             }

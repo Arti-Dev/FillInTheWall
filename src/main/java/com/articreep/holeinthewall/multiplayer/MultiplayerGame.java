@@ -4,6 +4,7 @@ import com.articreep.holeinthewall.HoleInTheWall;
 import com.articreep.holeinthewall.PlayingField;
 import com.articreep.holeinthewall.PlayingFieldManager;
 import com.articreep.holeinthewall.Gamemode;
+import com.articreep.holeinthewall.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -66,6 +67,7 @@ public class MultiplayerGame {
             field.stop();
             field.doTickScorer(false);
             field.getQueue().setGenerator(generator);
+            field.setBindPlayers(true);
             generator.addQueue(field.getQueue());
             try {
                 field.start(Gamemode.MULTIPLAYER_SCORE_ATTACK);
@@ -114,8 +116,8 @@ public class MultiplayerGame {
         }
 
         for (PlayingField field : playingFields) {
-            // todo temporary broadcast
-            Bukkit.broadcastMessage(field.getPlayers().toString() + "with " + field.getScorer().getScore() + " score");
+            rankPlayingFields();
+            broadcastResults();
             field.stop();
             field.getQueue().resetGenerator();
             field.doTickScorer(true);
@@ -172,6 +174,16 @@ public class MultiplayerGame {
             int pointsOfNextRank = rankings.get(position-1).getScorer().getScore();
             field.getScorer().setPointsBehind(pointsOfNextRank - field.getScorer().getScore());
         }
+    }
+
+    private void broadcastResults() {
+        Bukkit.broadcastMessage(ChatColor.AQUA + "Hole In The Wall - Results");
+        Bukkit.broadcastMessage("");
+        for (int i = 0; i < rankings.size(); i++) {
+            Bukkit.broadcastMessage("#" + i + " - " + ChatColor.GREEN + Utils.playersToString(rankings.get(i).getPlayers()) + " with " + rankings.get(i).getScorer().getScore() + " points");
+        }
+        Bukkit.broadcastMessage("");
+        Bukkit.broadcastMessage("---");
 
     }
 }
