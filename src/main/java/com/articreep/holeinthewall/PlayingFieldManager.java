@@ -3,6 +3,7 @@ package com.articreep.holeinthewall;
 import com.articreep.holeinthewall.multiplayer.MultiplayerGame;
 import com.articreep.holeinthewall.utils.WorldBoundingBox;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -84,11 +85,27 @@ public class PlayingFieldManager implements Listener {
             int fieldHeight = config.getInt(key + ".field_height");
             String environment = config.getString(key + ".environment");
             boolean hideBottomBorder = config.getBoolean(key + ".hide_bottom_border");
+            String wallMaterialName = config.getString(key + ".wall_material");
+            String playerMaterialName = config.getString(key + ".player_material");
+            Material wallMaterial;
+            Material playerMaterial;
+
+            if (wallMaterialName == null || Material.getMaterial(wallMaterialName) == null) {
+                wallMaterial = Material.BLUE_CONCRETE;
+            } else {
+                wallMaterial = Material.getMaterial(wallMaterialName);
+            }
+
+            if (playerMaterialName == null || Material.getMaterial(playerMaterialName) == null) {
+                playerMaterial = Material.TINTED_GLASS;
+            } else {
+                playerMaterial = Material.getMaterial(playerMaterialName);
+            }
 
             WorldBoundingBox box = playingFieldActivationBox(refPoint.clone().subtract(0, 1, 0), incomingDirection, fieldDirection, standingDistance, queueLength, fieldLength, fieldHeight);
             WorldBoundingBox effectBox = effectBox(refPoint, incomingDirection, fieldDirection, queueLength, fieldLength, fieldHeight);
             playingFieldLocations.put(box, new PlayingField(
-                    refPoint, fieldDirection, incomingDirection, box, effectBox, environment, fieldLength, fieldHeight, hideBottomBorder));
+                    refPoint, fieldDirection, incomingDirection, box, effectBox, environment, fieldLength, fieldHeight, wallMaterial, playerMaterial, hideBottomBorder));
 
 
         }

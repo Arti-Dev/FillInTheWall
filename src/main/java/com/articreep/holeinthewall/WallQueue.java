@@ -34,7 +34,7 @@ public class WallQueue {
     // Wall generation settings
     private WallGenerator generator;
     boolean hideBottomBorder = false;
-    Material wallMaterial = Material.BLUE_CONCRETE;
+    private Material wallMaterial = Material.BLUE_CONCRETE;
 
     public WallQueue(PlayingField field) {
         hiddenWalls = new LinkedList<>();
@@ -205,5 +205,13 @@ public class WallQueue {
     public void setMaxSpawnCooldown(int maxSpawnCooldown) {
         this.maxSpawnCooldown = maxSpawnCooldown;
         spawnCooldown = maxSpawnCooldown;
+    }
+
+    public void setWallMaterial(Material wallMaterial) {
+        this.wallMaterial = wallMaterial;
+    }
+
+    public Material getWallMaterial() {
+        return wallMaterial;
     }
 }

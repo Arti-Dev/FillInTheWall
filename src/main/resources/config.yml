@@ -19,3 +19,5 @@ field_1:
   # Direction parallel to the field.
   field_direction: "WEST"
   hide_bottom_border: false
+  wall_material: "BLUE_CONCRETE"
+  player_material: "WHITE_STAINED_GLASS"

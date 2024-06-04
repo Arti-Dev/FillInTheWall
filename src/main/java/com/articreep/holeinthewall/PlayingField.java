@@ -55,6 +55,7 @@ public class PlayingField implements Listener {
 
     private final List<Block> borderBlocks = new ArrayList<>();
     private final Material defaultBorderMaterial = Material.GRAY_CONCRETE;
+    private final Material playerMaterial;
     private final WorldBoundingBox boundingBox;
     private final WorldBoundingBox effectBox;
     private String environment;
@@ -79,7 +80,8 @@ public class PlayingField implements Listener {
     private boolean bindPlayers = false;
 
     public PlayingField(Location referencePoint, Vector direction, Vector incomingDirection, WorldBoundingBox boundingBox,
-                        WorldBoundingBox effectBox, String environment, int length, int height, boolean hideBottomBorder) {
+                        WorldBoundingBox effectBox, String environment, int length, int height,
+                        Material wallMaterial, Material playerMaterial, boolean hideBottomBorder) {
         // define playing field in a very scuffed way
         this.fieldReferencePoint = Utils.centralizeLocation(referencePoint);
         this.fieldDirection = direction;
@@ -87,12 +89,14 @@ public class PlayingField implements Listener {
         this.scorer = new PlayingFieldScorer(this);
         this.boundingBox = boundingBox;
         this.effectBox = effectBox;
+        this.playerMaterial = playerMaterial;
         this.height = height;
         this.length = length;
         this.environment = environment;
         if (this.environment == null) this.environment = "";
         this.queue = new WallQueue(this);
         queue.setHideBottomBorder(hideBottomBorder);
+        queue.setWallMaterial(wallMaterial);
         setDefaultDisplaySlots();
 
         // Track border blocks
@@ -166,7 +170,10 @@ public class PlayingField implements Listener {
         setDisplaySlotsFromGamemode(mode);
         removeMenu();
         spawnTextDisplays();
-        for (Player player : players) setCreative(player);
+        for (Player player : players) {
+            formatInventory(player);
+            setCreative(player);
+        }
         task = tickLoop();
     }
 
@@ -176,6 +183,7 @@ public class PlayingField implements Listener {
             // Display a new menu
             createMenu();
         } else if (hasStarted()) {
+            formatInventory(player);
             setCreative(player);
         }
     }
@@ -196,6 +204,14 @@ public class PlayingField implements Listener {
     public void setCreative(Player player) {
         previousGamemodes.put(player, player.getGameMode());
         player.setGameMode(GameMode.CREATIVE);
+    }
+
+    public void formatInventory(Player player) {
+        // todo could save the player's inventory and restore after, but might not be necessary
+        // since this is a minigame
+        player.getInventory().clear();
+        player.getInventory().setItem(0, new ItemStack(playerMaterial));
+        player.getInventory().setItem(1, new ItemStack(Material.CRACKED_STONE_BRICKS));
     }
 
     public void stop() {
