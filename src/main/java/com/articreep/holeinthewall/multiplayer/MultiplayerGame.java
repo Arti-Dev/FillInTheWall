@@ -7,6 +7,8 @@ import com.articreep.holeinthewall.Gamemode;
 import com.articreep.holeinthewall.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Sound;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -45,6 +47,7 @@ public class MultiplayerGame {
                         field.sendTitleToPlayers(ChatColor.BLUE + "\uD83D\uDC65", ChatColor.RED + "Multiplayer game starting in 1", 0, 30, 0);
                     } else if (i == 0) {
                         field.sendTitleToPlayers(ChatColor.GREEN + "GO!", "", 0, 5, 3);
+                        field.playSoundToPlayers(Sound.BLOCK_BELL_USE, 0.5f);
                     }
                 }
 

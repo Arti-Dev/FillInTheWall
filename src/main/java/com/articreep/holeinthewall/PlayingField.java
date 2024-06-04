@@ -126,16 +126,20 @@ public class PlayingField implements Listener {
             public void run() {
                 if (i == 3) {
                     sendTitleToPlayers(ChatColor.GREEN + "③", "", 0, 20, 0);
+                    playSoundToPlayers(Sound.BLOCK_NOTE_BLOCK_BELL, 1);
                 } else if (i == 2) {
                     sendTitleToPlayers(ChatColor.YELLOW + "②", "", 0, 20, 0);
+                    playSoundToPlayers(Sound.BLOCK_NOTE_BLOCK_BELL, 1);
                 } else if (i == 1) {
                     sendTitleToPlayers(ChatColor.RED + "①", "", 0, 20, 0);
+                    playSoundToPlayers(Sound.BLOCK_NOTE_BLOCK_BELL, 1);
                 } else if (i == 0) {
                     // It's important that the countdown reference is removed before we start the game
                     // so that hasStarted() returns false
                     countdown = null;
                     start(mode);
                     sendTitleToPlayers(ChatColor.GREEN + "GO!", "", 0, 5, 3);
+                    playSoundToPlayers(Sound.BLOCK_BELL_USE, 0.5f);
                     cancel();
                 }
                 i--;
@@ -682,6 +686,18 @@ public class PlayingField implements Listener {
     public void sendActionBarToPlayers(TextComponent component) {
         for (Player player : players) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, component);
+        }
+    }
+
+    public void playSoundToPlayers(Sound sound, float pitch) {
+        for (Player player : players) {
+            player.playSound(player.getLocation(), sound, 1, pitch);
+        }
+    }
+
+    public void playSoundToPlayers(Sound sound, float volume, float pitch) {
+        for (Player player : players) {
+            player.playSound(player.getLocation(), sound, volume, pitch);
         }
     }
 
