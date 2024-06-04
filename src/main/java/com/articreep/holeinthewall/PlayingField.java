@@ -439,8 +439,8 @@ public class PlayingField implements Listener {
         // decentralize the reference point for this
         Location bottomLeft = getReferencePoint().subtract(0.5, 0.5, 0.5);
         Location topRight = bottomLeft.clone()
-                .add(fieldDirection.clone().multiply(length))
-                .add(new Vector(0, height, 0));
+                .add(fieldDirection.clone().multiply(length-0.5))
+                .add(new Vector(0, height-0.5, 0));
         // haha copilot go brr
         return (Utils.withinBounds(bottomLeft.getX(), topRight.getX(), location.getX()) &&
                 Utils.withinBounds(bottomLeft.getY(), topRight.getY(), location.getY()) &&
