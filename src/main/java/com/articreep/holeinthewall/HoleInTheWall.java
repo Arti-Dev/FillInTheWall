@@ -42,6 +42,7 @@ public final class HoleInTheWall extends JavaPlugin implements CommandExecutor {
         if (args.length == 1) {
             if (args[0].equalsIgnoreCase("reload")) {
                 reloadConfig();
+                PlayingFieldManager.removeAllGames();
                 PlayingFieldManager.parseConfig(getConfig());
                 sender.sendMessage(ChatColor.GREEN + "Config reloaded!");
                 return true;

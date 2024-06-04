@@ -71,7 +71,15 @@ public class PlayingFieldManager implements Listener {
         }
     }
 
+    public static void removeAllGames() {
+        for (Player player : activePlayingFields.keySet()) {
+            removeGame(player);
+        }
+        activePlayingFields.clear();
+    }
+
     public static void parseConfig(FileConfiguration config) {
+        playingFieldLocations.clear();
         Map<String, Object> map = config.getValues(false);
         for (String key : map.keySet()) {
 
