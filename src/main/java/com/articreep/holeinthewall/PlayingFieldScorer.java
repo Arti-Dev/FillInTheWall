@@ -105,7 +105,9 @@ public class PlayingFieldScorer {
         Map<Pair<Integer, Integer>, Block> correctBlocks = wall.getCorrectBlocks(field);
 
         // Check score
-        return correctBlocks.size() - extraBlocks.size();
+        int points = correctBlocks.size() - extraBlocks.size();
+        if (points < 0) points = 0;
+        return points;
     }
 
     public void scoreEvent(ModifierEvent event) {
