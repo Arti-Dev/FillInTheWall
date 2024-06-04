@@ -157,6 +157,7 @@ public class MultiplayerGame {
     public void removePlayingfield(PlayingField field) {
         if (playingFields.contains(field)) {
             playingFields.remove(field);
+            field.setBindPlayers(false);
             field.getQueue().resetGenerator();
             field.doTickScorer(true);
         }
