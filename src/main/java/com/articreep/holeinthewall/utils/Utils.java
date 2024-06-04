@@ -38,8 +38,11 @@ public class Utils {
         return blockLocation.add(0.5, 0.5, 0.5);
     }
 
+    // Maximum is exclusive.
+    // If the bounds are equal, just check if the value is equal to the bound.
     public static boolean withinBounds(double bound1, double bound2, double value) {
-        return value >= Math.min(bound1, bound2) && value <= Math.max(bound1, bound2);
+        if (bound1 == bound2) return value == bound1;
+        return value >= Math.min(bound1, bound2) && value < Math.max(bound1, bound2);
     }
 
     public static String playersToString(Collection<Player> players) {
