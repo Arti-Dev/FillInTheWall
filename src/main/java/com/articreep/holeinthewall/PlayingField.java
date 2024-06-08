@@ -212,6 +212,8 @@ public class PlayingField implements Listener {
         player.getInventory().clear();
         player.getInventory().setItem(0, new ItemStack(playerMaterial));
         player.getInventory().setItem(1, new ItemStack(Material.CRACKED_STONE_BRICKS));
+        // todo replace this with a custom item
+        player.getInventory().setItem(8, new ItemStack(Material.FIREWORK_ROCKET));
     }
 
     public void stop() {
@@ -295,7 +297,8 @@ public class PlayingField implements Listener {
         if (!players.contains(event.getPlayer())) return;
         Player player = event.getPlayer();
         // Player must click with an item in hand
-        if (player.getInventory().getItemInMainHand().getType() == Material.AIR) return;
+        ItemStack item = player.getInventory().getItemInMainHand();
+        if (item.getType() == Material.AIR) return;
 
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             if (event.getClickedBlock().getType() == Material.CRACKED_STONE_BRICKS) {
@@ -310,6 +313,21 @@ public class PlayingField implements Listener {
                     Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
                             () -> event.getClickedBlock().breakNaturally(new ItemStack(Material.LEAD)));
                     player.playSound(player.getLocation(), Sound.BLOCK_DEEPSLATE_BREAK, 0.7f, 1);
+                }
+            }
+        }
+
+        if (item.getType() == Material.FIREWORK_ROCKET) {
+            // Action must be a click
+            if (event.getAction() == Action.RIGHT_CLICK_BLOCK
+                    || event.getAction() == Action.LEFT_CLICK_BLOCK
+                    || event.getAction() == Action.RIGHT_CLICK_AIR
+                    || event.getAction() == Action.LEFT_CLICK_AIR) {
+                int status = scorer.activateEvent();
+                if (status == -1) {
+                    player.sendMessage(ChatColor.RED + "No event to activate!");
+                } else if (status == 0) {
+                    player.sendMessage(ChatColor.RED + "Your meter isn't full enough!");
                 }
             }
         }

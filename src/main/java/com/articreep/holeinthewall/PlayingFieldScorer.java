@@ -55,21 +55,16 @@ public class PlayingFieldScorer {
         // Add/subtract to bonus
         if (percent >= Judgement.COOL.getPercent() && !field.eventActive()) {
             meter += percent;
-            if (meter >= meterMax) {
-                meter = 0;
+            if (meter > meterMax) meter = meterMax;
+
+            if (meter >= meterMax && !((boolean) gamemode.getAttribute(GamemodeAttribute.MANUAL_METER))) {
                 showScoreTitle = false;
 
                 if (doLevels) {
                     setLevel(level + 1);
                     field.sendTitleToPlayers("", ChatColor.GREEN + "Level up!", 0, 10, 5);
-                } else if (gamemode.getModifier() == Rush.class) {
-                    // activate rush next tick
-                    Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
-                            () -> field.activateEvent(new Rush(field)));
-                } else if (gamemode.getModifier() == Freeze.class) {
-                    Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
-                            () -> field.activateEvent(new Freeze(field, 20*10)));
-                    // todo should be based on how full the meter was
+                } else {
+                    activateEvent();
                 }
             }
         } else if (!field.eventActive()) {
@@ -85,6 +80,30 @@ public class PlayingFieldScorer {
         playJudgementSound(judgement);
 
         return judgement;
+    }
+
+    /**
+     * Attempts to activate the event associated with the current gamemode.
+     * Will return 0 if meter is not full enough, -1 if there is no event to activate
+     */
+    public int activateEvent() {
+        if (gamemode.getModifier() == null) return -1;
+        double percent = meter / meterMax;
+
+        // todo could use reflection
+        if (gamemode.getModifier() == Rush.class && percent >= 1) {
+            // activate rush next tick
+            Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
+                    () -> field.activateEvent(new Rush(field)));
+
+        } else if (gamemode.getModifier() == Freeze.class && percent >= 0.2) {
+            Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
+                    () -> field.activateEvent(new Freeze(field, (int) (20*10*percent))));
+        } else {
+            return 0;
+        }
+        meter = 0;
+        return 1;
     }
 
     public void displayScoreTitle(Judgement judgement, int score) {
