@@ -58,15 +58,12 @@ public class PlayingFieldScorer {
             meter += percent;
             if (meter > meterMax) meter = meterMax;
 
-            if (meter >= meterMax && !((boolean) gamemode.getAttribute(GamemodeAttribute.MANUAL_METER))) {
+            if (meter >= meterMax && doLevels) {
                 showScoreTitle = false;
-
-                if (doLevels) {
-                    setLevel(level + 1);
-                    field.sendTitleToPlayers("", ChatColor.GREEN + "Level up!", 0, 10, 5);
-                } else {
-                    activateEvent();
-                }
+                setLevel(level + 1);
+                field.sendTitleToPlayers("", ChatColor.GREEN + "Level up!", 0, 10, 5);
+            } else if (meter >= meterMax && !((boolean) gamemode.getAttribute(GamemodeAttribute.MANUAL_METER))) {
+                activateEvent();
             }
         } else if (!field.eventActive()) {
             // You cannot lose progress if levels are enabled
