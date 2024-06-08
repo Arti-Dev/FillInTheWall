@@ -429,7 +429,7 @@ public class PlayingField implements Listener {
             if (eventActive() && event instanceof Rush rush) {
                 if (rush.hasFirstWallCleared()) {
                     for (Pair<Integer, Integer> hole : wall.getHoles()) {
-                        coordinatesToBlock(hole).setType(Material.TINTED_GLASS);
+                        coordinatesToBlock(hole).setType(playerMaterial);
                     }
                 } else {
                     rush.setFirstWallCleared(true);
