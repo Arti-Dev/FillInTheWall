@@ -4,6 +4,7 @@ import com.articreep.holeinthewall.display.DisplayType;
 import com.articreep.holeinthewall.modifiers.Freeze;
 import com.articreep.holeinthewall.modifiers.ModifierEvent;
 import com.articreep.holeinthewall.modifiers.Rush;
+import com.articreep.holeinthewall.modifiers.Tutorial;
 import org.bukkit.ChatColor;
 
 import java.util.HashMap;
@@ -13,7 +14,8 @@ public enum Gamemode {
     INFINITE(ChatColor.LIGHT_PURPLE + "Infinite", ChatColor.GRAY + "Step off the playing field to stop playing.", new HashMap<>(), Rush.class),
     SCORE_ATTACK(ChatColor.GOLD + "Score Attack", ChatColor.GRAY + "Score as much as you can in 2 minutes!", new HashMap<>(),null),
     RAPID_SCORE_ATTACK(ChatColor.RED + "Rapid Score Attack", ChatColor.GRAY + "Rapid fire version of Score Attack", new HashMap<>(),Rush.class),
-    MULTIPLAYER_SCORE_ATTACK(ChatColor.AQUA + "Multiplayer Score Attack", ChatColor.GRAY + "Hypixel-style game", new HashMap<>(), Freeze.class);
+    MULTIPLAYER_SCORE_ATTACK(ChatColor.AQUA + "Multiplayer Score Attack", ChatColor.GRAY + "Hypixel-style game", new HashMap<>(), Freeze.class),
+    TUTORIAL("Tutorial", ChatColor.GRAY + "Learn how to play!", new HashMap<>(), Tutorial.class);
 
     static {
         INFINITE.addAttribute(GamemodeAttribute.CONSISTENT_HOLE_COUNT, false);
@@ -59,6 +61,12 @@ public enum Gamemode {
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.MULTIPLAYER, true);
 
+        TUTORIAL.addAttribute(GamemodeAttribute.STARTING_WALL_ACTIVE_TIME, 20*30);
+        TUTORIAL.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
+        TUTORIAL.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.PERFECT_WALLS);
+        TUTORIAL.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.NONE);
+        TUTORIAL.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
+        TUTORIAL.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
 
     }
 

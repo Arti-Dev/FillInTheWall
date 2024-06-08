@@ -62,7 +62,7 @@ public class Menu implements Listener {
 
     private void setMenuGamemode(Gamemode mode) {
         select.setText("Select a gamemode\n" +
-                ChatColor.BOLD + mode.getTitle() + "\n" +
+                mode.getTitle() + "\n" +
                 ChatColor.RESET + "Left click to change gamemode\n" +
                 "Press [F] or your offhand key to confirm");
     }

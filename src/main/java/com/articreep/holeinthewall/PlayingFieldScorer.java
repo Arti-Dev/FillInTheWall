@@ -3,6 +3,7 @@ package com.articreep.holeinthewall;
 import com.articreep.holeinthewall.modifiers.Freeze;
 import com.articreep.holeinthewall.modifiers.ModifierEvent;
 import com.articreep.holeinthewall.modifiers.Rush;
+import com.articreep.holeinthewall.modifiers.Tutorial;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
@@ -98,7 +99,10 @@ public class PlayingFieldScorer {
 
         } else if (gamemode.getModifier() == Freeze.class && percent >= 0.2) {
             Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
-                    () -> field.activateEvent(new Freeze(field, (int) (20*10*percent))));
+                    () -> field.activateEvent(new Freeze(field, (int) (20 * 10 * percent))));
+        } else if (gamemode.getModifier() == Tutorial.class) {
+            Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
+                    () -> field.activateEvent(new Tutorial(field, 20)));
         } else {
             return 0;
         }
@@ -243,6 +247,10 @@ public class PlayingFieldScorer {
             }
         }
         this.gamemode = gamemode;
+        if (gamemode == Gamemode.TUTORIAL) {
+            // Immediately activate the tutorial event
+            activateEvent();
+        }
     }
 
     // levels
