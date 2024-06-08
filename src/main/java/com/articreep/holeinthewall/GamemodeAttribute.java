@@ -17,7 +17,7 @@ public enum GamemodeAttribute {
     DISPLAY_SLOT_3(DisplayType.class, DisplayType.SCORE),
     SINGLEPLAYER(boolean.class, false),
     MULTIPLAYER(boolean.class, false),
-    MANUAL_METER(boolean.class, true);
+    AUTOMATIC_METER(boolean.class, false);
 
     private final Class<?> type;
     private final Object defaultValue;

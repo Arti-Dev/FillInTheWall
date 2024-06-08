@@ -62,7 +62,7 @@ public class PlayingFieldScorer {
                 showScoreTitle = false;
                 setLevel(level + 1);
                 field.sendTitleToPlayers("", ChatColor.GREEN + "Level up!", 0, 10, 5);
-            } else if (meter >= meterMax && !((boolean) gamemode.getAttribute(GamemodeAttribute.MANUAL_METER))) {
+            } else if (meter >= meterMax && ((boolean) gamemode.getAttribute(GamemodeAttribute.AUTOMATIC_METER))) {
                 activateEvent();
             }
         } else if (!field.eventActive()) {
@@ -86,6 +86,7 @@ public class PlayingFieldScorer {
      */
     public int activateEvent() {
         if (gamemode.getModifier() == null) return -1;
+        if (field.eventActive()) return 0;
         double percent = meter / meterMax;
 
         // todo could use reflection

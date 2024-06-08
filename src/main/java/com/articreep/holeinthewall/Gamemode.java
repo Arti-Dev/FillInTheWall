@@ -28,7 +28,7 @@ public enum Gamemode {
         INFINITE.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.NONE);
         INFINITE.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         INFINITE.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
-        INFINITE.addAttribute(GamemodeAttribute.MANUAL_METER, false);
+        INFINITE.addAttribute(GamemodeAttribute.AUTOMATIC_METER, true);
 
         SCORE_ATTACK.addAttribute(GamemodeAttribute.TIME_LIMIT, 20*120);
         SCORE_ATTACK.addAttribute(GamemodeAttribute.DO_LEVELS, true);
@@ -48,7 +48,7 @@ public enum Gamemode {
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.NONE);
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
-        RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.MANUAL_METER, false);
+        RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.AUTOMATIC_METER, true);
 
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.TIME_LIMIT, 20*120);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.RANDOM_HOLE_COUNT, 2);
