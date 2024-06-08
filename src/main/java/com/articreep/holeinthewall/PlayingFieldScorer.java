@@ -271,6 +271,7 @@ public class PlayingFieldScorer {
     }
 
     public void setLevel(int level) {
+        meter = 0;
         field.getQueue().setRandomizeFurther(false);
         this.level = level;
         setDifficulty(level);
