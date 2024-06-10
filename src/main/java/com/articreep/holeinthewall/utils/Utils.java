@@ -5,6 +5,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
+import java.lang.reflect.Field;
 import java.util.Collection;
 
 public class Utils {
@@ -52,5 +53,16 @@ public class Utils {
         // remove extra commas
         builder.delete(builder.length() - 2, builder.length());
         return builder.toString();
+    }
+
+    public static Object getPrivateField(String fieldName, Class clazz, Object object) {
+        try {
+            Field field = clazz.getDeclaredField(fieldName);
+            field.setAccessible(true);
+            return field.get(object);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

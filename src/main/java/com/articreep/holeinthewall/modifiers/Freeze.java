@@ -1,7 +1,6 @@
 package com.articreep.holeinthewall.modifiers;
 
 import com.articreep.holeinthewall.PlayingField;
-import com.articreep.holeinthewall.Wall;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -45,8 +44,4 @@ public class Freeze extends ModifierEvent {
         return ChatColor.AQUA + "" + ChatColor.BOLD + "Frozen for " + ticksRemaining/20 + " seconds";
     }
 
-    @Override
-    public void score(Wall wall) {
-
-    }
 }

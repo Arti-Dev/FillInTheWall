@@ -63,7 +63,7 @@ public class PlayingFieldScorer {
                 setLevel(level + 1);
                 field.sendTitleToPlayers("", ChatColor.GREEN + "Level up!", 0, 10, 5);
             } else if (meter >= meterMax && ((boolean) gamemode.getAttribute(GamemodeAttribute.AUTOMATIC_METER))) {
-                activateEvent();
+                activateEvent(field.getPlayers().iterator().next());
             }
         } else if (!field.eventActive()) {
             // You cannot lose progress if levels are enabled
@@ -82,11 +82,21 @@ public class PlayingFieldScorer {
 
     /**
      * Attempts to activate the event associated with the current gamemode.
-     * Will return 0 if meter is not full enough, -1 if there is no event to activate
+     * @param player Player to send messages to if something goes wrong
      */
-    public int activateEvent() {
-        if (gamemode.getModifier() == null) return -1;
-        if (field.eventActive()) return 0;
+    public void activateEvent(Player player) {
+        if (gamemode.getModifier() == null) {
+            player.sendMessage(ChatColor.RED + "No event to activate!");
+            return;
+        }
+        if (field.eventActive()) {
+            // Make an exception for the tutorial event
+            if (field.getEvent() instanceof Tutorial tutorial) {
+                tutorial.onMeterActivate(player);
+                return;
+            }
+            return;
+        }
         double percent = meter / meterMax;
 
         // todo could use reflection
@@ -102,10 +112,10 @@ public class PlayingFieldScorer {
             Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
                     () -> field.activateEvent(new Tutorial(field, 20)));
         } else {
-            return 0;
+            player.sendMessage(ChatColor.RED + "Your meter isn't full enough!");
+            return;
         }
         meter = 0;
-        return 1;
     }
 
     public void displayScoreTitle(Judgement judgement, int score) {
@@ -247,7 +257,7 @@ public class PlayingFieldScorer {
         this.gamemode = gamemode;
         if (gamemode == Gamemode.TUTORIAL) {
             // Immediately activate the tutorial event
-            activateEvent();
+            activateEvent(field.getPlayers().iterator().next());
         }
     }
 

@@ -44,5 +44,11 @@ public abstract class ModifierEvent {
 
     public abstract void end();
 
-    public abstract void score(Wall wall);
+    public void score(Wall wall) {
+
+    }
+
+    public void onWallScore(Wall wall) {
+        // override
+    }
 }

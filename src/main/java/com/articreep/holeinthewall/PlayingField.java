@@ -167,6 +167,7 @@ public class PlayingField implements Listener {
         // Pass gamemode to scorer
         scorer.reset();
         scorer.setGamemode(mode);
+        queue.clearAllWalls();
         setDisplaySlotsFromGamemode(mode);
         removeMenu();
         spawnTextDisplays();
@@ -323,12 +324,7 @@ public class PlayingField implements Listener {
                     || event.getAction() == Action.LEFT_CLICK_BLOCK
                     || event.getAction() == Action.RIGHT_CLICK_AIR
                     || event.getAction() == Action.LEFT_CLICK_AIR) {
-                int status = scorer.activateEvent();
-                if (status == -1) {
-                    player.sendMessage(ChatColor.RED + "No event to activate!");
-                } else if (status == 0) {
-                    player.sendMessage(ChatColor.RED + "Your meter isn't full enough!");
-                }
+                scorer.activateEvent(player);
             }
         }
     }
@@ -399,6 +395,11 @@ public class PlayingField implements Listener {
             }
         } else {
             event.score(wall);
+        }
+
+        // An event may want to do something other than override scoring
+        if (eventActive()) {
+            event.onWallScore(wall);
         }
 
         Map<Pair<Integer, Integer>, Block> extraBlocks = wall.getExtraBlocks(this);
@@ -686,6 +687,10 @@ public class PlayingField implements Listener {
         return menu != null;
     }
 
+    /**
+     * Gets the location in the center (height and length) of this playing field.
+     * @return The center location
+     */
     public Location getCenter() {
         return getReferencePoint()
                 // There's a -1 on the length because the reference point is in the center of the target block.
@@ -741,5 +746,34 @@ public class PlayingField implements Listener {
 
     public boolean isBindPlayers() {
         return bindPlayers;
+    }
+
+    public World getWorld() {
+        return getReferencePoint().getWorld();
+    }
+
+    public Material getPlayerMaterial() {
+        return playerMaterial;
+    }
+
+    public void flashScore() {
+        overrideScoreDisplay(40, "");
+        new BukkitRunnable() {
+            int i = 0;
+            @Override
+            public void run() {
+                if (i >= 8) cancel();
+                String text = DisplayType.SCORE.getFormattedText(scorer.getScore());
+                if (i % 2 == 0) text = ChatColor.WHITE + "" + ChatColor.BOLD + ChatColor.stripColor(text);
+
+                for (int i = 0; i < displaySlotsLength; i++) {
+                    if (displaySlots[i] == DisplayType.SCORE) {
+                        textDisplays[i].setText(text);
+                    }
+                }
+                i++;
+            }
+        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 5);
+
     }
 }

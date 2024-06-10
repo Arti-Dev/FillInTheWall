@@ -321,12 +321,16 @@ public class Wall {
     public final void insertHoles(Pair<Integer, Integer>... holes) {
         for (Pair<Integer, Integer> hole : holes) {
             if (hole == null || this.holes.contains(hole)) continue;
-            this.holes.add(hole);
+            insertHole(hole);
         }
     }
 
     public void insertHole(Pair<Integer, Integer> hole) {
         if (hole == null || this.holes.contains(hole)) return;
+        // out of bounds check
+        if (hole.getValue0() < 0 || hole.getValue0() >= length || hole.getValue1() < 0 || hole.getValue1() >= height) {
+            return;
+        }
         this.holes.add(hole);
     }
 
