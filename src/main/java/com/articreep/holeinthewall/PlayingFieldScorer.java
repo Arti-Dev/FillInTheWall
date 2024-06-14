@@ -17,6 +17,7 @@ public class PlayingFieldScorer {
     private int score = 0;
     private double meter = 0;
     private int wallsCleared = 0;
+    private double blocksPlaced = 0;
     // time in ticks
     private int time = 0;
     private Gamemode gamemode = Gamemode.INFINITE;
@@ -171,6 +172,7 @@ public class PlayingFieldScorer {
 
     public void reset() {
         score = 0;
+        blocksPlaced = 0;
         meter = 0;
         wallsCleared = 0;
         time = 0;
@@ -341,4 +343,18 @@ public class PlayingFieldScorer {
     public int getPointsBehind() {
         return pointsBehind;
     }
+
+    public void increaseBlocksPlaced() {
+        blocksPlaced++;
+    }
+
+    public double getBlocksPerSecond() {
+        if (time == 0) return 0;
+        return blocksPlaced / ((double) time / 20);
+    }
+
+    public String getFormattedBlocksPerSecond() {
+        return String.format("%.2f", getBlocksPerSecond());
+    }
+
 }

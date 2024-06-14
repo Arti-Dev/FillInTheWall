@@ -277,10 +277,13 @@ public class PlayingField implements Listener {
             player.sendMessage(ChatColor.RED + "Can't place blocks here!");
             return;
         }
+
         if (event.getBlockPlaced().getType() == Material.CRACKED_STONE_BRICKS) {
             Random random = new Random();
             player.playSound(player.getLocation(), Sound.BLOCK_CHAIN_PLACE, 0.7f, random.nextFloat(0.5f, 2));
         }
+
+        scorer.increaseBlocksPlaced();
     }
 
     @EventHandler
@@ -606,7 +609,7 @@ public class PlayingField implements Listener {
                 case NONE -> "";
                 case SCORE -> scorer.getScore();
                 case ACCURACY -> "null";
-                case SPEED -> "null";
+                case SPEED -> scorer.getFormattedBlocksPerSecond();
                 case PERFECT_WALLS -> scorer.getWallsCleared();
                 case TIME -> scorer.getFormattedTime();
                 case LEVEL -> scorer.getLevel();

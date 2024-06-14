@@ -25,7 +25,7 @@ public enum Gamemode {
         INFINITE.addAttribute(GamemodeAttribute.METER_MAX, 10);
         INFINITE.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
         INFINITE.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.PERFECT_WALLS);
-        INFINITE.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.NONE);
+        INFINITE.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.SPEED);
         INFINITE.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         INFINITE.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         INFINITE.addAttribute(GamemodeAttribute.AUTOMATIC_METER, true);
@@ -45,7 +45,7 @@ public enum Gamemode {
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.METER_MAX, 5);
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.PERFECT_WALLS);
-        RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.NONE);
+        RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.SPEED);
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.AUTOMATIC_METER, true);
