@@ -36,12 +36,18 @@ public class WallQueue {
     boolean hideBottomBorder = false;
     private Material wallMaterial = Material.BLUE_CONCRETE;
 
-    public WallQueue(PlayingField field) {
+    public WallQueue(PlayingField field, Material defaultWallMaterial, boolean hideBottomBorder) {
+        setWallMaterial(defaultWallMaterial);
+        setHideBottomBorder(hideBottomBorder);
         hiddenWalls = new LinkedList<>();
         animatingWall = null;
         visibleWalls = new ArrayList<>();
         this.field = field;
         setGenerator(new WallGenerator(field.getLength(), field.getHeight(), 2, 4));
+    }
+
+    public WallQueue(PlayingField field, Material defaultWallMaterial) {
+        this(field, defaultWallMaterial, false);
     }
 
     public void addWall(Wall wall) {

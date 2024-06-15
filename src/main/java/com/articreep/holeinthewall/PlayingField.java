@@ -65,9 +65,13 @@ public class PlayingField implements Listener {
     private final TextDisplay[] textDisplays = new TextDisplay[displaySlotsLength];
     private boolean scoreDisplayOverride = false;
 
-    private final PlayingFieldScorer scorer;
+    private PlayingFieldScorer scorer;
     private ModifierEvent event = null;
+
     private WallQueue queue;
+    private Material wallMaterial;
+    private boolean hideBottomBorder;
+
     private BukkitTask countdown = null;
     private BukkitTask task = null;
     private Menu menu = null;
@@ -94,9 +98,8 @@ public class PlayingField implements Listener {
         this.length = length;
         this.environment = environment;
         if (this.environment == null) this.environment = "";
-        this.queue = new WallQueue(this);
-        queue.setHideBottomBorder(hideBottomBorder);
-        queue.setWallMaterial(wallMaterial);
+        this.hideBottomBorder = hideBottomBorder;
+        this.wallMaterial = wallMaterial;
         setDefaultDisplaySlots();
 
         // Track border blocks
@@ -164,10 +167,10 @@ public class PlayingField implements Listener {
             throw new IllegalArgumentException("Gamemode cannot be null");
         }
         HoleInTheWall.getInstance().getServer().getPluginManager().registerEvents(this, HoleInTheWall.getInstance());
-        // Pass gamemode to scorer
-        scorer.reset();
+        // Pass gamemode to a brand new scorer object
+        scorer = new PlayingFieldScorer(this);
+        queue = new WallQueue(this, wallMaterial, hideBottomBorder);
         scorer.setGamemode(mode);
-        queue.clearAllWalls();
         setDisplaySlotsFromGamemode(mode);
         removeMenu();
         spawnTextDisplays();
