@@ -225,6 +225,9 @@ public class PlayingField implements Listener {
             Bukkit.getLogger().severe("Tried to stop game that's already been stopped");
             return;
         }
+        // Automatically submit whatever's on the board
+        queue.instantSend();
+
         task.cancel();
         task = null;
         for (TextDisplay display : textDisplays) {
@@ -239,7 +242,6 @@ public class PlayingField implements Listener {
         }
         scorer.announceFinalScore();
 
-        clearField();
         HandlerList.unregisterAll(this);
     }
 
