@@ -67,7 +67,7 @@ public class Rush extends ModifierEvent {
         Material[] materials = {Material.BLUE_GLAZED_TERRACOTTA, Material.LIME_GLAZED_TERRACOTTA,
         Material.MAGENTA_GLAZED_TERRACOTTA, Material.WHITE_GLAZED_TERRACOTTA,
         Material.REDSTONE_BLOCK, Material.DIAMOND_BLOCK, Material.PURPUR_BLOCK, Material.EMERALD_BLOCK,
-            Material.IRON_BLOCK, Material.GOLD_BLOCK, Material.COAL_BLOCK, Material.LAPIS_BLOCK};
+            Material.IRON_BLOCK, Material.GOLD_BLOCK, Material.LAPIS_BLOCK};
         return materials[(int) (Math.random() * materials.length)];
     }
 
