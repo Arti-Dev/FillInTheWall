@@ -102,9 +102,15 @@ public class WallQueue {
             animateNextWall();
         }
 
-        // Tick all visible walls
-        if (field.eventActive() && field.getEvent().wallFreeze) return;
+        // If walls are frozen, make particles and return
+        if (field.eventActive() && field.getEvent().wallFreeze) {
+            for (Wall wall : visibleWalls) {
+                wall.frozenParticles();
+            }
+            return;
+        }
 
+        // Tick all visible walls
         Iterator<Wall> it = visibleWalls.iterator();
         while (it.hasNext()) {
             Wall wall = it.next();

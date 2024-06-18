@@ -24,6 +24,8 @@ public class Wall {
     private int maxTime = -1;
     private int timeRemaining = -1;
     private Vector movementDirection = null;
+    private Vector horizontalDirection = null;
+    private BlockDisplay referenceEntity = null;
     private final Set<BlockDisplay> entities = new HashSet<>();
     private final List<BlockDisplay> blocks = new ArrayList<>();
     private final List<BlockDisplay> border = new ArrayList<>();
@@ -66,6 +68,7 @@ public class Wall {
         // interpolate towards the playing field
         Location spawnReferencePoint = field.getReferencePoint();
         movementDirection = field.getIncomingDirection();
+        horizontalDirection = field.getFieldDirection();
         // todo should be effective length, in the future
         spawnReferencePoint.subtract(movementDirection.clone().multiply(queue.getFullLength()));
 
@@ -77,6 +80,7 @@ public class Wall {
                         .add(0, y, 0);
                 // spawn block display entity
                 BlockDisplay display = (BlockDisplay) loc.getWorld().spawnEntity(loc, EntityType.BLOCK_DISPLAY);
+                if (x == 0 && y == 0) referenceEntity = display;
                 // make invisible for now
                 display.setBlock(Material.AIR.createBlockData());
                 display.setTransformation(new Transformation(
@@ -432,5 +436,15 @@ public class Wall {
             newWall.insertHole(hole);
         }
         return newWall;
+    }
+
+    public void frozenParticles() {
+        World world = referenceEntity.getWorld();
+        for (int i = 0; i < length; i++) {
+            world.spawnParticle(Particle.SNOWFLAKE, referenceEntity.getLocation()
+                            .add(horizontalDirection.clone().multiply(i))
+                            .add(0, -0.5, 0),
+                    5, 0.3, 0.3, 0.3, 0);
+        }
     }
 }
