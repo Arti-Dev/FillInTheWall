@@ -5,6 +5,7 @@ import com.articreep.holeinthewall.environments.TheVoid;
 import com.articreep.holeinthewall.menu.Menu;
 import com.articreep.holeinthewall.modifiers.ModifierEvent;
 import com.articreep.holeinthewall.modifiers.Rush;
+import com.articreep.holeinthewall.multiplayer.WallGenerator;
 import com.articreep.holeinthewall.utils.Utils;
 import com.articreep.holeinthewall.utils.WorldBoundingBox;
 import net.md_5.bungee.api.ChatMessageType;
@@ -154,7 +155,8 @@ public class PlayingField implements Listener {
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 10);
     }
 
-    public void start(Gamemode mode) {
+    // todo geneator argument is a hotfix
+    public void start(Gamemode mode, WallGenerator generator) {
         // Log fail if this is already running
         if (hasStarted()) {
             Bukkit.getLogger().severe("Tried to start game that's already been started");
@@ -170,6 +172,7 @@ public class PlayingField implements Listener {
         // Pass gamemode to a brand new scorer object
         scorer = new PlayingFieldScorer(this);
         queue = new WallQueue(this, wallMaterial, hideBottomBorder);
+        if (generator != null) queue.setGenerator(generator);
         scorer.setGamemode(mode);
         setDisplaySlotsFromGamemode(mode);
         removeMenu();
@@ -179,6 +182,10 @@ public class PlayingField implements Listener {
             setCreative(player);
         }
         task = tickLoop();
+    }
+
+    public void start(Gamemode mode) {
+        start(mode, null);
     }
 
     public void addNewPlayer(Player player) {
@@ -783,5 +790,9 @@ public class PlayingField implements Listener {
             }
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 5);
 
+    }
+
+    public Material getWallMaterial() {
+        return wallMaterial;
     }
 }

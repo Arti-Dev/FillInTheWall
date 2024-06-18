@@ -25,6 +25,7 @@ public class Wall {
     private int timeRemaining = -1;
     private Vector movementDirection = null;
     private Vector horizontalDirection = null;
+    // todo this reference entity sometimes will just be a hole so it won't move
     private BlockDisplay referenceEntity = null;
     private final Set<BlockDisplay> entities = new HashSet<>();
     private final List<BlockDisplay> blocks = new ArrayList<>();

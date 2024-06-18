@@ -1,9 +1,6 @@
 package com.articreep.holeinthewall.multiplayer;
 
-import com.articreep.holeinthewall.HoleInTheWall;
-import com.articreep.holeinthewall.PlayingField;
-import com.articreep.holeinthewall.PlayingFieldManager;
-import com.articreep.holeinthewall.Gamemode;
+import com.articreep.holeinthewall.*;
 import com.articreep.holeinthewall.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -69,11 +66,10 @@ public class MultiplayerGame {
         for (PlayingField field : playingFields) {
             field.stop();
             field.doTickScorer(false);
-            field.getQueue().setGenerator(generator);
             field.setBindPlayers(true);
-            generator.addQueue(field.getQueue());
             try {
-                field.start(Gamemode.MULTIPLAYER_SCORE_ATTACK);
+                field.start(Gamemode.MULTIPLAYER_SCORE_ATTACK, generator);
+                generator.addQueue(field.getQueue());
             } catch (IllegalStateException e) {
                 removePlayingfield(field);
             }
