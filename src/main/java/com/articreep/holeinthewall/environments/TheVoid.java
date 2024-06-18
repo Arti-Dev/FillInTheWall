@@ -95,7 +95,7 @@ public class TheVoid implements Listener {
             int theta = 0;
             @Override
             public void run() {
-                petalPolarEquation(radius, location, Color.WHITE, coeff, theta, 1.5F);
+                petalPolarEquation(radius, location, Color.WHITE, coeff, theta, 1.5f);
                 theta += 9 * thetaMultplier;
                 if (theta >= 180 * thetaMultplier) {
                     regularPetals(petals, radius, location, dustColor);
@@ -117,7 +117,7 @@ public class TheVoid implements Listener {
             thetaMultplier = 1;
         }
         for (int theta = 0; theta < 180 * thetaMultplier; theta++) {
-            petalPolarEquation(radius, location, dustColor, coeff, theta, 1.5F);
+            petalPolarEquation(radius, location, dustColor, coeff, theta, 1.5f);
         }
     }
 
@@ -253,6 +253,7 @@ public class TheVoid implements Listener {
 
     public static void spawnRotatingBlocks(PlayingField field, Rush rush) {
         // todo this is a mess
+        final float size = 1.5F;
         Location leftLocation = field.getReferencePoint()
                 .subtract(field.getFieldDirection().multiply(4))
                 .subtract(field.getIncomingDirection().multiply(field.getQueue().getFullLength() / 2));
@@ -269,12 +270,12 @@ public class TheVoid implements Listener {
         leftDisplay.setTeleportDuration(1);
         rightDisplay.setTeleportDuration(1);
         leftDisplay.setTransformation(new Transformation(
-                new Vector3f(-0.5f, -0.5f, -0.5f),
-                new AxisAngle4f(0, 0, 0, 1), new Vector3f(1.5F, 1.5F, 1.5F),
+                new Vector3f(-size/2, -size/2, -size/2),
+                new AxisAngle4f(0, 0, 0, 1), new Vector3f(size, size, size),
                 new AxisAngle4f(0, 0, 0, 1)));
         rightDisplay.setTransformation(new Transformation(
-                new Vector3f(-0.5f, -0.5f, -0.5f),
-                new AxisAngle4f(0, 0, 0, 1), new Vector3f(1.5F, 1.5F, 1.5F),
+                new Vector3f(-size/2, -size/2, -size/2),
+                new AxisAngle4f(0, 0, 0, 1), new Vector3f(size, size, size),
                 new AxisAngle4f(0, 0, 0, 1)));
 
         new BukkitRunnable() {
