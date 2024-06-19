@@ -259,23 +259,23 @@ public class Wall {
     }
 
     public void spin() {
-//        setTeleportDuration(1);
-//        new BukkitRunnable() {
-//            int i = 0;
-//            @Override
-//            public void run() {
-//                for (BlockDisplay display : blocks) {
-//                    Location loc = display.getLocation();
-//                    loc.setYaw(loc.getYaw() + 10);
-//                    display.teleport(loc);
-//                }
-//                i++;
-//                if (i >= 18) {
-//                    setTeleportDuration(50);
-//                    cancel();
-//                }
-//            }
-//        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
+        setTeleportDuration(1);
+        new BukkitRunnable() {
+            int i = 0;
+            @Override
+            public void run() {
+                for (BlockDisplay display : blocks) {
+                    Location loc = display.getLocation();
+                    loc.setYaw(loc.getYaw() + 10);
+                    display.teleport(loc);
+                }
+                i++;
+                if (i >= 18) {
+                    setTeleportDuration(50);
+                    cancel();
+                }
+            }
+        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
     }
 
     /* SCORING */
