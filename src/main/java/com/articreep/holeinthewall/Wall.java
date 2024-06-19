@@ -367,7 +367,8 @@ public class Wall {
         return Pair.with((int) (Math.random() * length), (int) (Math.random() * height));
     }
 
-    public Pair<Integer, Integer> randomCoordinatesConnected() {
+    // todo optimize so that it doesn't just fail sometimes, and so that the code is neater
+    public Pair<Integer, Integer> randomCoordinatesConnected(boolean diagonalsOK) {
         int attempts = 0;
         while (attempts < 10) {
             // Choose a random hole in the provided wall
@@ -377,9 +378,18 @@ public class Wall {
             }
             // Choose a random direction to spread the hole to
             Random random = new Random();
-            int x = random.nextInt(-1, 2);
-            int y = random.nextInt(-1, 2);
-            Pair<Integer, Integer> newHole = Pair.with(existingHole.getValue0() + x, existingHole.getValue1() + y);
+            Pair<Integer, Integer> newHole;
+            if (diagonalsOK) {
+                int x = random.nextInt(-1, 2);
+                int y = random.nextInt(-1, 2);
+                newHole = Pair.with(existingHole.getValue0() + x, existingHole.getValue1() + y);
+            } else {
+                if (random.nextBoolean()) {
+                    newHole = Pair.with(existingHole.getValue0() + random.nextInt(-1, 2), existingHole.getValue1());
+                } else {
+                    newHole = Pair.with(existingHole.getValue0(), existingHole.getValue1() + random.nextInt(-1, 2));
+                }
+            }
             // If the new hole is in bounds and is not already a hole, return it
             if (newHole.getValue0() >= 0 && newHole.getValue0() < length && newHole.getValue1() >= 0 && newHole.getValue1() < height
                     && !hasHole(newHole)) {
@@ -389,6 +399,10 @@ public class Wall {
             }
         }
         return null;
+    }
+
+    public Pair<Integer, Integer> randomCoordinatesConnected() {
+        return randomCoordinatesConnected(true);
     }
 
     /**

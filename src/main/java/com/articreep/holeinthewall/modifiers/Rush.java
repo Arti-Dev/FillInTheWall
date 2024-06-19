@@ -52,7 +52,7 @@ public class Rush extends ModifierEvent {
         if (wall.getHoles().size() < 2 || (Math.random() < 0.75 && wall.getHoles().size() < 5)) {
             for (int i = 0; i < 1; i++) {
                 // Add a new hole
-                wall.insertHole(wall.randomCoordinatesConnected());
+                wall.insertHole(wall.randomCoordinatesConnected(false));
             }
         } else {
             for (int i = 0; i < 1; i++) {

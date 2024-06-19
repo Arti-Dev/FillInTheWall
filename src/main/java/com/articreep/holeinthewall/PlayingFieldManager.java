@@ -50,7 +50,14 @@ public class PlayingFieldManager implements Listener {
     }
 
     public void removeTimer(Player player, PlayingField field) {
+        if (field.isBindPlayers()) return;
         if (removalTasks.containsKey(player)) return;
+
+        // Immediately remove game if it's stopped
+        if (!field.hasStarted()) {
+            removeGame(player);
+            return;
+        }
 
         BukkitTask task = new BukkitRunnable() {
             int i = 0;
