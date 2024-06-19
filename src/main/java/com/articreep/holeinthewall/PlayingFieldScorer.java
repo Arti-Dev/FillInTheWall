@@ -18,8 +18,10 @@ public class PlayingFieldScorer {
     private double meter = 0;
     private int wallsCleared = 0;
     private double blocksPlaced = 0;
-    // time in ticks
+    // time in ticks (this is displayed on the text display)
     private int time = 0;
+    /** for calculating blocks per second */
+    private int absoluteTimeElapsed = 0;
     private Gamemode gamemode = Gamemode.INFINITE;
 
     // Levels (if enabled)
@@ -185,11 +187,12 @@ public class PlayingFieldScorer {
         return String.format("%02d:%02d", (time/20) / 60, (time/20) % 60);
     }
 
-    public int getRawTime() {
-        return time;
+    public int getAbsoluteTimeElapsed() {
+        return absoluteTimeElapsed;
     }
 
     public void tick() {
+        absoluteTimeElapsed++;
 
         // if a timefreeze modifier event is active and we're in a singleplayer game, pause the timer
         if (field.eventActive() && field.getEvent().timeFreeze
@@ -350,7 +353,7 @@ public class PlayingFieldScorer {
 
     public double getBlocksPerSecond() {
         if (time == 0) return 0;
-        return blocksPlaced / ((double) time / 20);
+        return blocksPlaced / ((double) absoluteTimeElapsed / 20);
     }
 
     public String getFormattedBlocksPerSecond() {
