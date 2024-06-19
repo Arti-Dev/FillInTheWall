@@ -5,6 +5,7 @@ import com.articreep.holeinthewall.utils.WorldBoundingBox;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -12,15 +13,17 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class PlayingFieldManager implements Listener {
-    // todo may be better to just store the playing fields in a set instead of player -> field map
     public static Map<Player, PlayingField> activePlayingFields = new HashMap<>();
     public static Map<WorldBoundingBox, PlayingField> playingFieldLocations = new HashMap<>();
+    private static final Map<Player, BukkitTask> removalTasks = new HashMap<>();
     public static MultiplayerGame game = null;
 
     @EventHandler
@@ -28,10 +31,9 @@ public class PlayingFieldManager implements Listener {
         // One game per player.
         if (activePlayingFields.containsKey(event.getPlayer())) {
             PlayingField field = activePlayingFields.get(event.getPlayer());
-            // If player is outside of bounding box and players are not bound to the field, remove the game.
-            if (!field.getBoundingBox().isinBoundingBox(event.getPlayer().getLocation())
-            && !field.isBindPlayers()) {
-                removeGame(event.getPlayer());
+            // If player is outside of bounding box and players are not bound to the field, start a 2-second timer before removing.
+            if (!field.getBoundingBox().isinBoundingBox(event.getPlayer().getLocation())) {
+                removeTimer(event.getPlayer(), field);
             }
         } else {
             for (WorldBoundingBox box : playingFieldLocations.keySet()) {
@@ -47,26 +49,48 @@ public class PlayingFieldManager implements Listener {
         removeGame(event.getPlayer());
     }
 
+    public void removeTimer(Player player, PlayingField field) {
+        if (removalTasks.containsKey(player)) return;
+
+        BukkitTask task = new BukkitRunnable() {
+            int i = 0;
+            @Override
+            public void run() {
+                if (!field.getBoundingBox().isinBoundingBox(player.getLocation())) {
+                    if (i < 2) player.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+                    if (i == 2) {
+                        player.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 1, 2);
+                        removeGame(player);
+                        cancel();
+                    }
+
+                    i++;
+                } else {
+                    cancel();
+                }
+            }
+
+            @Override
+            public void cancel() {
+                removalTasks.remove(player);
+                super.cancel();
+            }
+        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 20);
+
+        removalTasks.put(player, task);
+    }
+
     // Managing games
     public static void newGame(Player player, WorldBoundingBox box) {
         PlayingField field = playingFieldLocations.get(box);
-        // todo this is not consistent with the other bind check in the remove method
-        if (field.isBindPlayers()) return;
-        field.addNewPlayer(player);
-
-        activePlayingFields.put(player, field);
+        if (field.addNewPlayer(player)) {
+            activePlayingFields.put(player, field);
+        }
     }
 
     public static void removeGame(Player player) {
         PlayingField field = activePlayingFields.get(player);
-        if (field != null) {
-            if (field.playerCount() == 1) {
-                if (field.hasStarted()) {
-                    field.stop();
-                }
-                else field.removeMenu();
-            }
-            field.removePlayer(player);
+        if (field != null && field.removePlayer(player)) {
             activePlayingFields.remove(player);
         }
     }

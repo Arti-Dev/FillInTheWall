@@ -188,7 +188,8 @@ public class PlayingField implements Listener {
         start(mode, null);
     }
 
-    public void addNewPlayer(Player player) {
+    public boolean addNewPlayer(Player player) {
+        if (bindPlayers) return false;
         players.add(player);
         if (!hasStarted() && !hasMenu()) {
             // Display a new menu
@@ -197,19 +198,34 @@ public class PlayingField implements Listener {
             formatInventory(player);
             setCreative(player);
         }
+
+        return true;
     }
 
     public int playerCount() {
         return players.size();
     }
 
-    public void removePlayer(Player player) {
+    /** Returns true if the player was removed, false if unable to (binded to field) */
+    public boolean removePlayer(Player player) {
+        if (bindPlayers) return false;
+
+        // If this will be our last player, shut the game down
+        if (playerCount() == 1) {
+            if (hasStarted()) {
+                stop();
+            }
+            else removeMenu();
+        }
+
         players.remove(player);
         if (previousGamemodes.containsKey(player)) {
             GameMode previousGamemode = previousGamemodes.get(player);
             if (previousGamemode != null) player.setGameMode(previousGamemode);
             previousGamemodes.remove(player);
         }
+
+         return true;
     }
 
     public void setCreative(Player player) {
