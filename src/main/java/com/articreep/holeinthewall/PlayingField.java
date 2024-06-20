@@ -523,6 +523,9 @@ public class PlayingField implements Listener {
         return new BukkitRunnable() {
             int ticks = 0;
             int beats = 0;
+            int beatLength = 64;
+            int measureLength = 8;
+            boolean speedingUp = true;
             @Override
             public void run() {
                 updateTextDisplays();
@@ -541,18 +544,45 @@ public class PlayingField implements Listener {
                 }
                 if (tickScorer) scorer.tick();
 
-                // todo Effects, start them at a slower pace and intensify them as the game goes on
+                // Effects, start them at a slower pace and intensify them as the game goes on
                 // Do not do effects if an event is active
-                if (environment.equalsIgnoreCase("VOID") && !eventActive()) {
-                    if (ticks % 10 == 0) {
-                        beats++;
-                        if (beats <= 16) {
-                            if (beats % 2 == 0) TheVoid.randomShape(PlayingField.this);
-                        } else if (beats <= 32) {
-                            if (beats % 2 == 0) TheVoid.randomPetal(PlayingField.this);
-                        } else {
-                            beats = 0;
+                if (ticks % beatLength == 0 && !eventActive()) {
+                    beats++;
+
+                    // Passive effect particles for the void environment
+                    /*
+
+                     */
+
+                    if (environment.equalsIgnoreCase("VOID")) {
+                        if (beats < measureLength/2) {
+                            TheVoid.randomShape(PlayingField.this);
+                        } else if (beats <= measureLength) {
+                            TheVoid.randomPetal(PlayingField.this);
                         }
+                        if (beats >= measureLength) {
+                            if (speedingUp) {
+                                beatLength /= 2;
+                                measureLength *= 2;
+                            } else {
+                                beatLength *= 2;
+                                measureLength /= 2;
+                            }
+                            beats = 0;
+
+                            if (beatLength <= 8) {
+                                speedingUp = false;
+                            } else if (beatLength >= 64) {
+                                speedingUp = true;
+                            }
+                        }
+//                        if (beats <= 16) {
+//                            if (beats % 2 == 0) TheVoid.randomShape(PlayingField.this);
+//                        } else if (beats <= 32) {
+//                            if (beats % 2 == 0) TheVoid.randomPetal(PlayingField.this);
+//                        } else {
+//                            beats = 0;
+//                        }
                     }
                 }
 

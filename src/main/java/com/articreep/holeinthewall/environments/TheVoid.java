@@ -197,7 +197,7 @@ public class TheVoid implements Listener {
 
     // VOID_VERTICAL_LINES
     public static void animateVerticalLines(PlayingField field, double height, int amount) {
-        Location location = field.getReferencePoint();
+        Location location = field.getReferencePoint().subtract(0.5, 0.5, 0.5);
         int across = field.getLength();
         int queue_length = field.getQueue().getFullLength();
         Vector fieldDirection = field.getFieldDirection();
