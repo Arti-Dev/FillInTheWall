@@ -237,8 +237,8 @@ public class PlayingField implements Listener {
         // todo could save the player's inventory and restore after, but might not be necessary
         // since this is a minigame
         player.getInventory().clear();
-        player.getInventory().setItem(0, new ItemStack(playerMaterial));
-        player.getInventory().setItem(1, new ItemStack(Material.CRACKED_STONE_BRICKS));
+        player.getInventory().setItem(0, buildingItem(playerMaterial));
+        player.getInventory().setItem(1, supportItem());
         // todo replace this with a custom item
         player.getInventory().setItem(8, new ItemStack(Material.FIREWORK_ROCKET));
     }
@@ -769,6 +769,31 @@ public class PlayingField implements Listener {
         meta.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "CONFIRM");
         item.setItemMeta(meta);
         return item;
+    }
+
+    public static ItemStack buildingItem(Material material) {
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        meta.setLore(Collections.singletonList(ChatColor.GRAY + "Fill the holes in the incoming wall with this!"));
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    public static ItemStack supportItem() {
+        ItemStack item = new ItemStack(Material.CRACKED_STONE_BRICKS);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.GRAY + "Support Block");
+        meta.setLore(Arrays.asList(ChatColor.GRAY + "- place this block on the field",
+                ChatColor.GRAY + "- place another block against this block",
+                ChatColor.YELLOW + "" + ChatColor.BOLD + "- ???",
+                ChatColor.AQUA + "- floating block"));
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    public static ItemStack meterItem() {
+        // todo implement
+        return null;
     }
 
     public void sendMessageToPlayers(String message) {
