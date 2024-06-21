@@ -69,6 +69,7 @@ public class MultiplayerGame {
             field.setBindPlayers(true);
             try {
                 field.start(Gamemode.MULTIPLAYER_SCORE_ATTACK, generator);
+                field.getScorer().setPlayerCount(playingFields.size());
                 generator.addQueue(field.getQueue());
             } catch (IllegalStateException e) {
                 removePlayingfield(field);

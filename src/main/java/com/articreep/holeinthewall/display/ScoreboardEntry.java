@@ -38,6 +38,13 @@ public class ScoreboardEntry {
         addToObjective(objective);
     }
 
+    public void forceUpdate(Scoreboard scoreboard, Objective objective, String string) {
+        scoreboard.resetScores(currentText);
+        existingEntries.remove(currentText);
+        currentText = string;
+        addToObjective(objective);
+    }
+
     public ScoreboardEntryType getType() {
         return type;
     }

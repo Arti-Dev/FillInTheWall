@@ -38,6 +38,7 @@ public class PlayingFieldScorer {
     private int meterMax = 10;
 
     // Multiplayer variables
+    private int playerCount = 0;
     private int position;
     private int pointsBehind;
     private Scoreboard scoreboard = null;
@@ -250,9 +251,22 @@ public class PlayingFieldScorer {
                 case SCORE -> entry.update(scoreboard, objective, score);
                 case STAGE -> entry.update(scoreboard, objective, ChatColor.AQUA + "" + ChatColor.BOLD + "QUALIFICATIONS");
                 case TIME -> entry.update(scoreboard, objective, getFormattedTime());
-                case POSITION -> entry.update(scoreboard, objective, position,
-                        (getPointsBehind() == -1 ? "" : getPointsBehind() + " behind #" + (getPosition()-1)));
-                case TAB_INFO, EMPTY -> entry.update(scoreboard, objective);
+                case POSITION -> {
+                    if (position == 1) {
+                        entry.update(scoreboard, objective, ChatColor.GOLD + "1");
+                    } else {
+                        entry.update(scoreboard, objective, position);
+                    }
+                }
+                case EMPTY -> entry.update(scoreboard, objective);
+                case POINTS_BEHIND -> {
+                    if (position == 1) {
+                        entry.forceUpdate(scoreboard, objective, ChatColor.GOLD + "You're in the lead!");
+                    } else {
+                        entry.update(scoreboard, objective, pointsBehind, position-1);
+                    }
+                }
+                case PLAYERS -> entry.update(scoreboard, objective, playerCount);
             }
         }
 
@@ -267,7 +281,7 @@ public class PlayingFieldScorer {
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         scoreboard = manager.getNewScoreboard();
         objective = scoreboard.registerNewObjective("holeinthewall", "dummy",
-                ChatColor.YELLOW + "Hole in the Wall");
+                ChatColor.YELLOW + "" + ChatColor.BOLD + "Hole in the Wall");
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
 
         addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.EMPTY, 1));
@@ -276,9 +290,10 @@ public class PlayingFieldScorer {
         addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.EMPTY, 4));
         addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.SCORE, 5));
         addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.POSITION, 6));
-        addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.EMPTY, 7));
+        addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.POINTS_BEHIND, 7));
         addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.EMPTY, 8));
-        addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.TAB_INFO, 9));
+        addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.EMPTY, 9));
+        addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.PLAYERS, 10));
 
         for (Player player : field.getPlayers()) {
             player.setScoreboard(scoreboard);
@@ -432,5 +447,9 @@ public class PlayingFieldScorer {
 
     public String getFormattedBlocksPerSecond() {
         return String.format("%.2f", getBlocksPerSecond());
+    }
+
+    public void setPlayerCount(int playerCount) {
+        this.playerCount = playerCount;
     }
 }

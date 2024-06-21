@@ -5,9 +5,10 @@ import org.bukkit.ChatColor;
 public enum ScoreboardEntryType {
     SCORE(ChatColor.YELLOW + "Score: %s"),
     STAGE( "%s"),
-    TIME(ChatColor.AQUA + "Time Left: %s"),
-    POSITION("Position: %s, %s"),
-    TAB_INFO(ChatColor.GRAY + "Press TAB for leaderboard"),
+    TIME(ChatColor.GREEN + "Time Left: %s"),
+    POSITION("Position: No. %s"),
+    POINTS_BEHIND(ChatColor.GRAY + "%s points behind No. %s"),
+    PLAYERS(ChatColor.DARK_GRAY + "%s-board game"),
     EMPTY("");
 
     final String text;
