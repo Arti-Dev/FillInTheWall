@@ -2,10 +2,12 @@ package com.articreep.holeinthewall;
 
 import com.articreep.holeinthewall.display.ScoreboardEntry;
 import com.articreep.holeinthewall.display.ScoreboardEntryType;
+import com.articreep.holeinthewall.menu.EndScreen;
 import com.articreep.holeinthewall.modifiers.Freeze;
 import com.articreep.holeinthewall.modifiers.ModifierEvent;
 import com.articreep.holeinthewall.modifiers.Rush;
 import com.articreep.holeinthewall.modifiers.Tutorial;
+import com.articreep.holeinthewall.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
@@ -24,7 +26,7 @@ public class PlayingFieldScorer {
     PlayingField field;
     private int score = 0;
     private double meter = 0;
-    private int wallsCleared = 0;
+    private int perfectWallsCleared = 0;
     private double blocksPlaced = 0;
     // time in ticks (this is displayed on the text display)
     private int time = 0;
@@ -65,7 +67,7 @@ public class PlayingFieldScorer {
             }
         }
 
-        if (judgement == Judgement.PERFECT) wallsCleared++;
+        if (judgement == Judgement.PERFECT) perfectWallsCleared++;
 
         boolean showScoreTitle = true;
         // Add/subtract to bonus
@@ -172,8 +174,8 @@ public class PlayingFieldScorer {
         return (double) calculateScore(wall, field) / wall.getHoles().size();
     }
 
-    public int getWallsCleared() {
-        return wallsCleared;
+    public int getPerfectWallsCleared() {
+        return perfectWallsCleared;
     }
 
     public int getScore() {
@@ -188,7 +190,7 @@ public class PlayingFieldScorer {
         score = 0;
         blocksPlaced = 0;
         meter = 0;
-        wallsCleared = 0;
+        perfectWallsCleared = 0;
         time = 0;
         gamemode = null;
         level = 1;
@@ -317,6 +319,20 @@ public class PlayingFieldScorer {
         field.sendMessageToPlayers(ChatColor.GREEN + "Your final score is " + ChatColor.BOLD + score);
     }
 
+    public EndScreen createEndScreen() {
+        EndScreen endScreen = new EndScreen(field.getCenter());
+        endScreen.addLine(Utils.playersToString(field.getPlayers()));
+        endScreen.addLine(gamemode.getTitle());
+        endScreen.addLine("");
+        endScreen.addLine(ChatColor.GREEN + "Final score: " + ChatColor.BOLD + score);
+        if (gamemode.hasAttribute(GamemodeAttribute.MULTIPLAYER)) {
+            endScreen.addLine(ChatColor.WHITE + "Position: No. " + position);
+        }
+        endScreen.addLine(ChatColor.GOLD + "Perfect Walls cleared: " + ChatColor.BOLD + perfectWallsCleared);
+        endScreen.addLine(ChatColor.RED + getFormattedBlocksPerSecond() + " blocks per second");
+        return endScreen;
+    }
+
     public void setGamemode(Gamemode gamemode) {
         for (GamemodeAttribute attribute : GamemodeAttribute.values()) {
             Object value = gamemode.getAttribute(attribute);
@@ -441,7 +457,7 @@ public class PlayingFieldScorer {
     }
 
     public double getBlocksPerSecond() {
-        if (time == 0) return 0;
+        if (absoluteTimeElapsed == 0) return 0;
         return blocksPlaced / ((double) absoluteTimeElapsed / 20);
     }
 

@@ -2,6 +2,7 @@ package com.articreep.holeinthewall;
 
 import com.articreep.holeinthewall.display.DisplayType;
 import com.articreep.holeinthewall.environments.TheVoid;
+import com.articreep.holeinthewall.menu.EndScreen;
 import com.articreep.holeinthewall.menu.Menu;
 import com.articreep.holeinthewall.modifiers.ModifierEvent;
 import com.articreep.holeinthewall.modifiers.Rush;
@@ -76,6 +77,7 @@ public class PlayingField implements Listener {
     private BukkitTask countdown = null;
     private BukkitTask task = null;
     private Menu menu = null;
+    private EndScreen endScreen = null;
     private boolean confirmOnCooldown = false;
 
     // Multiplayer settings
@@ -123,6 +125,7 @@ public class PlayingField implements Listener {
     public void createMenu() {
         if (players.isEmpty()) return;
         if (hasMenu()) removeMenu();
+        if (hasEndScreen()) removeEndScreen();
         menu = new Menu(getCenter(), this);
         menu.display();
     }
@@ -266,6 +269,8 @@ public class PlayingField implements Listener {
         }
         scorer.removeScoreboard();
         scorer.announceFinalScore();
+        endScreen = scorer.createEndScreen();
+        endScreen.display();
 
         HandlerList.unregisterAll(this);
     }
@@ -670,7 +675,7 @@ public class PlayingField implements Listener {
                 case SCORE -> scorer.getScore();
                 case ACCURACY -> "null";
                 case SPEED -> scorer.getFormattedBlocksPerSecond();
-                case PERFECT_WALLS -> scorer.getWallsCleared();
+                case PERFECT_WALLS -> scorer.getPerfectWallsCleared();
                 case TIME -> scorer.getFormattedTime();
                 case LEVEL -> scorer.getLevel();
                 // todo this is some ugly ternary crap, but it does kind of make sense
@@ -748,6 +753,15 @@ public class PlayingField implements Listener {
 
     public boolean hasMenu() {
         return menu != null;
+    }
+
+    public void removeEndScreen() {
+        if (endScreen != null) this.endScreen.despawn();
+        this.endScreen = null;
+    }
+
+    public boolean hasEndScreen() {
+        return endScreen != null;
     }
 
     /**
