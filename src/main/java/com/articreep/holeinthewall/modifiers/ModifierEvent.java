@@ -7,6 +7,7 @@ import com.articreep.holeinthewall.WallQueue;
 /** Represents an event that affects the playing field and/or queue. */
 public abstract class ModifierEvent {
     /* Settings. Child classes should change these as fit */
+    // todo maybe I'll make a json file for these, because doing this in java is hard
     public boolean overrideScoring = false;
     public boolean overrideGeneration = false;
     public boolean allowMultipleWalls = false;
@@ -14,12 +15,14 @@ public abstract class ModifierEvent {
     public boolean timeFreeze = false;
     public boolean wallFreeze = false;
 
+    protected double meterPercentRequired = 1;
     protected WallQueue queue;
     protected int ticksRemaining;
     protected PlayingField field;
 
 
     protected ModifierEvent(PlayingField field, int ticks) {
+        if (field == null) return;
         this.field = field;
         this.queue = field.getQueue();
         clearDelay = field.getClearDelay();
@@ -50,5 +53,9 @@ public abstract class ModifierEvent {
 
     public void onWallScore(Wall wall) {
         // override
+    }
+
+    public double getMeterPercentRequired() {
+        return meterPercentRequired;
     }
 }

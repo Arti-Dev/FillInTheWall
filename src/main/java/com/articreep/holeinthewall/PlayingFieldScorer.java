@@ -12,6 +12,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
@@ -91,6 +92,9 @@ public class PlayingFieldScorer {
             if (meter < 0) meter = 0;
         }
 
+        // Update meter item
+        setMeterItemGlint(isMeterFilledEnough(meter / meterMax));
+
         if (showScoreTitle) displayScoreTitle(judgement, score);
         playJudgementSound(judgement);
 
@@ -116,23 +120,15 @@ public class PlayingFieldScorer {
         }
         double percent = meter / meterMax;
 
-        // todo could use reflection
-        if (gamemode.getModifier() == Rush.class && percent >= 1) {
-            // activate rush next tick
-            Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
-                    () -> field.activateEvent(new Rush(field)));
-
-        } else if (gamemode.getModifier() == Freeze.class && percent >= 0.2) {
-            Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
-                    () -> field.activateEvent(new Freeze(field, (int) (20 * 10 * percent))));
-        } else if (gamemode.getModifier() == Tutorial.class) {
-            Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
-                    () -> field.activateEvent(new Tutorial(field, 20)));
+        if (isMeterFilledEnough(percent)) {
+            activateProperEvent(percent);
         } else {
             player.sendMessage(ChatColor.RED + "Your meter isn't full enough!");
             return;
         }
         meter = 0;
+        // Update meter item
+        setMeterItemGlint(isMeterFilledEnough(meter / meterMax));
     }
 
     public void displayScoreTitle(Judgement judgement, int score) {
@@ -140,6 +136,34 @@ public class PlayingFieldScorer {
                 judgement.getColor() + judgement.getText(),
                 judgement.getColor() + "+" + score + " points",
                 0, 10, 5);
+    }
+
+    // todo these two methods could be replaced with some reflection
+    public boolean isMeterFilledEnough(double percent) {
+        if (gamemode.getModifier() == Rush.class && percent >= Rush.singletonInstance.getMeterPercentRequired()) {
+            return true;
+        } else if (gamemode.getModifier() == Freeze.class && percent >= Freeze.singletonInstance.getMeterPercentRequired()) {
+            return true;
+        } else if (gamemode.getModifier() == Tutorial.class) {
+            return true;
+        }
+        return false;
+    }
+
+    // This only serves to store the redundant logic
+    public void activateProperEvent(double percent) {
+        if (gamemode.getModifier() == Rush.class) {
+            // activate rush next tick
+            Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
+                    () -> field.activateEvent(new Rush(field)));
+
+        } else if (gamemode.getModifier() == Freeze.class) {
+            Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
+                    () -> field.activateEvent(new Freeze(field, (int) (20 * 10 * percent))));
+        } else if (gamemode.getModifier() == Tutorial.class) {
+            Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
+                    () -> field.activateEvent(new Tutorial(field, 20)));
+        }
     }
 
     public void playJudgementSound(Judgement judgement) {
@@ -241,7 +265,7 @@ public class PlayingFieldScorer {
         }
 
         // Scoreboard updating
-        if (absoluteTimeElapsed % 20 == 0) {
+        if (absoluteTimeElapsed % 10 == 0) {
             updateScoreboard();
         }
     }
@@ -378,6 +402,7 @@ public class PlayingFieldScorer {
 
     public String getFormattedMeter() {
         double percentFilled = meter / meterMax;
+
         ChatColor color;
         String modifier = "";
         if (gamemode.getModifier() != null) modifier = gamemode.getModifier().getSimpleName() + " ";
@@ -388,7 +413,11 @@ public class PlayingFieldScorer {
         } else {
             color = ChatColor.GREEN;
         }
-        return color + modifier + "Meter: " + String.format("%.2f", meter) + "/" + meterMax;
+        String string = color + modifier + "Meter: " + String.format("%.2f", meter) + "/" + meterMax;
+        if (isMeterFilledEnough(percentFilled)) {
+            string += " " + ChatColor.AQUA + ChatColor.BOLD + "Ready!";
+        }
+        return string;
     }
 
     public void setLevel(int level) {
@@ -399,6 +428,19 @@ public class PlayingFieldScorer {
         setMeterMax(level);
         // when we level up, delete all pending walls in the queue which forces a new wall to be made.
         field.getQueue().clearHiddenWalls();
+    }
+
+    public void setMeterItemGlint(boolean glint) {
+        for (Player player : field.getPlayers()) {
+            // Scan inventory for an item that has the persistent data key "METER_ITEM"
+            player.getInventory().forEach(item -> {
+                if (item != null && item.getItemMeta() != null && item.getItemMeta().getPersistentDataContainer().has(PlayingField.meterKey)) {
+                    ItemMeta meta = item.getItemMeta();
+                    meta.setEnchantmentGlintOverride(glint);
+                    item.setItemMeta(meta);
+                }
+            });
+        }
     }
 
     private void setDifficulty(int level) {

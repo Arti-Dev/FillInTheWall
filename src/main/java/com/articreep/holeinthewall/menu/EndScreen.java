@@ -26,6 +26,10 @@ public class EndScreen {
             int lineLength = 0;
             @Override
             public void run() {
+                if (display == null) {
+                    cancel();
+                    return;
+                }
                 StringBuilder string = new StringBuilder();
                 for (int j = 0; j < i; j++) {
                     string.append(lines.get(j)).append("\n");

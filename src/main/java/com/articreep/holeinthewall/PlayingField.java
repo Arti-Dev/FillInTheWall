@@ -28,6 +28,7 @@ import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Transformation;
@@ -58,6 +59,7 @@ public class PlayingField implements Listener {
     private final List<Block> borderBlocks = new ArrayList<>();
     private final Material defaultBorderMaterial = Material.GRAY_CONCRETE;
     private final Material playerMaterial;
+    public static final NamespacedKey meterKey = new NamespacedKey(HoleInTheWall.getInstance(), "METER_ITEM");
     private final WorldBoundingBox boundingBox;
     private final WorldBoundingBox effectBox;
     private String environment;
@@ -244,7 +246,7 @@ public class PlayingField implements Listener {
         player.getInventory().setItem(0, buildingItem(playerMaterial));
         player.getInventory().setItem(1, supportItem());
         // todo replace this with a custom item
-        player.getInventory().setItem(8, new ItemStack(Material.FIREWORK_ROCKET));
+        player.getInventory().setItem(8, meterItem());
     }
 
     public void stop() {
@@ -631,8 +633,8 @@ public class PlayingField implements Listener {
         Location slot1 = slot0.clone().subtract(new Vector(0, 1, 0));
         Location slot2 = slot0.clone().add(fieldDirection.clone().multiply(length + 2));
         Location slot3 = slot2.clone().subtract(new Vector(0, 1, 0));
-        Location slot4 = getReferencePoint().add(getFieldDirection().multiply((double) length / 2))
-                .add(new Vector(0, 1, 0).multiply(height + 3));
+        Location slot4 = getCenter()
+                .add(new Vector(0, 1, 0).multiply(height/2 + 3));
         Location slot5 = slot4.clone().subtract(new Vector(0, 1, 0).multiply(0.5));
 
         for (int i = 0; i < displaySlotsLength; i++) {
@@ -808,8 +810,14 @@ public class PlayingField implements Listener {
     }
 
     public static ItemStack meterItem() {
-        // todo implement
-        return null;
+        ItemStack item = new ItemStack(Material.FIREWORK_ROCKET);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "Special Ability");
+        meta.setLore(Arrays.asList(ChatColor.GRAY + "When your meter is full enough, hold this item",
+                ChatColor.GRAY + "and click to activate a" + ChatColor.GOLD + " special ability" + ChatColor.GRAY + "!"));
+        meta.getPersistentDataContainer().set(meterKey, PersistentDataType.BOOLEAN, true);
+        item.setItemMeta(meta);
+        return item;
     }
 
     public void sendMessageToPlayers(String message) {

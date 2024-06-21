@@ -16,6 +16,10 @@ public class Rush extends ModifierEvent {
     The walls cascade into the floor when they hit your field.
     The differences from consecutive boards are minuscule (1-2 clicks) but do increase the further you get
      */
+
+    /** Should only be used to obtain information about this event */
+    public static final Rush singletonInstance = new Rush(null);
+
     private boolean firstWallCleared = false;
     private Wall nextWall;
     private int wallSpeed = 200;
@@ -29,6 +33,7 @@ public class Rush extends ModifierEvent {
         allowMultipleWalls = true;
         timeFreeze = true;
 
+        if (field == null) return;
         nextWall = new Wall(field.getLength(), field.getHeight());
         nextWall.setMaterial(randomMaterial());
         nextWall.insertHoles(nextWall.randomCoordinates());
