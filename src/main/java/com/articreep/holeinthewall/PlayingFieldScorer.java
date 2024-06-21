@@ -1,5 +1,7 @@
 package com.articreep.holeinthewall;
 
+import com.articreep.holeinthewall.display.ScoreboardEntry;
+import com.articreep.holeinthewall.display.ScoreboardEntryType;
 import com.articreep.holeinthewall.modifiers.Freeze;
 import com.articreep.holeinthewall.modifiers.ModifierEvent;
 import com.articreep.holeinthewall.modifiers.Rush;
@@ -8,8 +10,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.ScoreboardManager;
 import org.javatuples.Pair;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class PlayingFieldScorer {
@@ -32,6 +40,9 @@ public class PlayingFieldScorer {
     // Multiplayer variables
     private int position;
     private int pointsBehind;
+    private Scoreboard scoreboard = null;
+    private Objective objective = null;
+    private final List<ScoreboardEntry> scoreboardEntries = new ArrayList<>();
 
     public PlayingFieldScorer(PlayingField field) {
         this.field = field;
@@ -225,6 +236,66 @@ public class PlayingFieldScorer {
                 }
             }
         }
+
+        // Scoreboard updating
+        if (absoluteTimeElapsed % 20 == 0) {
+            updateScoreboard();
+        }
+    }
+
+    public void updateScoreboard() {
+        if (scoreboard == null) return;
+        for (ScoreboardEntry entry : scoreboardEntries) {
+            switch (entry.getType()) {
+                case SCORE -> entry.update(scoreboard, objective, score);
+                case STAGE -> entry.update(scoreboard, objective, ChatColor.AQUA + "" + ChatColor.BOLD + "QUALIFICATIONS");
+                case TIME -> entry.update(scoreboard, objective, getFormattedTime());
+                case POSITION -> entry.update(scoreboard, objective, position,
+                        (getPointsBehind() == -1 ? "" : getPointsBehind() + " behind #" + (getPosition()-1)));
+                case TAB_INFO, EMPTY -> entry.update(scoreboard, objective);
+            }
+        }
+
+    }
+
+    private void addScoreboardEntry(ScoreboardEntry entry) {
+        scoreboardEntries.add(entry);
+        entry.addToObjective(objective);
+    }
+
+    public void createScoreboard() {
+        ScoreboardManager manager = Bukkit.getScoreboardManager();
+        scoreboard = manager.getNewScoreboard();
+        objective = scoreboard.registerNewObjective("holeinthewall", "dummy",
+                ChatColor.YELLOW + "Hole in the Wall");
+        objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+
+        addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.EMPTY, 1));
+        addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.STAGE, 2));
+        addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.TIME, 3));
+        addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.EMPTY, 4));
+        addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.SCORE, 5));
+        addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.POSITION, 6));
+        addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.EMPTY, 7));
+        addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.EMPTY, 8));
+        addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.TAB_INFO, 9));
+
+        for (Player player : field.getPlayers()) {
+            player.setScoreboard(scoreboard);
+        }
+    }
+
+    public void removeScoreboard() {
+        for (Player player : field.getPlayers()) {
+            player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+        }
+        for (ScoreboardEntry entry : scoreboardEntries) {
+            entry.destroy();
+        }
+    }
+
+    public Scoreboard getScoreboard() {
+        return scoreboard;
     }
 
     public void announceFinalScore() {
@@ -263,6 +334,9 @@ public class PlayingFieldScorer {
         if (gamemode == Gamemode.TUTORIAL) {
             // Immediately activate the tutorial event
             activateEvent(field.getPlayers().iterator().next());
+        }
+        if (gamemode.getAttribute(GamemodeAttribute.MULTIPLAYER) == Boolean.TRUE) {
+            createScoreboard();
         }
     }
 
@@ -359,5 +433,4 @@ public class PlayingFieldScorer {
     public String getFormattedBlocksPerSecond() {
         return String.format("%.2f", getBlocksPerSecond());
     }
-
 }

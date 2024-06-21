@@ -197,6 +197,7 @@ public class PlayingField implements Listener {
         } else if (hasStarted()) {
             formatInventory(player);
             setCreative(player);
+            if (scorer.getScoreboard() != null) player.setScoreboard(scorer.getScoreboard());
         }
 
         return true;
@@ -263,6 +264,7 @@ public class PlayingField implements Listener {
             event.end();
             event = null;
         }
+        scorer.removeScoreboard();
         scorer.announceFinalScore();
 
         HandlerList.unregisterAll(this);
