@@ -46,6 +46,9 @@ public class Utils {
     }
 
     public static String playersToString(Collection<Player> players) {
+        if (players.isEmpty()) {
+            return "null";
+        }
         StringBuilder builder = new StringBuilder();
         for (Player player : players) {
             builder.append(player.getName()).append(", ");

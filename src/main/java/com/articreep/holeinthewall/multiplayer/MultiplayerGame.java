@@ -91,6 +91,7 @@ public class MultiplayerGame {
                     field.getScorer().tick();
                 }
 
+                // todo possible race condition: we don't know if the board will stop itself due to the scorer, or if the multiplayer game will stop it
                 if (time <= 0) stop();
                 time--;
             }
