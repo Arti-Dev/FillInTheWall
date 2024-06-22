@@ -46,7 +46,6 @@ public class WallGenerator {
      */
     public void addNewWallToQueues() {
         Wall wall = new Wall(wallLength, wallHeight);
-        Bukkit.broadcastMessage("Generating new wall with " + randomHoleCount + " random holes and " + connectedHoleCount + " connected holes.");
         wall.generateHoles(randomHoleCount, connectedHoleCount, randomizeFurther);
         wall.setTimeRemaining(wallActiveTime);
         for (WallQueue queue : queues) {
