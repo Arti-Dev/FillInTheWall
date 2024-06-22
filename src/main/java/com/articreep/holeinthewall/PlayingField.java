@@ -181,6 +181,7 @@ public class PlayingField implements Listener {
         scorer.setGamemode(mode);
         setDisplaySlotsFromGamemode(mode);
         removeMenu();
+        removeEndScreen();
         spawnTextDisplays();
         for (Player player : players) {
             formatInventory(player);
@@ -295,11 +296,14 @@ public class PlayingField implements Listener {
         if (confirmOnCooldown) return;
         queue.instantSend();
         PlayerInventory inventory = event.getPlayer().getInventory();
-        ItemStack mainHand = inventory.getItemInMainHand();
+        ItemStack mainHandItem = inventory.getItemInMainHand();
         inventory.setItemInMainHand(confirmItem());
+        // todo in theory a player could switch around the confirm item's location before the original item is given back to them.
+        // should fix, but for now.. too bad!
+        int heldSlot = inventory.getHeldItemSlot();
         confirmOnCooldown = true;
         Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), () -> {
-            inventory.setItemInMainHand(mainHand);
+            inventory.setItem(heldSlot, mainHandItem);
             confirmOnCooldown = false;
         }, 10);
     }
