@@ -23,7 +23,12 @@ public class MultiplayerGame {
 
     public MultiplayerGame(PlayingField field) {
         playingFields.add(field);
-        generator = new WallGenerator(field.getLength(), field.getHeight(), 2, 4, 160);
+        generator = new WallGenerator(field.getLength(), field.getHeight(), 3, 0, 160);
+        generator.setRandomizeFurther(false);
+        generator.setWallHolesMax(8);
+        generator.setWallTimeDecrease(10);
+        generator.setWallTimeDecreaseInterval(2);
+        generator.setWallHolesIncreaseInterval(2);
     }
 
     public void start() {

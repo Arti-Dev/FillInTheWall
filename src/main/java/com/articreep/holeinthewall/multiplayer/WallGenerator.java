@@ -19,13 +19,21 @@ public class WallGenerator {
     private int wallLength;
     private int wallHeight;
 
+    private int wallTimeDecrease = -1;
+    private int wallTimeDecreaseInterval = -1;
+
+    private int wallHolesIncreaseInterval = -1;
+    private int wallHolesMax = 6;
+
     private int randomHoleCount;
     private int connectedHoleCount;
     private boolean randomizeFurther = true;
     private int wallActiveTime;
 
+    // Stats
+    private int wallsSpawned = 0;
+
     public WallGenerator(int length, int height, int startingRandomHoleCount, int startingConnectedHoleCount, int wallActiveTime) {
-        // todo can customize difficulty increases as well
         this.wallLength = length;
         this.wallHeight = height;
         this.randomHoleCount = startingRandomHoleCount;
@@ -38,10 +46,20 @@ public class WallGenerator {
      */
     public void addNewWallToQueues() {
         Wall wall = new Wall(wallLength, wallHeight);
+        Bukkit.broadcastMessage("Generating new wall with " + randomHoleCount + " random holes and " + connectedHoleCount + " connected holes.");
         wall.generateHoles(randomHoleCount, connectedHoleCount, randomizeFurther);
         wall.setTimeRemaining(wallActiveTime);
         for (WallQueue queue : queues) {
             queue.addWall(wall.copy());
+        }
+
+        // todo very subject to change
+        wallsSpawned++;
+        if (wallTimeDecrease > 0 && wallsSpawned % wallTimeDecreaseInterval == 0) {
+            wallActiveTime -= wallTimeDecrease;
+        }
+        if (wallHolesIncreaseInterval > 0 && wallsSpawned % wallHolesIncreaseInterval == 0 && randomHoleCount + connectedHoleCount < wallHolesMax) {
+            connectedHoleCount++;
         }
     }
 
@@ -76,5 +94,21 @@ public class WallGenerator {
 
     public int getHeight() {
         return wallHeight;
+    }
+
+    public void setWallTimeDecrease(int wallTimeDecrease) {
+        this.wallTimeDecrease = wallTimeDecrease;
+    }
+
+    public void setWallTimeDecreaseInterval(int wallTimeDecreaseInterval) {
+        this.wallTimeDecreaseInterval = wallTimeDecreaseInterval;
+    }
+
+    public void setWallHolesMax(int wallHolesMax) {
+        this.wallHolesMax = wallHolesMax;
+    }
+
+    public void setWallHolesIncreaseInterval(int wallHolesIncreaseInterval) {
+        this.wallHolesIncreaseInterval = wallHolesIncreaseInterval;
     }
 }
