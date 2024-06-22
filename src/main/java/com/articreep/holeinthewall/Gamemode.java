@@ -50,6 +50,7 @@ public enum Gamemode {
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.AUTOMATIC_METER, true);
 
+        // todo this doesn't affect the game length at all right now
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.TIME_LIMIT, 20*120);
         // todo These attributes probably shouldn't be here, because every playing field will modify the generator which is bad
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.RANDOM_HOLE_COUNT, 3);

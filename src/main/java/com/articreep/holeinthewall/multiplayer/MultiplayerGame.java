@@ -67,7 +67,8 @@ public class MultiplayerGame {
             Bukkit.getLogger().severe("Tried to start multiplayer game that's already been started");
             return;
         }
-        time = 20 * 60;
+        // todo this is disconnected from the attribute system entirely
+        time = 20 * 120;
         for (PlayingField field : playingFields) {
             field.stop();
             field.doTickScorer(false);
