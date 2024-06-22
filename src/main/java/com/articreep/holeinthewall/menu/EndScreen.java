@@ -1,6 +1,7 @@
 package com.articreep.holeinthewall.menu;
 
 import com.articreep.holeinthewall.HoleInTheWall;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.TextDisplay;
@@ -49,6 +50,9 @@ public class EndScreen {
                 }
             }
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
+
+        // Despawn after 2 minutes
+        Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), this::despawn, 20 * 120);
     }
 
     public void addLine(String string) {
