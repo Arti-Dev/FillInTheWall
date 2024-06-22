@@ -68,6 +68,11 @@ public class Menu implements Listener {
     }
 
     public void confirmAndDespawn() {
+        if (field.isLocked()) {
+            field.sendMessageToPlayers(ChatColor.RED + "Field is locked - cannot start game");
+            despawn();
+            return;
+        }
         Gamemode mode = Gamemode.values()[gamemodeIndex];
         if (mode == Gamemode.MULTIPLAYER_SCORE_ATTACK) {
             // todo temporary

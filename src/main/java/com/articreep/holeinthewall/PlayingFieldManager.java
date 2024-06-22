@@ -50,7 +50,7 @@ public class PlayingFieldManager implements Listener {
     }
 
     public void removeTimer(Player player, PlayingField field) {
-        if (field.isBindPlayers()) return;
+        if (field.isLocked()) return;
         if (removalTasks.containsKey(player)) return;
 
         // Immediately remove game if it's stopped

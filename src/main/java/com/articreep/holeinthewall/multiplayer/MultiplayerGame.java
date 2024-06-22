@@ -5,7 +5,6 @@ import com.articreep.holeinthewall.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
-import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -34,6 +33,12 @@ public class MultiplayerGame {
     public void start() {
         if (!verifyFieldDimensions()) {
             return;
+        }
+
+        for (PlayingField field : playingFields) {
+            field.stop();
+            field.doTickScorer(false);
+            field.setLocked(true);
         }
 
         new BukkitRunnable() {
@@ -72,7 +77,7 @@ public class MultiplayerGame {
         for (PlayingField field : playingFields) {
             field.stop();
             field.doTickScorer(false);
-            field.setBindPlayers(true);
+            field.setLocked(true);
             try {
                 field.start(Gamemode.MULTIPLAYER_SCORE_ATTACK, generator);
                 field.getScorer().setPlayerCount(playingFields.size());
@@ -161,7 +166,7 @@ public class MultiplayerGame {
     public void removePlayingfield(PlayingField field) {
         if (playingFields.contains(field)) {
             playingFields.remove(field);
-            field.setBindPlayers(false);
+            field.setLocked(false);
             field.getQueue().resetGenerator();
             field.doTickScorer(true);
         }
