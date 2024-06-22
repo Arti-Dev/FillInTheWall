@@ -21,6 +21,7 @@ public class WallGenerator {
 
     private int wallTimeDecrease = -1;
     private int wallTimeDecreaseInterval = -1;
+    private int wallTimeMinimum = 80;
 
     private int wallHolesIncreaseInterval = -1;
     private int wallHolesMax = 6;
@@ -54,8 +55,11 @@ public class WallGenerator {
 
         // todo very subject to change
         wallsSpawned++;
-        if (wallTimeDecrease > 0 && wallsSpawned % wallTimeDecreaseInterval == 0) {
+        if (wallTimeDecrease > 0 && wallsSpawned % wallTimeDecreaseInterval == 0 && wallActiveTime > wallTimeMinimum) {
             wallActiveTime -= wallTimeDecrease;
+            if (wallActiveTime < wallTimeMinimum) {
+                wallActiveTime = wallTimeMinimum;
+            }
         }
         if (wallHolesIncreaseInterval > 0 && wallsSpawned % wallHolesIncreaseInterval == 0 && randomHoleCount + connectedHoleCount < wallHolesMax) {
             connectedHoleCount++;
