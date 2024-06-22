@@ -22,14 +22,15 @@ public class WallGenerator {
     private int randomHoleCount;
     private int connectedHoleCount;
     private boolean randomizeFurther = true;
-    private int wallActiveTime = 160;
+    private int wallActiveTime;
 
-    public WallGenerator(int length, int height, int startingRandomHoleCount, int startingConnectedHoleCount) {
+    public WallGenerator(int length, int height, int startingRandomHoleCount, int startingConnectedHoleCount, int wallActiveTime) {
         // todo can customize difficulty increases as well
         this.wallLength = length;
         this.wallHeight = height;
         this.randomHoleCount = startingRandomHoleCount;
         this.connectedHoleCount = startingConnectedHoleCount;
+        this.wallActiveTime = wallActiveTime;
     }
 
     /**
@@ -38,6 +39,7 @@ public class WallGenerator {
     public void addNewWallToQueues() {
         Wall wall = new Wall(wallLength, wallHeight);
         wall.generateHoles(randomHoleCount, connectedHoleCount, randomizeFurther);
+        wall.setTimeRemaining(wallActiveTime);
         for (WallQueue queue : queues) {
             queue.addWall(wall.copy());
         }

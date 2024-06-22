@@ -23,7 +23,7 @@ public class MultiplayerGame {
 
     public MultiplayerGame(PlayingField field) {
         playingFields.add(field);
-        generator = new WallGenerator(field.getLength(), field.getHeight(), 2, 4);
+        generator = new WallGenerator(field.getLength(), field.getHeight(), 2, 4, 160);
     }
 
     public void start() {

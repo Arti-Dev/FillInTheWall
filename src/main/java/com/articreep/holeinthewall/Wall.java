@@ -450,6 +450,7 @@ public class Wall {
         for (Pair<Integer, Integer> hole : getHoles()) {
             newWall.insertHole(hole);
         }
+        newWall.setTimeRemaining(maxTime);
         return newWall;
     }
 

@@ -130,6 +130,7 @@ public class Tutorial extends ModifierEvent implements Listener {
             // Welcome message
             Wall wall = new Wall(field.getLength(), field.getHeight());
             wall.insertHole(new Pair<>(0, 0));
+            wall.setTimeRemaining(600);
             queue.addWall(wall);
 
             field.sendTitleToPlayers("Welcome!", ChatColor.GREEN + "Your goal is to place blocks on this playing field..", 10, 40, 10);
@@ -161,6 +162,7 @@ public class Tutorial extends ModifierEvent implements Listener {
             wall.insertHole(new Pair<>(field.getLength()-1, field.getHeight()-1));
             wall.insertHole(new Pair<>(field.getLength()-1, 0));
             wall.insertHole(new Pair<>(0, field.getHeight()-1));
+            wall.setTimeRemaining(600);
             queue.addWall(wall);
             lookAtPlayerGoal.setEnabled(true);
             if (tryAgain) {
@@ -178,9 +180,9 @@ public class Tutorial extends ModifierEvent implements Listener {
             field.flashScore();
             ticksBeforeNextSlide = 20 * 3;
         } else if (slideToPlay == 6) {
-            field.getQueue().setWallActiveTime(160);
             Wall wall = new Wall(field.getLength(), field.getHeight());
             wall.insertHoles(new Pair<>(1, 1), new Pair<>(2, 1), new Pair<>(3, 1));
+            wall.setTimeRemaining(160);
             field.getQueue().addWall(wall);
             if (tryAgain) {
                 tryAgainTitle(tip);
@@ -188,9 +190,9 @@ public class Tutorial extends ModifierEvent implements Listener {
                 field.sendTitleToPlayers("", ChatColor.GREEN + "Fill in the next wall! This one’s faster.", 10, 40, 10);
             }
         } else if (slideToPlay == 7) {
-            field.getQueue().setWallActiveTime(300);
             Wall wall = new Wall(field.getLength(), field.getHeight());
             wall.insertHole(new Pair<>(field.getLength()-2, 1));
+            wall.setTimeRemaining(300);
             field.getQueue().addWall(wall);
 
             enderman.setCarriedBlock(Material.CRACKED_STONE_BRICKS.createBlockData());
@@ -226,6 +228,7 @@ public class Tutorial extends ModifierEvent implements Listener {
         } else if (slideToPlay == 10) {
             Wall wall = new Wall(field.getLength(), field.getHeight());
             wall.insertHoles(new Pair<>(0, 0), new Pair<>(1, 1), new Pair<>(2, 2));
+            wall.setTimeRemaining(300);
             field.getQueue().addWall(wall);
             if (tryAgain) {
                 tryAgainTitle(tip);
@@ -250,6 +253,7 @@ public class Tutorial extends ModifierEvent implements Listener {
                         for (int i = 0; i < 3; i++) {
                             Wall wall = new Wall(field.getLength(), field.getHeight());
                             wall.generateHoles(1, 3, true);
+                            wall.setTimeRemaining(160);
                             field.getQueue().addWall(wall);
                         }
                     } else if (currentSlide != 12) this.cancel();
@@ -257,7 +261,6 @@ public class Tutorial extends ModifierEvent implements Listener {
             }.runTaskTimer(HoleInTheWall.getInstance(), 0, 5);
             field.getQueue().allowMultipleWalls(true);
             field.getQueue().setMaxSpawnCooldown(60);
-            field.getQueue().setWallActiveTime(160);
 
             // todo some gamemodes let you activate the event without filling the meter all the way - should elaborate
             field.sendTitleToPlayers(ChatColor.AQUA + "Start by filling the meter...",

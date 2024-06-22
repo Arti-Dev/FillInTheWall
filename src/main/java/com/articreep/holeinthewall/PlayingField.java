@@ -191,7 +191,7 @@ public class PlayingField implements Listener {
     }
 
     public void start(Gamemode mode) {
-        start(mode, null);
+        start(mode, new WallGenerator(getLength(), getHeight(), 2, 4, 160));
     }
 
     public boolean addNewPlayer(Player player) {
