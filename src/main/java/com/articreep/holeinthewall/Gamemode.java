@@ -15,7 +15,8 @@ public enum Gamemode {
     TUTORIAL("Tutorial", ChatColor.GRAY + "Learn how to play!", new HashMap<>(), Tutorial.class),
     SCORE_ATTACK(ChatColor.GOLD + "Score Attack", ChatColor.GRAY + "Score as much as you can in 2 minutes!", new HashMap<>(),null),
     RAPID_SCORE_ATTACK(ChatColor.RED + "Rapid Score Attack", ChatColor.GRAY + "Rapid fire version of Score Attack", new HashMap<>(),Rush.class),
-    MULTIPLAYER_SCORE_ATTACK(ChatColor.AQUA + "Multiplayer Score Attack", ChatColor.GRAY + "Hypixel-style game", new HashMap<>(), Freeze.class);
+    MULTIPLAYER_SCORE_ATTACK(ChatColor.AQUA + "Multiplayer Score Attack", ChatColor.GRAY + "Hypixel-style game", new HashMap<>(), Freeze.class),
+    MARATHON(ChatColor.GRAY + "Marathon", ChatColor.GRAY + "Survive as long as you can!", new HashMap<>(), null);
 
     static {
         INFINITE.addAttribute(GamemodeAttribute.CONSISTENT_HOLE_COUNT, false);
@@ -69,6 +70,16 @@ public enum Gamemode {
         TUTORIAL.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.NONE);
         TUTORIAL.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         TUTORIAL.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
+
+        MARATHON.addAttribute(GamemodeAttribute.DO_LEVELS, true);
+        MARATHON.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
+        MARATHON.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.PERFECT_WALLS);
+        MARATHON.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.LEVEL);
+        MARATHON.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
+        MARATHON.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
+        MARATHON.addAttribute(GamemodeAttribute.GARBAGE_WALLS, true);
+
+
 
     }
 

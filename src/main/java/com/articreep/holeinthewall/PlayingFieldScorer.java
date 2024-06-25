@@ -449,7 +449,7 @@ public class PlayingFieldScorer {
 
     private void setDifficulty(int level) {
         WallQueue queue = field.getQueue();
-        queue.setWallActiveTime(Math.max(200 - level * 20, 60));
+        queue.setWallActiveTime(Math.max(200 - level * 20, 40));
 
         if (level == 1) {
             queue.setRandomHoleCount(1);
@@ -459,12 +459,16 @@ public class PlayingFieldScorer {
             queue.setConnectedHoleCount(1);
         } else {
             int remainingHoles = (level/2) + 1;
-            if (level >= 5) {
+            if (level < 5) {
+                queue.setRandomHoleCount(1);
+                remainingHoles -= 1;
+
+            } else if (level < 9) {
                 queue.setRandomHoleCount(2);
                 remainingHoles -= 2;
             } else {
-                queue.setRandomHoleCount(1);
-                remainingHoles -= 1;
+                queue.setRandomHoleCount(3);
+                remainingHoles -= 3;
             }
             queue.setConnectedHoleCount(remainingHoles);
         }
