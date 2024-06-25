@@ -1,7 +1,6 @@
 package com.articreep.holeinthewall;
 
 import com.articreep.holeinthewall.utils.Utils;
-import com.google.common.annotations.VisibleForTesting;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.BlockDisplay;
@@ -232,6 +231,7 @@ public class Wall {
         int length = queue.getFullLength();
 
         if (tickCooldown == 0) {
+            correct();
             for (BlockDisplay display : entities) {
                 Location target = display.getLocation()
                         .add(movementDirection.clone().multiply(length * teleportDuration / (double) maxTime));
