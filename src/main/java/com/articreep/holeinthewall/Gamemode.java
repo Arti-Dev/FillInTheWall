@@ -38,6 +38,7 @@ public enum Gamemode {
         SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.LEVEL);
         SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         SCORE_ATTACK.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
+        SCORE_ATTACK.addAttribute(GamemodeAttribute.WALL_TIME_DECREASE_AMOUNT, 20);
 
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.TIME_LIMIT, 20*60);
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.DO_LEVELS, false);
@@ -78,6 +79,7 @@ public enum Gamemode {
         MARATHON.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         MARATHON.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         MARATHON.addAttribute(GamemodeAttribute.GARBAGE_WALLS, true);
+        MARATHON.addAttribute(GamemodeAttribute.WALL_TIME_DECREASE_AMOUNT, 13);
 
 
 

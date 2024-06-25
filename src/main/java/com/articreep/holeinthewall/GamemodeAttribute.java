@@ -6,6 +6,7 @@ public enum GamemodeAttribute {
     // todo I'm not going to bother with enforcing types for now, but the types of these attributes are listed here
     TIME_LIMIT(int.class, 0),
     DO_LEVELS(boolean.class, false),
+    WALL_TIME_DECREASE_AMOUNT(int.class, 20),
     CONSISTENT_HOLE_COUNT(boolean.class, true),
     RANDOM_HOLE_COUNT(int.class, 2),
     CONNECTED_HOLE_COUNT(int.class, 4),

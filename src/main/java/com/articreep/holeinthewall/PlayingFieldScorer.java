@@ -39,6 +39,7 @@ public class PlayingFieldScorer {
     boolean doLevels = false;
     private int level = 1;
     private int meterMax = 10;
+    private int wallTimeDecreaseAmount = 20;
 
     // Multiplayer variables
     private int playerCount = 0;
@@ -387,6 +388,9 @@ public class PlayingFieldScorer {
                 case METER_MAX -> {
                     if (!doLevels) setMeterMax((int) value);
                 }
+                case WALL_TIME_DECREASE_AMOUNT -> {
+                    if (doLevels) wallTimeDecreaseAmount = (int) value;
+                }
             }
         }
         this.gamemode = gamemode;
@@ -449,7 +453,7 @@ public class PlayingFieldScorer {
 
     private void setDifficulty(int level) {
         WallQueue queue = field.getQueue();
-        queue.setWallActiveTime(Math.max(200 - level * 20, 40));
+        queue.setWallActiveTime(Math.max(200 - level * wallTimeDecreaseAmount, 40));
 
         if (level == 1) {
             queue.setRandomHoleCount(1);
