@@ -255,7 +255,7 @@ public class PlayingField implements Listener {
         player.getInventory().setItem(0, buildingItem(playerMaterial));
         player.getInventory().setItem(1, supportItem());
         // todo replace this with a custom item
-        player.getInventory().setItem(8, meterItem());
+        player.getInventory().setItem(2, meterItem());
     }
 
     public void stop() {
@@ -376,6 +376,7 @@ public class PlayingField implements Listener {
                     || event.getAction() == Action.LEFT_CLICK_BLOCK
                     || event.getAction() == Action.RIGHT_CLICK_AIR
                     || event.getAction() == Action.LEFT_CLICK_AIR) {
+                event.setCancelled(true);
                 scorer.activateEvent(player);
             }
         }
