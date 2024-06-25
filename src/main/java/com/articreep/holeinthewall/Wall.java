@@ -32,7 +32,8 @@ public class Wall {
     private final List<BlockDisplay> toRemove = new ArrayList<>();
     private Material material = null;
     private int tickCooldown = 0;
-    private int teleportDuration = 7;
+    private final int defaultTeleportDuration = 5;
+    private int teleportDuration = defaultTeleportDuration;
 
     public Wall(HashSet<Pair<Integer, Integer>> holes, int length, int height) {
         this.holes = holes;
@@ -226,7 +227,6 @@ public class Wall {
         int length = queue.getFullLength();
 
         if (tickCooldown == 0) {
-            correct();
             for (BlockDisplay display : entities) {
                 Location target = display.getLocation()
                         .add(movementDirection.clone().multiply(length * teleportDuration / (double) maxTime));
@@ -271,7 +271,7 @@ public class Wall {
                 }
                 i++;
                 if (i >= 18) {
-                    setTeleportDuration(50);
+                    setTeleportDuration(defaultTeleportDuration);
                     cancel();
                 }
             }
@@ -452,25 +452,34 @@ public class Wall {
         return newWall;
     }
 
-    @VisibleForTesting
     public void setTeleportDuration(int ticks) {
         teleportDuration = ticks;
         for (BlockDisplay display : entities) {
             display.setTeleportDuration(ticks);
         }
         tickCooldown = 0;
+        correct();
     }
 
     // Snap the wall to where it should be at this instant.
     public void correct() {
         int lastTeleportDuration = teleportDuration;
-        setTeleportDuration(0);
+        setTeleportDurationWithoutCorrection(0);
         for (BlockDisplay display : entities) {
             Location target = display.getLocation()
                     .subtract(movementDirection.clone().multiply(length * (maxTime - teleportTo) / (double) maxTime))
                     .add(movementDirection.clone().multiply(length * (maxTime - timeRemaining) / (double) maxTime));
             display.teleport(target);
         }
-        setTeleportDuration(lastTeleportDuration);
+        setTeleportDurationWithoutCorrection(lastTeleportDuration);
+    }
+
+    // To prevent recursion when the correct() method is run after new teleport duration is set
+    private void setTeleportDurationWithoutCorrection(int ticks) {
+        teleportDuration = ticks;
+        for (BlockDisplay display : entities) {
+            display.setTeleportDuration(ticks);
+        }
+        tickCooldown = 0;
     }
 }
