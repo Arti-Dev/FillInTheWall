@@ -1,37 +1,58 @@
 package com.articreep.holeinthewall.multiplayer;
 
-import com.articreep.holeinthewall.HoleInTheWall;
-import com.articreep.holeinthewall.PlayingField;
-import com.articreep.holeinthewall.PlayingFieldManager;
-import com.articreep.holeinthewall.Gamemode;
+import com.articreep.holeinthewall.*;
 import com.articreep.holeinthewall.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
-import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class MultiplayerGame {
     private final Set<PlayingField> playingFields = new HashSet<>();
-    private final ArrayList<PlayingField> rankings = new ArrayList<>();
+    private final List<PlayingField> rankings = new ArrayList<>();
     private final WallGenerator generator;
     private int time;
     private BukkitTask task;
     private BukkitTask sortTask;
 
+    public MultiplayerGame(List<PlayingField> fields) {
+        if (fields.isEmpty()) {
+            throw new IllegalArgumentException("Tried to create multiplayer game with no playing fields");
+        }
+        playingFields.addAll(fields);
+        // Use the first field to make the generator
+        PlayingField field = fields.getFirst();
+        generator = new WallGenerator(field.getLength(), field.getHeight(), 3, 0, 160);
+        generator.setRandomizeFurther(false);
+        generator.setWallHolesMax(8);
+        generator.setWallTimeDecrease(10);
+        generator.setWallTimeDecreaseInterval(2);
+        generator.setWallHolesIncreaseInterval(2);
+    }
+
     public MultiplayerGame(PlayingField field) {
-        playingFields.add(field);
-        generator = new WallGenerator(field.getLength(), field.getHeight(), 2, 4);
+        this(Collections.singletonList(field));
     }
 
     public void start() {
-        if (!verifyFieldDimensions()) {
+        if (playingFields.isEmpty()) {
+            Bukkit.getLogger().severe("Tried to start multiplayer game with no playing fields");
             return;
+        }
+
+        if (!verifyFieldDimensions()) {
+            Bukkit.getLogger().severe("Not all playing fields have the same dimensions!");
+            return;
+        }
+
+        // Make sure all games here have stopped completely
+        for (PlayingField field : playingFields) {
+            field.stop();
+            field.doTickScorer(false);
+            field.setLocked(true);
         }
 
         new BukkitRunnable() {
@@ -65,15 +86,13 @@ public class MultiplayerGame {
             Bukkit.getLogger().severe("Tried to start multiplayer game that's already been started");
             return;
         }
-        time = 20 * 60;
+        // todo this is disconnected from the attribute system entirely
+        time = 20 * 120;
         for (PlayingField field : playingFields) {
-            field.stop();
-            field.doTickScorer(false);
-            field.getQueue().setGenerator(generator);
-            field.setBindPlayers(true);
-            generator.addQueue(field.getQueue());
             try {
-                field.start(Gamemode.MULTIPLAYER_SCORE_ATTACK);
+                field.start(Gamemode.MULTIPLAYER_SCORE_ATTACK, generator);
+                field.getScorer().setPlayerCount(playingFields.size());
+                generator.addQueue(field.getQueue());
             } catch (IllegalStateException e) {
                 removePlayingfield(field);
             }
@@ -94,6 +113,7 @@ public class MultiplayerGame {
                     field.getScorer().tick();
                 }
 
+                // todo possible race condition: we don't know if the board will stop itself due to the scorer, or if the multiplayer game will stop it
                 if (time <= 0) stop();
                 time--;
             }
@@ -157,7 +177,7 @@ public class MultiplayerGame {
     public void removePlayingfield(PlayingField field) {
         if (playingFields.contains(field)) {
             playingFields.remove(field);
-            field.setBindPlayers(false);
+            field.setLocked(false);
             field.getQueue().resetGenerator();
             field.doTickScorer(true);
         }
@@ -189,6 +209,5 @@ public class MultiplayerGame {
         }
         Bukkit.broadcastMessage("");
         Bukkit.broadcastMessage("---");
-
     }
 }

@@ -1,25 +1,38 @@
 package com.articreep.holeinthewall;
 
+import com.articreep.holeinthewall.display.ScoreboardEntry;
+import com.articreep.holeinthewall.display.ScoreboardEntryType;
+import com.articreep.holeinthewall.menu.EndScreen;
 import com.articreep.holeinthewall.modifiers.Freeze;
 import com.articreep.holeinthewall.modifiers.ModifierEvent;
 import com.articreep.holeinthewall.modifiers.Rush;
 import com.articreep.holeinthewall.modifiers.Tutorial;
+import com.articreep.holeinthewall.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.ScoreboardManager;
 import org.javatuples.Pair;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class PlayingFieldScorer {
     PlayingField field;
     private int score = 0;
     private double meter = 0;
-    private int wallsCleared = 0;
+    private int perfectWallsCleared = 0;
     private double blocksPlaced = 0;
-    // time in ticks
+    // time in ticks (this is displayed on the text display)
     private int time = 0;
+    /** for calculating blocks per second */
+    private int absoluteTimeElapsed = 0;
     private Gamemode gamemode = Gamemode.INFINITE;
 
     // Levels (if enabled)
@@ -28,8 +41,12 @@ public class PlayingFieldScorer {
     private int meterMax = 10;
 
     // Multiplayer variables
+    private int playerCount = 0;
     private int position;
     private int pointsBehind;
+    private Scoreboard scoreboard = null;
+    private Objective objective = null;
+    private final List<ScoreboardEntry> scoreboardEntries = new ArrayList<>();
 
     public PlayingFieldScorer(PlayingField field) {
         this.field = field;
@@ -51,7 +68,7 @@ public class PlayingFieldScorer {
             }
         }
 
-        if (judgement == Judgement.PERFECT) wallsCleared++;
+        if (judgement == Judgement.PERFECT) perfectWallsCleared++;
 
         boolean showScoreTitle = true;
         // Add/subtract to bonus
@@ -74,6 +91,9 @@ public class PlayingFieldScorer {
 
             if (meter < 0) meter = 0;
         }
+
+        // Update meter item
+        setMeterItemGlint(isMeterFilledEnough(meter / meterMax));
 
         if (showScoreTitle) displayScoreTitle(judgement, score);
         playJudgementSound(judgement);
@@ -100,23 +120,15 @@ public class PlayingFieldScorer {
         }
         double percent = meter / meterMax;
 
-        // todo could use reflection
-        if (gamemode.getModifier() == Rush.class && percent >= 1) {
-            // activate rush next tick
-            Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
-                    () -> field.activateEvent(new Rush(field)));
-
-        } else if (gamemode.getModifier() == Freeze.class && percent >= 0.2) {
-            Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
-                    () -> field.activateEvent(new Freeze(field, (int) (20 * 10 * percent))));
-        } else if (gamemode.getModifier() == Tutorial.class) {
-            Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
-                    () -> field.activateEvent(new Tutorial(field, 20)));
+        if (isMeterFilledEnough(percent)) {
+            activateProperEvent(percent);
         } else {
             player.sendMessage(ChatColor.RED + "Your meter isn't full enough!");
             return;
         }
         meter = 0;
+        // Update meter item
+        setMeterItemGlint(isMeterFilledEnough(meter / meterMax));
     }
 
     public void displayScoreTitle(Judgement judgement, int score) {
@@ -124,6 +136,34 @@ public class PlayingFieldScorer {
                 judgement.getColor() + judgement.getText(),
                 judgement.getColor() + "+" + score + " points",
                 0, 10, 5);
+    }
+
+    // todo these two methods could be replaced with some reflection
+    public boolean isMeterFilledEnough(double percent) {
+        if (gamemode.getModifier() == Rush.class && percent >= Rush.singletonInstance.getMeterPercentRequired()) {
+            return true;
+        } else if (gamemode.getModifier() == Freeze.class && percent >= Freeze.singletonInstance.getMeterPercentRequired()) {
+            return true;
+        } else if (gamemode.getModifier() == Tutorial.class) {
+            return true;
+        }
+        return false;
+    }
+
+    // This only serves to store the redundant logic
+    public void activateProperEvent(double percent) {
+        if (gamemode.getModifier() == Rush.class) {
+            // activate rush next tick
+            Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
+                    () -> field.activateEvent(new Rush(field)));
+
+        } else if (gamemode.getModifier() == Freeze.class) {
+            Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
+                    () -> field.activateEvent(new Freeze(field, (int) (20 * 10 * percent))));
+        } else if (gamemode.getModifier() == Tutorial.class) {
+            Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
+                    () -> field.activateEvent(new Tutorial(field, 20)));
+        }
     }
 
     public void playJudgementSound(Judgement judgement) {
@@ -158,8 +198,8 @@ public class PlayingFieldScorer {
         return (double) calculateScore(wall, field) / wall.getHoles().size();
     }
 
-    public int getWallsCleared() {
-        return wallsCleared;
+    public int getPerfectWallsCleared() {
+        return perfectWallsCleared;
     }
 
     public int getScore() {
@@ -174,7 +214,7 @@ public class PlayingFieldScorer {
         score = 0;
         blocksPlaced = 0;
         meter = 0;
-        wallsCleared = 0;
+        perfectWallsCleared = 0;
         time = 0;
         gamemode = null;
         level = 1;
@@ -185,11 +225,12 @@ public class PlayingFieldScorer {
         return String.format("%02d:%02d", (time/20) / 60, (time/20) % 60);
     }
 
-    public int getRawTime() {
-        return time;
+    public int getAbsoluteTimeElapsed() {
+        return absoluteTimeElapsed;
     }
 
     public void tick() {
+        absoluteTimeElapsed++;
 
         // if a timefreeze modifier event is active and we're in a singleplayer game, pause the timer
         if (field.eventActive() && field.getEvent().timeFreeze
@@ -222,10 +263,102 @@ public class PlayingFieldScorer {
                 }
             }
         }
+
+        // Scoreboard updating
+        if (absoluteTimeElapsed % 10 == 0) {
+            updateScoreboard();
+        }
+    }
+
+    // todo probably make this scoreboard system its own class
+    public void updateScoreboard() {
+        if (scoreboard == null) return;
+        for (ScoreboardEntry entry : scoreboardEntries) {
+            switch (entry.getType()) {
+                case SCORE -> entry.update(scoreboard, objective, score);
+                case STAGE -> entry.update(scoreboard, objective, ChatColor.AQUA + "" + ChatColor.BOLD + "QUALIFICATIONS");
+                case TIME -> entry.update(scoreboard, objective, getFormattedTime());
+                case POSITION -> {
+                    if (position == 1) {
+                        entry.update(scoreboard, objective, ChatColor.GOLD + "1");
+                    } else {
+                        entry.update(scoreboard, objective, position);
+                    }
+                }
+                case EMPTY -> entry.update(scoreboard, objective);
+                case POINTS_BEHIND -> {
+                    if (position == 1) {
+                        entry.forceUpdate(scoreboard, objective, ChatColor.GOLD + "You're in the lead!");
+                    } else {
+                        entry.update(scoreboard, objective, pointsBehind, position-1);
+                    }
+                }
+                case PLAYERS -> entry.update(scoreboard, objective, playerCount);
+            }
+        }
+
+    }
+
+    private void addScoreboardEntry(ScoreboardEntry entry) {
+        scoreboardEntries.add(entry);
+        entry.addToObjective(objective);
+    }
+
+    public void createScoreboard() {
+        ScoreboardManager manager = Bukkit.getScoreboardManager();
+        scoreboard = manager.getNewScoreboard();
+        objective = scoreboard.registerNewObjective("holeinthewall", "dummy",
+                ChatColor.YELLOW + "" + ChatColor.BOLD + "Hole in the Wall");
+        objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+
+        addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.EMPTY, 1));
+        addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.STAGE, 2));
+        addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.TIME, 3));
+        addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.EMPTY, 4));
+        addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.SCORE, 5));
+        addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.POSITION, 6));
+        addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.POINTS_BEHIND, 7));
+        addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.EMPTY, 8));
+        addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.EMPTY, 9));
+        addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.PLAYERS, 10));
+
+        for (Player player : field.getPlayers()) {
+            player.setScoreboard(scoreboard);
+        }
+    }
+
+    public void removeScoreboard() {
+        for (Player player : field.getPlayers()) {
+            Utils.resetScoreboard(player);
+        }
+        for (ScoreboardEntry entry : scoreboardEntries) {
+            entry.destroy();
+        }
+        scoreboard = null;
+        objective = null;
+        scoreboardEntries.clear();
+    }
+
+    public Scoreboard getScoreboard() {
+        return scoreboard;
     }
 
     public void announceFinalScore() {
         field.sendMessageToPlayers(ChatColor.GREEN + "Your final score is " + ChatColor.BOLD + score);
+    }
+
+    public EndScreen createEndScreen() {
+        EndScreen endScreen = new EndScreen(field.getCenter());
+        endScreen.addLine(Utils.playersToString(field.getPlayers()));
+        endScreen.addLine(gamemode.getTitle());
+        endScreen.addLine("");
+        endScreen.addLine(ChatColor.GREEN + "Final score: " + ChatColor.BOLD + score);
+        if (gamemode.hasAttribute(GamemodeAttribute.MULTIPLAYER)) {
+            endScreen.addLine(ChatColor.WHITE + "Position: No. " + position);
+        }
+        endScreen.addLine(ChatColor.GOLD + "Perfect Walls cleared: " + ChatColor.BOLD + perfectWallsCleared);
+        endScreen.addLine(ChatColor.RED + getFormattedBlocksPerSecond() + " blocks per second");
+        return endScreen;
     }
 
     public void setGamemode(Gamemode gamemode) {
@@ -261,6 +394,9 @@ public class PlayingFieldScorer {
             // Immediately activate the tutorial event
             activateEvent(field.getPlayers().iterator().next());
         }
+        if (gamemode.getAttribute(GamemodeAttribute.MULTIPLAYER) == Boolean.TRUE) {
+            createScoreboard();
+        }
     }
 
     // levels
@@ -270,6 +406,7 @@ public class PlayingFieldScorer {
 
     public String getFormattedMeter() {
         double percentFilled = meter / meterMax;
+
         ChatColor color;
         String modifier = "";
         if (gamemode.getModifier() != null) modifier = gamemode.getModifier().getSimpleName() + " ";
@@ -280,7 +417,11 @@ public class PlayingFieldScorer {
         } else {
             color = ChatColor.GREEN;
         }
-        return color + modifier + "Meter: " + String.format("%.2f", meter) + "/" + meterMax;
+        String string = color + modifier + "Meter: " + String.format("%.2f", meter) + "/" + meterMax;
+        if (isMeterFilledEnough(percentFilled)) {
+            string += " " + ChatColor.AQUA + ChatColor.BOLD + "Ready!";
+        }
+        return string;
     }
 
     public void setLevel(int level) {
@@ -291,6 +432,19 @@ public class PlayingFieldScorer {
         setMeterMax(level);
         // when we level up, delete all pending walls in the queue which forces a new wall to be made.
         field.getQueue().clearHiddenWalls();
+    }
+
+    public void setMeterItemGlint(boolean glint) {
+        for (Player player : field.getPlayers()) {
+            // Scan inventory for an item that has the persistent data key "METER_ITEM"
+            player.getInventory().forEach(item -> {
+                if (item != null && item.getItemMeta() != null && item.getItemMeta().getPersistentDataContainer().has(PlayingField.meterKey)) {
+                    ItemMeta meta = item.getItemMeta();
+                    meta.setEnchantmentGlintOverride(glint);
+                    item.setItemMeta(meta);
+                }
+            });
+        }
     }
 
     private void setDifficulty(int level) {
@@ -349,12 +503,15 @@ public class PlayingFieldScorer {
     }
 
     public double getBlocksPerSecond() {
-        if (time == 0) return 0;
-        return blocksPlaced / ((double) time / 20);
+        if (absoluteTimeElapsed == 0) return 0;
+        return blocksPlaced / ((double) absoluteTimeElapsed / 20);
     }
 
     public String getFormattedBlocksPerSecond() {
         return String.format("%.2f", getBlocksPerSecond());
     }
 
+    public void setPlayerCount(int playerCount) {
+        this.playerCount = playerCount;
+    }
 }

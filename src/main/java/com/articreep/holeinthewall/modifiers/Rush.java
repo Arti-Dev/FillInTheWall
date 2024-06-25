@@ -16,6 +16,10 @@ public class Rush extends ModifierEvent {
     The walls cascade into the floor when they hit your field.
     The differences from consecutive boards are minuscule (1-2 clicks) but do increase the further you get
      */
+
+    /** Should only be used to obtain information about this event */
+    public static final Rush singletonInstance = new Rush(null);
+
     private boolean firstWallCleared = false;
     private Wall nextWall;
     private int wallSpeed = 200;
@@ -29,6 +33,7 @@ public class Rush extends ModifierEvent {
         allowMultipleWalls = true;
         timeFreeze = true;
 
+        if (field == null) return;
         nextWall = new Wall(field.getLength(), field.getHeight());
         nextWall.setMaterial(randomMaterial());
         nextWall.insertHoles(nextWall.randomCoordinates());
@@ -52,7 +57,7 @@ public class Rush extends ModifierEvent {
         if (wall.getHoles().size() < 2 || (Math.random() < 0.75 && wall.getHoles().size() < 5)) {
             for (int i = 0; i < 1; i++) {
                 // Add a new hole
-                wall.insertHole(wall.randomCoordinatesConnected());
+                wall.insertHole(wall.randomCoordinatesConnected(false));
             }
         } else {
             for (int i = 0; i < 1; i++) {
@@ -67,7 +72,7 @@ public class Rush extends ModifierEvent {
         Material[] materials = {Material.BLUE_GLAZED_TERRACOTTA, Material.LIME_GLAZED_TERRACOTTA,
         Material.MAGENTA_GLAZED_TERRACOTTA, Material.WHITE_GLAZED_TERRACOTTA,
         Material.REDSTONE_BLOCK, Material.DIAMOND_BLOCK, Material.PURPUR_BLOCK, Material.EMERALD_BLOCK,
-            Material.IRON_BLOCK, Material.GOLD_BLOCK, Material.COAL_BLOCK, Material.LAPIS_BLOCK};
+            Material.IRON_BLOCK, Material.GOLD_BLOCK, Material.LAPIS_BLOCK};
         return materials[(int) (Math.random() * materials.length)];
     }
 

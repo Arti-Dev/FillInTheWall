@@ -1,37 +1,39 @@
 package com.articreep.holeinthewall;
 
 import com.articreep.holeinthewall.multiplayer.MultiplayerGame;
+import com.articreep.holeinthewall.multiplayer.Pregame;
 import com.articreep.holeinthewall.utils.WorldBoundingBox;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
+import org.bukkit.*;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class PlayingFieldManager implements Listener {
-    // todo may be better to just store the playing fields in a set instead of player -> field map
     public static Map<Player, PlayingField> activePlayingFields = new HashMap<>();
     public static Map<WorldBoundingBox, PlayingField> playingFieldLocations = new HashMap<>();
+    private static final Map<Player, BukkitTask> removalTasks = new HashMap<>();
     public static MultiplayerGame game = null;
+    public static Pregame pregame = null;
 
     @EventHandler
     public void onPlayerEnterField(PlayerMoveEvent event) {
         // One game per player.
         if (activePlayingFields.containsKey(event.getPlayer())) {
             PlayingField field = activePlayingFields.get(event.getPlayer());
-            // If player is outside of bounding box and players are not bound to the field, remove the game.
-            if (!field.getBoundingBox().isinBoundingBox(event.getPlayer().getLocation())
-            && !field.isBindPlayers()) {
-                removeGame(event.getPlayer());
+            // If player is outside of bounding box and players are not bound to the field, start a 2-second timer before removing.
+            if (!field.getBoundingBox().isinBoundingBox(event.getPlayer().getLocation())) {
+                removeTimer(event.getPlayer(), field);
             }
         } else {
             for (WorldBoundingBox box : playingFieldLocations.keySet()) {
@@ -47,28 +49,72 @@ public class PlayingFieldManager implements Listener {
         removeGame(event.getPlayer());
     }
 
+    @EventHandler
+    public void onPlayerChangeGamemode(PlayerGameModeChangeEvent event) {
+        if (event.getNewGameMode() == GameMode.SPECTATOR) {
+            removeGame(event.getPlayer());
+        }
+    }
+
+    public void removeTimer(Player player, PlayingField field) {
+        if (field.isLocked()) return;
+        if (removalTasks.containsKey(player)) return;
+
+        // Immediately remove game if it's stopped
+        if (!field.hasStarted()) {
+            removeGame(player);
+            return;
+        }
+
+        BukkitTask task = new BukkitRunnable() {
+            int i = 0;
+            @Override
+            public void run() {
+                if (!field.getBoundingBox().isinBoundingBox(player.getLocation())) {
+                    if (i < 2) player.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 1, 1);
+                    if (i == 2) {
+                        player.playSound(player, Sound.BLOCK_NOTE_BLOCK_PLING, 1, 2);
+                        removeGame(player);
+                        cancel();
+                    }
+
+                    i++;
+                } else {
+                    cancel();
+                }
+            }
+
+            @Override
+            public void cancel() {
+                removalTasks.remove(player);
+                super.cancel();
+            }
+        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 20);
+
+        removalTasks.put(player, task);
+    }
+
     // Managing games
     public static void newGame(Player player, WorldBoundingBox box) {
         PlayingField field = playingFieldLocations.get(box);
-        // todo this is not consistent with the other bind check in the remove method
-        if (field.isBindPlayers()) return;
-        field.addNewPlayer(player);
-
-        activePlayingFields.put(player, field);
+        field.addPlayer(player);
     }
 
+    /**
+     * Attempts to remove a player from their game.
+     * Returns true if the removal was successful, false if the player can't be removed or was never in one to begin with.
+     *
+     * @param player Player to check
+     */
     public static void removeGame(Player player) {
         PlayingField field = activePlayingFields.get(player);
         if (field != null) {
-            if (field.playerCount() == 1) {
-                if (field.hasStarted()) {
-                    field.stop();
-                }
-                else field.removeMenu();
-            }
             field.removePlayer(player);
-            activePlayingFields.remove(player);
         }
+    }
+
+    public static boolean isInGame(Player player) {
+        return activePlayingFields.containsKey(player);
     }
 
     public static void removeAllGames() {
@@ -112,8 +158,15 @@ public class PlayingFieldManager implements Listener {
 
             WorldBoundingBox box = playingFieldActivationBox(refPoint.clone().subtract(0, 1, 0), incomingDirection, fieldDirection, standingDistance, queueLength, fieldLength, fieldHeight);
             WorldBoundingBox effectBox = effectBox(refPoint, incomingDirection, fieldDirection, queueLength, fieldLength, fieldHeight);
-            playingFieldLocations.put(box, new PlayingField(
-                    refPoint, fieldDirection, incomingDirection, box, effectBox, environment, fieldLength, fieldHeight, wallMaterial, playerMaterial, hideBottomBorder));
+
+            PlayingField field = new PlayingField(
+                    refPoint, fieldDirection, incomingDirection, box, effectBox, environment, fieldLength, fieldHeight, wallMaterial, playerMaterial, hideBottomBorder);
+            playingFieldLocations.put(box, field);
+
+            // todo temporary
+            if (key.startsWith("field_flat")) {
+                pregame.addAvailablePlayingField(field);
+            }
 
 
         }

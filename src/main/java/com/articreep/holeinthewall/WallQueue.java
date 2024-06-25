@@ -14,7 +14,7 @@ public class WallQueue {
     /**
      * This is in ticks.
      */
-    private int wallActiveTime = 160;
+    private final int defaultWallActiveTime = 160;
     private final PlayingField field;
     private final int fullLength = 20;
     // todo this number will change if "garbage walls" accumulate in the queue
@@ -43,7 +43,6 @@ public class WallQueue {
         animatingWall = null;
         visibleWalls = new ArrayList<>();
         this.field = field;
-        setGenerator(new WallGenerator(field.getLength(), field.getHeight(), 2, 4));
     }
 
     public WallQueue(PlayingField field, Material defaultWallMaterial) {
@@ -54,7 +53,7 @@ public class WallQueue {
         hiddenWalls.add(wall);
         if (wall.getTimeRemaining() == -1) {
             // default wall speed
-            wall.setTimeRemaining(wallActiveTime);
+            wall.setTimeRemaining(defaultWallActiveTime);
         }
     }
 
@@ -102,9 +101,15 @@ public class WallQueue {
             animateNextWall();
         }
 
-        // Tick all visible walls
-        if (field.eventActive() && field.getEvent().wallFreeze) return;
+        // If walls are frozen, make particles and return
+        if (field.eventActive() && field.getEvent().wallFreeze) {
+            for (Wall wall : visibleWalls) {
+                wall.frozenParticles();
+            }
+            return;
+        }
 
+        // Tick all visible walls
         Iterator<Wall> it = visibleWalls.iterator();
         while (it.hasNext()) {
             Wall wall = it.next();
@@ -159,7 +164,7 @@ public class WallQueue {
     }
 
     public void setWallActiveTime(int wallActiveTime) {
-        this.wallActiveTime = wallActiveTime;
+        generator.setWallActiveTime(wallActiveTime);
     }
 
     public void setRandomHoleCount(int randomHoleCount) {
@@ -200,7 +205,7 @@ public class WallQueue {
     }
 
     public void resetGenerator() {
-        this.generator = new WallGenerator(field.getLength(), field.getHeight(), 2, 4);
+        this.generator = new WallGenerator(field.getLength(), field.getHeight(), 2, 4, 160);
         generator.addQueue(this);
     }
 

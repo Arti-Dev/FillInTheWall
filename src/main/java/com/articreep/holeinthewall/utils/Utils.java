@@ -1,5 +1,6 @@
 package com.articreep.holeinthewall.utils;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
@@ -46,6 +47,9 @@ public class Utils {
     }
 
     public static String playersToString(Collection<Player> players) {
+        if (players.isEmpty()) {
+            return "null";
+        }
         StringBuilder builder = new StringBuilder();
         for (Player player : players) {
             builder.append(player.getName()).append(", ");
@@ -64,5 +68,9 @@ public class Utils {
             e.printStackTrace();
             return null;
         }
+    }
+
+    public static void resetScoreboard(Player player) {
+        player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
     }
 }

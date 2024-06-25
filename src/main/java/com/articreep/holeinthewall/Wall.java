@@ -26,6 +26,9 @@ public class Wall {
     private int teleportTo = -1;
     private int timeRemaining = -1;
     private Vector movementDirection = null;
+    private Vector horizontalDirection = null;
+    // todo this reference entity sometimes will just be a hole so it won't move
+    private BlockDisplay referenceEntity = null;
     private final Set<BlockDisplay> entities = new HashSet<>();
     private final List<BlockDisplay> blocks = new ArrayList<>();
     private final List<BlockDisplay> border = new ArrayList<>();
@@ -72,6 +75,7 @@ public class Wall {
         // interpolate towards the playing field
         Location spawnReferencePoint = field.getReferencePoint();
         movementDirection = field.getIncomingDirection();
+        horizontalDirection = field.getFieldDirection();
         // todo should be effective length, in the future
         spawnReferencePoint.subtract(movementDirection.clone().multiply(queue.getFullLength()));
 
@@ -83,6 +87,7 @@ public class Wall {
                         .add(0, y, 0);
                 // spawn block display entity
                 BlockDisplay display = (BlockDisplay) loc.getWorld().spawnEntity(loc, EntityType.BLOCK_DISPLAY);
+                if (x == 0 && y == 0) referenceEntity = display;
                 // make invisible for now
                 display.setBlock(Material.AIR.createBlockData());
                 display.setTransformation(new Transformation(
@@ -380,7 +385,8 @@ public class Wall {
         return Pair.with((int) (Math.random() * length), (int) (Math.random() * height));
     }
 
-    public Pair<Integer, Integer> randomCoordinatesConnected() {
+    // todo optimize so that it doesn't just fail sometimes, and so that the code is neater
+    public Pair<Integer, Integer> randomCoordinatesConnected(boolean diagonalsOK) {
         int attempts = 0;
         while (attempts < 10) {
             // Choose a random hole in the provided wall
@@ -390,9 +396,18 @@ public class Wall {
             }
             // Choose a random direction to spread the hole to
             Random random = new Random();
-            int x = random.nextInt(-1, 2);
-            int y = random.nextInt(-1, 2);
-            Pair<Integer, Integer> newHole = Pair.with(existingHole.getValue0() + x, existingHole.getValue1() + y);
+            Pair<Integer, Integer> newHole;
+            if (diagonalsOK) {
+                int x = random.nextInt(-1, 2);
+                int y = random.nextInt(-1, 2);
+                newHole = Pair.with(existingHole.getValue0() + x, existingHole.getValue1() + y);
+            } else {
+                if (random.nextBoolean()) {
+                    newHole = Pair.with(existingHole.getValue0() + random.nextInt(-1, 2), existingHole.getValue1());
+                } else {
+                    newHole = Pair.with(existingHole.getValue0(), existingHole.getValue1() + random.nextInt(-1, 2));
+                }
+            }
             // If the new hole is in bounds and is not already a hole, return it
             if (newHole.getValue0() >= 0 && newHole.getValue0() < length && newHole.getValue1() >= 0 && newHole.getValue1() < height
                     && !hasHole(newHole)) {
@@ -402,6 +417,10 @@ public class Wall {
             }
         }
         return null;
+    }
+
+    public Pair<Integer, Integer> randomCoordinatesConnected() {
+        return randomCoordinatesConnected(true);
     }
 
     /**
@@ -449,6 +468,7 @@ public class Wall {
         for (Pair<Integer, Integer> hole : getHoles()) {
             newWall.insertHole(hole);
         }
+        newWall.setTimeRemaining(maxTime);
         return newWall;
     }
 
@@ -481,5 +501,16 @@ public class Wall {
             display.setTeleportDuration(ticks);
         }
         tickCooldown = 0;
+      
+    }
+  
+    public void frozenParticles() {
+        World world = referenceEntity.getWorld();
+        for (int i = 0; i < length; i++) {
+            world.spawnParticle(Particle.SNOWFLAKE, referenceEntity.getLocation()
+                            .add(horizontalDirection.clone().multiply(i))
+                            .add(0, -0.5, 0),
+                    5, 0.3, 0.3, 0.3, 0);
+        }
     }
 }

@@ -2,9 +2,11 @@ package com.articreep.holeinthewall;
 
 import com.articreep.holeinthewall.display.DisplayType;
 import com.articreep.holeinthewall.environments.TheVoid;
+import com.articreep.holeinthewall.menu.EndScreen;
 import com.articreep.holeinthewall.menu.Menu;
 import com.articreep.holeinthewall.modifiers.ModifierEvent;
 import com.articreep.holeinthewall.modifiers.Rush;
+import com.articreep.holeinthewall.multiplayer.WallGenerator;
 import com.articreep.holeinthewall.utils.Utils;
 import com.articreep.holeinthewall.utils.WorldBoundingBox;
 import net.md_5.bungee.api.ChatMessageType;
@@ -26,6 +28,7 @@ import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Transformation;
@@ -56,6 +59,7 @@ public class PlayingField implements Listener {
     private final List<Block> borderBlocks = new ArrayList<>();
     private final Material defaultBorderMaterial = Material.GRAY_CONCRETE;
     private final Material playerMaterial;
+    public static final NamespacedKey meterKey = new NamespacedKey(HoleInTheWall.getInstance(), "METER_ITEM");
     private final WorldBoundingBox boundingBox;
     private final WorldBoundingBox effectBox;
     private String environment;
@@ -75,13 +79,15 @@ public class PlayingField implements Listener {
     private BukkitTask countdown = null;
     private BukkitTask task = null;
     private Menu menu = null;
+    private EndScreen endScreen = null;
     private boolean confirmOnCooldown = false;
 
     // Multiplayer settings
     /** Whether to tick the scorer or let another class handle it (e.g. multiplayer) */
     private boolean tickScorer = true;
-    /** Whether to prevent new players from joining and current players from leaving */
-    private boolean bindPlayers = false;
+    /** Whether to prevent new players from joining and current players from leaving, AND prevent players from starting their own games
+     * Used for multiplayer games */
+    private boolean locked = false;
 
     public PlayingField(Location referencePoint, Vector direction, Vector incomingDirection, WorldBoundingBox boundingBox,
                         WorldBoundingBox effectBox, String environment, int length, int height,
@@ -121,7 +127,9 @@ public class PlayingField implements Listener {
 
     public void createMenu() {
         if (players.isEmpty()) return;
+        if (locked) return;
         if (hasMenu()) removeMenu();
+        if (hasEndScreen()) removeEndScreen();
         menu = new Menu(getCenter(), this);
         menu.display();
     }
@@ -154,7 +162,8 @@ public class PlayingField implements Listener {
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 10);
     }
 
-    public void start(Gamemode mode) {
+    // todo geneator argument is a hotfix
+    public void start(Gamemode mode, WallGenerator generator) {
         // Log fail if this is already running
         if (hasStarted()) {
             Bukkit.getLogger().severe("Tried to start game that's already been started");
@@ -170,9 +179,11 @@ public class PlayingField implements Listener {
         // Pass gamemode to a brand new scorer object
         scorer = new PlayingFieldScorer(this);
         queue = new WallQueue(this, wallMaterial, hideBottomBorder);
+        if (generator != null) queue.setGenerator(generator);
         scorer.setGamemode(mode);
         setDisplaySlotsFromGamemode(mode);
         removeMenu();
+        removeEndScreen();
         spawnTextDisplays();
         for (Player player : players) {
             formatInventory(player);
@@ -181,7 +192,13 @@ public class PlayingField implements Listener {
         task = tickLoop();
     }
 
-    public void addNewPlayer(Player player) {
+    public void start(Gamemode mode) {
+        start(mode, new WallGenerator(getLength(), getHeight(), 2, 4, 160));
+    }
+
+    public boolean addPlayer(Player player) {
+        if (locked) return false;
+        if (player.getGameMode() == GameMode.SPECTATOR) return false;
         players.add(player);
         if (!hasStarted() && !hasMenu()) {
             // Display a new menu
@@ -189,20 +206,43 @@ public class PlayingField implements Listener {
         } else if (hasStarted()) {
             formatInventory(player);
             setCreative(player);
+            if (scorer.getScoreboard() != null) player.setScoreboard(scorer.getScoreboard());
         }
+
+        // Register with the playing field manager
+        PlayingFieldManager.activePlayingFields.put(player, this);
+
+        return true;
     }
 
     public int playerCount() {
         return players.size();
     }
 
-    public void removePlayer(Player player) {
+    /** Returns true if the player was removed, false if unable to (locked to field) */
+    public boolean removePlayer(Player player) {
+        if (locked) return false;
+
+        // If this will be our last player, shut the game down
+        if (playerCount() == 1) {
+            if (hasStarted()) {
+                stop();
+            }
+            else removeMenu();
+        }
+
         players.remove(player);
-        if (previousGamemodes.containsKey(player)) {
+        // do not recover the player's gamemode if in spectator
+        if (previousGamemodes.containsKey(player) && player.getGameMode() != GameMode.SPECTATOR) {
             GameMode previousGamemode = previousGamemodes.get(player);
             if (previousGamemode != null) player.setGameMode(previousGamemode);
-            previousGamemodes.remove(player);
         }
+        previousGamemodes.remove(player);
+
+        // Remove from playing field manager
+        PlayingFieldManager.activePlayingFields.remove(player);
+
+        return true;
     }
 
     public void setCreative(Player player) {
@@ -214,10 +254,10 @@ public class PlayingField implements Listener {
         // todo could save the player's inventory and restore after, but might not be necessary
         // since this is a minigame
         player.getInventory().clear();
-        player.getInventory().setItem(0, new ItemStack(playerMaterial));
-        player.getInventory().setItem(1, new ItemStack(Material.CRACKED_STONE_BRICKS));
+        player.getInventory().setItem(0, buildingItem(playerMaterial));
+        player.getInventory().setItem(1, supportItem());
         // todo replace this with a custom item
-        player.getInventory().setItem(8, new ItemStack(Material.FIREWORK_ROCKET));
+        player.getInventory().setItem(2, meterItem());
     }
 
     public void stop() {
@@ -225,21 +265,26 @@ public class PlayingField implements Listener {
             Bukkit.getLogger().severe("Tried to stop game that's already been stopped");
             return;
         }
+        // Automatically submit whatever's on the board
+        queue.instantSend();
+
         task.cancel();
         task = null;
         for (TextDisplay display : textDisplays) {
             display.remove();
         }
-        bindPlayers = false;
+        locked = false;
         queue.clearAllWalls();
         queue.allowMultipleWalls(false);
         if (event != null) {
             event.end();
             event = null;
         }
+        scorer.removeScoreboard();
         scorer.announceFinalScore();
+        endScreen = scorer.createEndScreen();
+        endScreen.display();
 
-        clearField();
         HandlerList.unregisterAll(this);
     }
 
@@ -261,11 +306,14 @@ public class PlayingField implements Listener {
         if (confirmOnCooldown) return;
         queue.instantSend();
         PlayerInventory inventory = event.getPlayer().getInventory();
-        ItemStack mainHand = inventory.getItemInMainHand();
+        ItemStack mainHandItem = inventory.getItemInMainHand();
         inventory.setItemInMainHand(confirmItem());
+        // todo in theory a player could switch around the confirm item's location before the original item is given back to them.
+        // should fix, but for now.. too bad!
+        int heldSlot = inventory.getHeldItemSlot();
         confirmOnCooldown = true;
         Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), () -> {
-            inventory.setItemInMainHand(mainHand);
+            inventory.setItem(heldSlot, mainHandItem);
             confirmOnCooldown = false;
         }, 10);
     }
@@ -330,6 +378,7 @@ public class PlayingField implements Listener {
                     || event.getAction() == Action.LEFT_CLICK_BLOCK
                     || event.getAction() == Action.RIGHT_CLICK_AIR
                     || event.getAction() == Action.LEFT_CLICK_AIR) {
+                event.setCancelled(true);
                 scorer.activateEvent(player);
             }
         }
@@ -498,6 +547,9 @@ public class PlayingField implements Listener {
         return new BukkitRunnable() {
             int ticks = 0;
             int beats = 0;
+            int beatLength = 64;
+            int measureLength = 8;
+            boolean speedingUp = true;
             @Override
             public void run() {
                 updateTextDisplays();
@@ -516,18 +568,45 @@ public class PlayingField implements Listener {
                 }
                 if (tickScorer) scorer.tick();
 
-                // todo Effects, start them at a slower pace and intensify them as the game goes on
+                // Effects, start them at a slower pace and intensify them as the game goes on
                 // Do not do effects if an event is active
-                if (environment.equalsIgnoreCase("VOID") && !eventActive()) {
-                    if (ticks % 10 == 0) {
-                        beats++;
-                        if (beats <= 16) {
-                            if (beats % 2 == 0) TheVoid.randomShape(PlayingField.this);
-                        } else if (beats <= 32) {
-                            if (beats % 2 == 0) TheVoid.randomPetal(PlayingField.this);
-                        } else {
-                            beats = 0;
+                if (ticks % beatLength == 0 && !eventActive()) {
+                    beats++;
+
+                    // Passive effect particles for the void environment
+                    /*
+
+                     */
+
+                    if (environment.equalsIgnoreCase("VOID")) {
+                        if (beats < measureLength/2) {
+                            TheVoid.randomShape(PlayingField.this);
+                        } else if (beats <= measureLength) {
+                            TheVoid.randomPetal(PlayingField.this);
                         }
+                        if (beats >= measureLength) {
+                            if (speedingUp) {
+                                beatLength /= 2;
+                                measureLength *= 2;
+                            } else {
+                                beatLength *= 2;
+                                measureLength /= 2;
+                            }
+                            beats = 0;
+
+                            if (beatLength <= 8) {
+                                speedingUp = false;
+                            } else if (beatLength >= 64) {
+                                speedingUp = true;
+                            }
+                        }
+//                        if (beats <= 16) {
+//                            if (beats % 2 == 0) TheVoid.randomShape(PlayingField.this);
+//                        } else if (beats <= 32) {
+//                            if (beats % 2 == 0) TheVoid.randomPetal(PlayingField.this);
+//                        } else {
+//                            beats = 0;
+//                        }
                     }
                 }
 
@@ -569,8 +648,8 @@ public class PlayingField implements Listener {
         Location slot1 = slot0.clone().subtract(new Vector(0, 1, 0));
         Location slot2 = slot0.clone().add(fieldDirection.clone().multiply(length + 2));
         Location slot3 = slot2.clone().subtract(new Vector(0, 1, 0));
-        Location slot4 = getReferencePoint().add(getFieldDirection().multiply((double) length / 2))
-                .add(new Vector(0, 1, 0).multiply(height + 3));
+        Location slot4 = getCenter()
+                .add(new Vector(0, 1, 0).multiply(height/2 + 3));
         Location slot5 = slot4.clone().subtract(new Vector(0, 1, 0).multiply(0.5));
 
         for (int i = 0; i < displaySlotsLength; i++) {
@@ -613,7 +692,7 @@ public class PlayingField implements Listener {
                 case SCORE -> scorer.getScore();
                 case ACCURACY -> "null";
                 case SPEED -> scorer.getFormattedBlocksPerSecond();
-                case PERFECT_WALLS -> scorer.getWallsCleared();
+                case PERFECT_WALLS -> scorer.getPerfectWallsCleared();
                 case TIME -> scorer.getFormattedTime();
                 case LEVEL -> scorer.getLevel();
                 // todo this is some ugly ternary crap, but it does kind of make sense
@@ -693,6 +772,15 @@ public class PlayingField implements Listener {
         return menu != null;
     }
 
+    public void removeEndScreen() {
+        if (endScreen != null) this.endScreen.despawn();
+        this.endScreen = null;
+    }
+
+    public boolean hasEndScreen() {
+        return endScreen != null;
+    }
+
     /**
      * Gets the location in the center (height and length) of this playing field.
      * @return The center location
@@ -712,6 +800,37 @@ public class PlayingField implements Listener {
         ItemStack item = new ItemStack(Material.GREEN_CONCRETE);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "CONFIRM");
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    public static ItemStack buildingItem(Material material) {
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        meta.setLore(Collections.singletonList(ChatColor.GRAY + "Fill the holes in the incoming wall with this!"));
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    public static ItemStack supportItem() {
+        ItemStack item = new ItemStack(Material.CRACKED_STONE_BRICKS);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.GRAY + "Support Block");
+        meta.setLore(Arrays.asList(ChatColor.GRAY + "- place this block on the field",
+                ChatColor.GRAY + "- place another block against this block",
+                ChatColor.YELLOW + "" + ChatColor.BOLD + "- ???",
+                ChatColor.AQUA + "- floating block"));
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    public static ItemStack meterItem() {
+        ItemStack item = new ItemStack(Material.FIREWORK_ROCKET);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "Special Ability");
+        meta.setLore(Arrays.asList(ChatColor.GRAY + "When your meter is full enough, hold this item",
+                ChatColor.GRAY + "and click to activate a" + ChatColor.GOLD + " special ability" + ChatColor.GRAY + "!"));
+        meta.getPersistentDataContainer().set(meterKey, PersistentDataType.BOOLEAN, true);
         item.setItemMeta(meta);
         return item;
     }
@@ -746,12 +865,12 @@ public class PlayingField implements Listener {
         }
     }
 
-    public void setBindPlayers(boolean bindPlayers) {
-        this.bindPlayers = bindPlayers;
+    public void setLocked(boolean locked) {
+        this.locked = locked;
     }
 
-    public boolean isBindPlayers() {
-        return bindPlayers;
+    public boolean isLocked() {
+        return locked;
     }
 
     public World getWorld() {
@@ -781,5 +900,9 @@ public class PlayingField implements Listener {
             }
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 5);
 
+    }
+
+    public Material getWallMaterial() {
+        return wallMaterial;
     }
 }

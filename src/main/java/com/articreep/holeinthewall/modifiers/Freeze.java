@@ -6,10 +6,14 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
 public class Freeze extends ModifierEvent {
+    /** Should only be used to obtain information about this event */
+    public static final Freeze singletonInstance = new Freeze(null, 0);
+
     public Freeze(PlayingField field, int ticks) {
         super(field, ticks);
         wallFreeze = true;
         timeFreeze = true;
+        meterPercentRequired = 0.5;
     }
 
     @Override
