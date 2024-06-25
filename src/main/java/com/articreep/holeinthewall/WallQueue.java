@@ -225,4 +225,10 @@ public class WallQueue {
     public Material getWallMaterial() {
         return wallMaterial;
     }
+
+    public void correctAllWalls() {
+        for (Wall wall : visibleWalls) {
+            wall.correct();
+        }
+    }
 }
