@@ -270,6 +270,7 @@ public class PlayingFieldScorer {
         }
     }
 
+    // todo probably make this scoreboard system its own class
     public void updateScoreboard() {
         if (scoreboard == null) return;
         for (ScoreboardEntry entry : scoreboardEntries) {
@@ -328,11 +329,14 @@ public class PlayingFieldScorer {
 
     public void removeScoreboard() {
         for (Player player : field.getPlayers()) {
-            player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+            Utils.resetScoreboard(player);
         }
         for (ScoreboardEntry entry : scoreboardEntries) {
             entry.destroy();
         }
+        scoreboard = null;
+        objective = null;
+        scoreboardEntries.clear();
     }
 
     public Scoreboard getScoreboard() {

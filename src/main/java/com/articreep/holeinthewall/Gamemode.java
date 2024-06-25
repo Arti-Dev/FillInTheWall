@@ -12,10 +12,10 @@ import java.util.HashMap;
 public enum Gamemode {
 
     INFINITE(ChatColor.LIGHT_PURPLE + "Infinite", ChatColor.GRAY + "Step off the playing field to stop playing.", new HashMap<>(), Rush.class),
+    TUTORIAL("Tutorial", ChatColor.GRAY + "Learn how to play!", new HashMap<>(), Tutorial.class),
     SCORE_ATTACK(ChatColor.GOLD + "Score Attack", ChatColor.GRAY + "Score as much as you can in 2 minutes!", new HashMap<>(),null),
     RAPID_SCORE_ATTACK(ChatColor.RED + "Rapid Score Attack", ChatColor.GRAY + "Rapid fire version of Score Attack", new HashMap<>(),Rush.class),
-    MULTIPLAYER_SCORE_ATTACK(ChatColor.AQUA + "Multiplayer Score Attack", ChatColor.GRAY + "Hypixel-style game", new HashMap<>(), Freeze.class),
-    TUTORIAL("Tutorial", ChatColor.GRAY + "Learn how to play!", new HashMap<>(), Tutorial.class);
+    MULTIPLAYER_SCORE_ATTACK(ChatColor.AQUA + "Multiplayer Score Attack", ChatColor.GRAY + "Hypixel-style game", new HashMap<>(), Freeze.class);
 
     static {
         INFINITE.addAttribute(GamemodeAttribute.CONSISTENT_HOLE_COUNT, false);

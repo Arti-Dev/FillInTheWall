@@ -9,7 +9,9 @@ public enum ScoreboardEntryType {
     POSITION("Position: No. %s"),
     POINTS_BEHIND(ChatColor.GRAY + "%s points behind No. %s"),
     PLAYERS(ChatColor.DARK_GRAY + "%s-board game"),
-    EMPTY("");
+    EMPTY(""),
+    START_TIMER(ChatColor.GREEN + "Game starting in %s"),
+    PREGAME_PLAYERCOUNT(ChatColor.YELLOW + "Players: %s");
 
     final String text;
     ScoreboardEntryType(String text) {

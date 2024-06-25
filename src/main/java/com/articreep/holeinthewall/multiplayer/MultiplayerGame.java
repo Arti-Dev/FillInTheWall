@@ -8,20 +8,23 @@ import org.bukkit.Sound;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class MultiplayerGame {
     private final Set<PlayingField> playingFields = new HashSet<>();
-    private final ArrayList<PlayingField> rankings = new ArrayList<>();
+    private final List<PlayingField> rankings = new ArrayList<>();
     private final WallGenerator generator;
     private int time;
     private BukkitTask task;
     private BukkitTask sortTask;
 
-    public MultiplayerGame(PlayingField field) {
-        playingFields.add(field);
+    public MultiplayerGame(List<PlayingField> fields) {
+        if (fields.isEmpty()) {
+            throw new IllegalArgumentException("Tried to create multiplayer game with no playing fields");
+        }
+        playingFields.addAll(fields);
+        // Use the first field to make the generator
+        PlayingField field = fields.getFirst();
         generator = new WallGenerator(field.getLength(), field.getHeight(), 3, 0, 160);
         generator.setRandomizeFurther(false);
         generator.setWallHolesMax(8);
@@ -30,11 +33,22 @@ public class MultiplayerGame {
         generator.setWallHolesIncreaseInterval(2);
     }
 
+    public MultiplayerGame(PlayingField field) {
+        this(Collections.singletonList(field));
+    }
+
     public void start() {
-        if (!verifyFieldDimensions()) {
+        if (playingFields.isEmpty()) {
+            Bukkit.getLogger().severe("Tried to start multiplayer game with no playing fields");
             return;
         }
 
+        if (!verifyFieldDimensions()) {
+            Bukkit.getLogger().severe("Not all playing fields have the same dimensions!");
+            return;
+        }
+
+        // Make sure all games here have stopped completely
         for (PlayingField field : playingFields) {
             field.stop();
             field.doTickScorer(false);
@@ -75,9 +89,6 @@ public class MultiplayerGame {
         // todo this is disconnected from the attribute system entirely
         time = 20 * 120;
         for (PlayingField field : playingFields) {
-            field.stop();
-            field.doTickScorer(false);
-            field.setLocked(true);
             try {
                 field.start(Gamemode.MULTIPLAYER_SCORE_ATTACK, generator);
                 field.getScorer().setPlayerCount(playingFields.size());
@@ -198,6 +209,5 @@ public class MultiplayerGame {
         }
         Bukkit.broadcastMessage("");
         Bukkit.broadcastMessage("---");
-
     }
 }

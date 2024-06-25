@@ -196,7 +196,7 @@ public class PlayingField implements Listener {
         start(mode, new WallGenerator(getLength(), getHeight(), 2, 4, 160));
     }
 
-    public boolean addNewPlayer(Player player) {
+    public boolean addPlayer(Player player) {
         if (locked) return false;
         players.add(player);
         if (!hasStarted() && !hasMenu()) {
@@ -208,6 +208,9 @@ public class PlayingField implements Listener {
             if (scorer.getScoreboard() != null) player.setScoreboard(scorer.getScoreboard());
         }
 
+        // Register with the playing field manager
+        PlayingFieldManager.activePlayingFields.put(player, this);
+
         return true;
     }
 
@@ -215,7 +218,7 @@ public class PlayingField implements Listener {
         return players.size();
     }
 
-    /** Returns true if the player was removed, false if unable to (binded to field) */
+    /** Returns true if the player was removed, false if unable to (locked to field) */
     public boolean removePlayer(Player player) {
         if (locked) return false;
 
@@ -234,7 +237,10 @@ public class PlayingField implements Listener {
             previousGamemodes.remove(player);
         }
 
-         return true;
+        // Remove from playing field manager
+        PlayingFieldManager.activePlayingFields.remove(player);
+
+        return true;
     }
 
     public void setCreative(Player player) {

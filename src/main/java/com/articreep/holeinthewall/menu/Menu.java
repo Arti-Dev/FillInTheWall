@@ -75,18 +75,7 @@ public class Menu implements Listener {
         }
         Gamemode mode = Gamemode.values()[gamemodeIndex];
         if (mode == Gamemode.MULTIPLAYER_SCORE_ATTACK) {
-            // todo temporary
-            if (PlayingFieldManager.game == null) {
-                PlayingFieldManager.game = new MultiplayerGame(field);
-                for (PlayingField field : PlayingFieldManager.activePlayingFields.values()) {
-                    PlayingFieldManager.game.addPlayingField(field);
-                }
-                PlayingFieldManager.game.start();
-            } else {
-                for (Player player : field.getPlayers()) {
-                    player.sendMessage(ChatColor.RED + "A multiplayer game is already in progress!");
-                }
-            }
+            field.sendMessageToPlayers(ChatColor.RED + "You cannot start a multiplayer game through this menu!");
         } else {
             field.countdownStart(Gamemode.values()[gamemodeIndex]);
         }

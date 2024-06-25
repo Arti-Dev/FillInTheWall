@@ -1,6 +1,7 @@
 package com.articreep.holeinthewall;
 
 import com.articreep.holeinthewall.multiplayer.MultiplayerGame;
+import com.articreep.holeinthewall.multiplayer.Pregame;
 import com.articreep.holeinthewall.utils.WorldBoundingBox;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -25,6 +26,7 @@ public class PlayingFieldManager implements Listener {
     public static Map<WorldBoundingBox, PlayingField> playingFieldLocations = new HashMap<>();
     private static final Map<Player, BukkitTask> removalTasks = new HashMap<>();
     public static MultiplayerGame game = null;
+    public static Pregame pregame = null;
 
     @EventHandler
     public void onPlayerEnterField(PlayerMoveEvent event) {
@@ -90,16 +92,24 @@ public class PlayingFieldManager implements Listener {
     // Managing games
     public static void newGame(Player player, WorldBoundingBox box) {
         PlayingField field = playingFieldLocations.get(box);
-        if (field.addNewPlayer(player)) {
-            activePlayingFields.put(player, field);
+        field.addPlayer(player);
+    }
+
+    /**
+     * Attempts to remove a player from their game.
+     * Returns true if the removal was successful, false if the player can't be removed or was never in one to begin with.
+     *
+     * @param player Player to check
+     */
+    public static void removeGame(Player player) {
+        PlayingField field = activePlayingFields.get(player);
+        if (field != null) {
+            field.removePlayer(player);
         }
     }
 
-    public static void removeGame(Player player) {
-        PlayingField field = activePlayingFields.get(player);
-        if (field != null && field.removePlayer(player)) {
-            activePlayingFields.remove(player);
-        }
+    public static boolean isInGame(Player player) {
+        return activePlayingFields.containsKey(player);
     }
 
     public static void removeAllGames() {
@@ -143,8 +153,15 @@ public class PlayingFieldManager implements Listener {
 
             WorldBoundingBox box = playingFieldActivationBox(refPoint.clone().subtract(0, 1, 0), incomingDirection, fieldDirection, standingDistance, queueLength, fieldLength, fieldHeight);
             WorldBoundingBox effectBox = effectBox(refPoint, incomingDirection, fieldDirection, queueLength, fieldLength, fieldHeight);
-            playingFieldLocations.put(box, new PlayingField(
-                    refPoint, fieldDirection, incomingDirection, box, effectBox, environment, fieldLength, fieldHeight, wallMaterial, playerMaterial, hideBottomBorder));
+
+            PlayingField field = new PlayingField(
+                    refPoint, fieldDirection, incomingDirection, box, effectBox, environment, fieldLength, fieldHeight, wallMaterial, playerMaterial, hideBottomBorder);
+            playingFieldLocations.put(box, field);
+
+            // todo temporary
+            if (key.startsWith("field_flat")) {
+                pregame.addAvailablePlayingField(field);
+            }
 
 
         }
