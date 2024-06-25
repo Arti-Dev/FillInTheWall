@@ -1,6 +1,7 @@
 package com.articreep.holeinthewall;
 
 import com.articreep.holeinthewall.utils.Utils;
+import com.google.common.annotations.VisibleForTesting;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.BlockDisplay;
@@ -22,6 +23,7 @@ public class Wall {
     private final HashSet<Pair<Integer, Integer>> holes;
     private WallState state = WallState.HIDDEN;
     private int maxTime = -1;
+    private int teleportTo = -1;
     private int timeRemaining = -1;
     private Vector movementDirection = null;
     private Vector horizontalDirection = null;
@@ -32,6 +34,9 @@ public class Wall {
     private final List<BlockDisplay> border = new ArrayList<>();
     private final List<BlockDisplay> toRemove = new ArrayList<>();
     private Material material = null;
+    private int tickCooldown = 0;
+    private final int defaultTeleportDuration = 5;
+    private int teleportDuration = defaultTeleportDuration;
 
     public Wall(HashSet<Pair<Integer, Integer>> holes, int length, int height) {
         this.holes = holes;
@@ -49,6 +54,7 @@ public class Wall {
 
     public void setTimeRemaining(int timeRemaining) {
         this.timeRemaining = timeRemaining;
+        this.teleportTo = timeRemaining;
         this.maxTime = timeRemaining;
     }
 
@@ -178,13 +184,13 @@ public class Wall {
         entities.addAll(border);
 
         for (BlockDisplay display : entities) {
-            display.setTeleportDuration(1);
-            display.setInterpolationDuration(20);
+            display.setTeleportDuration(teleportDuration);
+            display.setInterpolationDuration(1);
         }
 
     }
 
-    public void animateWall(Set<Player> players, Material defaultMaterial) {
+    public void activateWall(Set<Player> players, Material defaultMaterial) {
         state = WallState.ANIMATING;
         // make them visible immediately
         if (this.material == null) {
@@ -224,20 +230,28 @@ public class Wall {
         if (state != WallState.VISIBLE) return -1;
 
         int length = queue.getFullLength();
-        for (BlockDisplay display : blocks) {
-            display.teleport(display.getLocation().add(movementDirection.clone().multiply((double) length / maxTime)));
+
+        if (tickCooldown == 0) {
+            for (BlockDisplay display : entities) {
+                Location target = display.getLocation()
+                        .add(movementDirection.clone().multiply(length * teleportDuration / (double) maxTime));
+                display.teleport(target);
+            }
+            // Note where we're teleporting to in case we need to correct the wall's location during interpolation
+            teleportTo = timeRemaining - teleportDuration;
+            // Reset tick cooldown
+            tickCooldown = teleportDuration;
         }
-        for (BlockDisplay display : border) {
-            display.teleport(display.getLocation().add(movementDirection.clone().multiply((double) length / maxTime)));
+        tickCooldown--;
+
+        if (timeRemaining == 100) {
+            spin();
         }
 
         if (timeRemaining > 0) {
             timeRemaining--;
         }
 
-        if (timeRemaining == 100) {
-            spin();
-        }
         return timeRemaining;
     }
 
@@ -250,6 +264,7 @@ public class Wall {
     }
 
     public void spin() {
+        setTeleportDuration(1);
         new BukkitRunnable() {
             int i = 0;
             @Override
@@ -260,7 +275,10 @@ public class Wall {
                     display.teleport(loc);
                 }
                 i++;
-                if (i >= 18) cancel();
+                if (i >= 18) {
+                    setTeleportDuration(defaultTeleportDuration);
+                    cancel();
+                }
             }
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
     }
@@ -454,6 +472,38 @@ public class Wall {
         return newWall;
     }
 
+    public void setTeleportDuration(int ticks) {
+        teleportDuration = ticks;
+        for (BlockDisplay display : entities) {
+            display.setTeleportDuration(ticks);
+        }
+        tickCooldown = 0;
+        correct();
+    }
+
+    // Snap the wall to where it should be at this instant.
+    public void correct() {
+        int lastTeleportDuration = teleportDuration;
+        setTeleportDurationWithoutCorrection(0);
+        for (BlockDisplay display : entities) {
+            Location target = display.getLocation()
+                    .subtract(movementDirection.clone().multiply(length * (maxTime - teleportTo) / (double) maxTime))
+                    .add(movementDirection.clone().multiply(length * (maxTime - timeRemaining) / (double) maxTime));
+            display.teleport(target);
+        }
+        setTeleportDurationWithoutCorrection(lastTeleportDuration);
+    }
+
+    // To prevent recursion when the correct() method is run after new teleport duration is set
+    private void setTeleportDurationWithoutCorrection(int ticks) {
+        teleportDuration = ticks;
+        for (BlockDisplay display : entities) {
+            display.setTeleportDuration(ticks);
+        }
+        tickCooldown = 0;
+      
+    }
+  
     public void frozenParticles() {
         World world = referenceEntity.getWorld();
         for (int i = 0; i < length; i++) {
