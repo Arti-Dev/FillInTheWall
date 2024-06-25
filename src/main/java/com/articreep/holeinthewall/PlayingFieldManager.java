@@ -3,15 +3,13 @@ package com.articreep.holeinthewall;
 import com.articreep.holeinthewall.multiplayer.MultiplayerGame;
 import com.articreep.holeinthewall.multiplayer.Pregame;
 import com.articreep.holeinthewall.utils.WorldBoundingBox;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Particle;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -49,6 +47,13 @@ public class PlayingFieldManager implements Listener {
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
         removeGame(event.getPlayer());
+    }
+
+    @EventHandler
+    public void onPlayerChangeGamemode(PlayerGameModeChangeEvent event) {
+        if (event.getNewGameMode() == GameMode.SPECTATOR) {
+            removeGame(event.getPlayer());
+        }
     }
 
     public void removeTimer(Player player, PlayingField field) {

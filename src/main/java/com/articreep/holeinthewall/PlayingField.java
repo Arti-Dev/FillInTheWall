@@ -198,6 +198,7 @@ public class PlayingField implements Listener {
 
     public boolean addPlayer(Player player) {
         if (locked) return false;
+        if (player.getGameMode() == GameMode.SPECTATOR) return false;
         players.add(player);
         if (!hasStarted() && !hasMenu()) {
             // Display a new menu
@@ -231,11 +232,12 @@ public class PlayingField implements Listener {
         }
 
         players.remove(player);
-        if (previousGamemodes.containsKey(player)) {
+        // do not recover the player's gamemode if in spectator
+        if (previousGamemodes.containsKey(player) && player.getGameMode() != GameMode.SPECTATOR) {
             GameMode previousGamemode = previousGamemodes.get(player);
             if (previousGamemode != null) player.setGameMode(previousGamemode);
-            previousGamemodes.remove(player);
         }
+        previousGamemodes.remove(player);
 
         // Remove from playing field manager
         PlayingFieldManager.activePlayingFields.remove(player);
