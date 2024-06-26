@@ -100,10 +100,10 @@ public class PlayingFieldScorer {
         // Otherwise count credit towards hardened walls
         if (gamemode.hasAttribute(GamemodeAttribute.GARBAGE_WALLS)) {
             if (judgement == Judgement.MISS) {
-                for (Pair<Integer, Integer> hole : wall.getCorrectBlocks(field).keySet()) {
-                    wall.removeHole(hole);
-                }
                 Wall copy = wall.copy();
+                for (Pair<Integer, Integer> hole : wall.getMissingBlocks(field).keySet()) {
+                    wall.insertHole(hole);
+                }
                 field.getQueue().hardenWall(copy, 3);
             } else if (field.getQueue().countHardenedWalls() > 0) {
                 if (judgement == Judgement.COOL) {
