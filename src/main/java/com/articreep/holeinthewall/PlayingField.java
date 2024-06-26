@@ -260,13 +260,13 @@ public class PlayingField implements Listener {
         player.getInventory().setItem(2, meterItem());
     }
 
-    public void stop() {
+    public void stop(boolean submitFinalWall) {
         if (!hasStarted()) {
             Bukkit.getLogger().severe("Tried to stop game that's already been stopped");
             return;
         }
-        // Automatically submit whatever's on the board
-        queue.instantSend();
+
+        if (submitFinalWall) queue.instantSend();
 
         task.cancel();
         task = null;
@@ -286,6 +286,10 @@ public class PlayingField implements Listener {
         endScreen.display();
 
         HandlerList.unregisterAll(this);
+    }
+
+    public void stop() {
+        stop(true);
     }
 
     // Listeners

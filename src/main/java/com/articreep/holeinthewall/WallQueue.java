@@ -132,12 +132,8 @@ public class WallQueue {
             // If wall runs out of time -
             if (remaining <= 0 && wall.getWallState() == WallState.VISIBLE) {
                 wall.despawn();
-                /* todo concurrent modification exception happening here when game ends:
-                - wall naturally comes to playing field
-                - too many garbage walls so game ends, so something with updateEffectiveLength
-                 */
-                field.matchAndScore(wall);
                 it.remove();
+                field.matchAndScore(wall);
                 if (field.eventActive() && field.getEvent() instanceof Rush) {
                     field.endEvent();
                 }
@@ -310,7 +306,7 @@ public class WallQueue {
         effectiveLength = fullLength - hardenedWalls.size();
         if (effectiveLength <= 0) {
             // End game
-            field.stop();
+            field.stop(false);
         }
     }
 }
