@@ -205,6 +205,7 @@ public class Wall {
 
     public void activateWall(Set<Player> players, Material defaultMaterial) {
         state = WallState.ANIMATING;
+        Bukkit.broadcastMessage("Active time: " + maxTime);
         // make them visible immediately
         if (this.material == null) {
             material = defaultMaterial;

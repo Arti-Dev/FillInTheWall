@@ -65,6 +65,8 @@ public class WallQueue {
             animatingWall = hardenedWalls.poll();
             updateEffectiveLength();
             animatingWall.setDistanceToTraverse(effectiveLength);
+            int baseTime = generator.getWallActiveTime();
+            animatingWall.setTimeRemaining(calculateWallActiveTime(baseTime));
             animatingWall.activateWall(field.getPlayers(), wallMaterial);
         } else {
             animatingWall = hiddenWalls.removeFirst();
@@ -272,12 +274,8 @@ public class WallQueue {
         }
 
         // Tell wall where to spawn
-        // Set its wall active time ahead of time (it won't be changing)
         // Add to hardened walls list
         // Update effective length
-
-        int baseTime = generator.getWallActiveTime();
-        wall.setTimeRemaining(calculateWallActiveTime(baseTime));
 
         wall.spawnWall(field, this, WallState.HARDENED, hideBottomBorder);
         wall.setHardness(hardness);
@@ -298,8 +296,7 @@ public class WallQueue {
     }
 
     public int calculateWallActiveTime(int baseTime) {
-        // todo could probably make this more lenient - it's very hard to keep up with a non-linear speed increase
-        double ratio = (double) effectiveLength / fullLength;
+        double ratio = (double) (effectiveLength + ((fullLength - effectiveLength) / 2.0)) / fullLength;
         return (int) (baseTime * ratio);
     }
 
