@@ -38,6 +38,7 @@ public class Wall {
     private boolean doSpin = false;
     private final int defaultTeleportDuration = 5;
     private int teleportDuration = defaultTeleportDuration;
+    private int hardness = 0;
 
     public Wall(HashSet<Pair<Integer, Integer>> holes, int length, int height) {
         this.holes = holes;
@@ -524,5 +525,18 @@ public class Wall {
 
     public void setDistanceToTraverse(int distanceToTraverse) {
         this.distanceToTraverse = distanceToTraverse;
+    }
+
+    public void setHardness(int hardness) {
+        this.hardness = hardness;
+    }
+
+    public int getHardness() {
+        return hardness;
+    }
+
+    public void decreaseHardness(int amount) {
+        hardness -= amount;
+        if (hardness < 0) hardness = 0;
     }
 }

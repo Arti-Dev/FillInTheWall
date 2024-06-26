@@ -94,12 +94,19 @@ public class PlayingFieldScorer {
         }
 
         // If judgement was a MISS, copy the wall and harden it
-        if (judgement == Judgement.MISS && gamemode.hasAttribute(GamemodeAttribute.GARBAGE_WALLS)) {
-            for (Pair<Integer, Integer> hole : wall.getCorrectBlocks(field).keySet()) {
-                wall.removeHole(hole);
+        // Otherwise count credit towards hardened walls
+        if (gamemode.hasAttribute(GamemodeAttribute.GARBAGE_WALLS)) {
+            if (judgement == Judgement.MISS) {
+                for (Pair<Integer, Integer> hole : wall.getCorrectBlocks(field).keySet()) {
+                    wall.removeHole(hole);
+                }
+                Wall copy = wall.copy();
+                field.getQueue().hardenWall(copy, 3);
+            } else if (judgement == Judgement.COOL) {
+                field.getQueue().crackHardenedWall(1);
+            } else if (judgement == Judgement.PERFECT) {
+                field.getQueue().crackHardenedWall(2);
             }
-            Wall copy = wall.copy();
-            field.getQueue().hardenWall(copy);
         }
 
         // Update meter item

@@ -5,6 +5,7 @@ import com.articreep.holeinthewall.multiplayer.WallGenerator;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
@@ -26,7 +27,7 @@ public class WallQueue {
     private final List<Wall> hiddenWalls = new LinkedList<>();
     private Wall animatingWall = null;
     private final List<Wall> activeWalls = new ArrayList<>();
-    private final List<Wall> hardenedWalls = new ArrayList<>();
+    private final Deque<Wall> hardenedWalls = new ArrayDeque<>();
     private int pauseTickLoop = 0;
     private boolean allowMultipleWalls = false;
     private int maxSpawnCooldown = 80;
@@ -58,15 +59,23 @@ public class WallQueue {
     public void animateNextWall() {
         if (animatingWall != null) return;
         if (hiddenWalls.isEmpty()) return;
-        // todo check if any of the hardened walls is ready to go - have a separate animation
-        animatingWall = hiddenWalls.removeFirst();
-        // Recalculate wall time
-        animatingWall.setTimeRemaining(calculateWallActiveTime(animatingWall.getTimeRemaining()));
-        // todo temporary
-        updateEffectiveLength();
-        animatingWall.setDistanceToTraverse(effectiveLength);
-        animatingWall.spawnWall(field, this, WallState.ANIMATING, hideBottomBorder);
-        animatingWall.activateWall(field.getPlayers(), wallMaterial);
+
+        if (!hardenedWalls.isEmpty() && hardenedWalls.peek().getHardness() <= 0) {
+            field.playSoundToPlayers(Sound.ENTITY_GOAT_HORN_BREAK, 0.5f, 0.5f);
+            animatingWall = hardenedWalls.poll();
+            updateEffectiveLength();
+            animatingWall.setDistanceToTraverse(effectiveLength);
+            animatingWall.activateWall(field.getPlayers(), wallMaterial);
+        } else {
+            animatingWall = hiddenWalls.removeFirst();
+            // Recalculate wall time
+            animatingWall.setTimeRemaining(calculateWallActiveTime(animatingWall.getTimeRemaining()));
+            updateEffectiveLength();
+            animatingWall.setDistanceToTraverse(effectiveLength);
+            animatingWall.spawnWall(field, this, WallState.ANIMATING, hideBottomBorder);
+            animatingWall.activateWall(field.getPlayers(), wallMaterial);
+        }
+
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -249,8 +258,9 @@ public class WallQueue {
     /**
      * Takes a new wall and hardens it at the end of the queue.
      * @param wall Wall to harden
+     * @param hardness Resistance to positive judgements (perfect = 2, cool = 1)
      */
-    public void hardenWall(Wall wall) {
+    public void hardenWall(Wall wall, int hardness) {
         if (effectiveLength <= 0) return;
         if (wall.getWallState() != WallState.HIDDEN) {
             Bukkit.getLogger().severe(ChatColor.RED + "Attempted to harden wall that is not hidden/new..");
@@ -265,10 +275,22 @@ public class WallQueue {
         int baseTime = generator.getWallActiveTime();
         wall.setTimeRemaining(calculateWallActiveTime(baseTime));
 
-        hardenedWalls.add(wall);
         wall.spawnWall(field, this, WallState.HARDENED, hideBottomBorder);
+        wall.setHardness(hardness);
+
+        hardenedWalls.push(wall);
 
         updateEffectiveLength();
+    }
+
+    /**
+     * Attempts to break the next hardened wall in the queue.
+     * @param power How much to crack the wall by
+     */
+    public void crackHardenedWall(int power) {
+        if (hardenedWalls.isEmpty()) return;
+        Wall wall = hardenedWalls.getFirst();
+        wall.decreaseHardness(power);
     }
 
     public int calculateWallActiveTime(int baseTime) {
