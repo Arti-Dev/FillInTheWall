@@ -383,6 +383,9 @@ public class PlayingFieldScorer {
         if (gamemode.hasAttribute(GamemodeAttribute.MULTIPLAYER)) {
             endScreen.addLine(ChatColor.WHITE + "Position: No. " + position);
         }
+        if (!gamemode.hasAttribute(GamemodeAttribute.TIME_LIMIT)) {
+            endScreen.addLine(ChatColor.AQUA + "Time: " + ChatColor.BOLD + getFormattedTime());
+        }
         endScreen.addLine(ChatColor.GOLD + "Perfect Walls cleared: " + ChatColor.BOLD + perfectWallsCleared);
         endScreen.addLine(ChatColor.RED + getFormattedBlocksPerSecond() + " blocks per second");
         return endScreen;
