@@ -38,6 +38,7 @@ public class Wall {
     private boolean doSpin = false;
     private final int defaultTeleportDuration = 5;
     private int teleportDuration = defaultTeleportDuration;
+    // todo hardness mechanic might be confusing in a vs match
     private int hardness = 0;
 
     public Wall(HashSet<Pair<Integer, Integer>> holes, int length, int height) {

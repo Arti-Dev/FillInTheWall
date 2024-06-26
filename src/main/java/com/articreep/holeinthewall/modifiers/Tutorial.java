@@ -249,7 +249,7 @@ public class Tutorial extends ModifierEvent implements Listener {
                 @Override
                 public void run() {
                     if (currentSlide == 12 &&
-                            field.getQueue().countVisibleWalls() + field.getQueue().countHiddenWalls() == 0) {
+                            field.getQueue().countActiveWalls() + field.getQueue().countHiddenWalls() == 0) {
                         for (int i = 0; i < 3; i++) {
                             Wall wall = new Wall(field.getLength(), field.getHeight());
                             wall.generateHoles(1, 3, true);

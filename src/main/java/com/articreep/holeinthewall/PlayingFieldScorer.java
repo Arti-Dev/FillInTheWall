@@ -41,6 +41,9 @@ public class PlayingFieldScorer {
     private int meterMax = 10;
     private int wallTimeDecreaseAmount = 20;
 
+    // todo garbage clearing power "storage", subject to change
+    private int garbagePoints = 0;
+
     // Multiplayer variables
     private int playerCount = 0;
     private int position;
@@ -102,10 +105,17 @@ public class PlayingFieldScorer {
                 }
                 Wall copy = wall.copy();
                 field.getQueue().hardenWall(copy, 3);
-            } else if (judgement == Judgement.COOL) {
-                field.getQueue().crackHardenedWall(1);
-            } else if (judgement == Judgement.PERFECT) {
-                field.getQueue().crackHardenedWall(2);
+            } else if (field.getQueue().countHardenedWalls() > 0) {
+                if (judgement == Judgement.COOL) {
+                    garbagePoints += 1;
+                } else if (judgement == Judgement.PERFECT) {
+                    garbagePoints += 2;
+                }
+
+                if (garbagePoints >= 3) {
+                    field.getQueue().crackHardenedWall(garbagePoints);
+                    garbagePoints = 0;
+                }
             }
         }
 

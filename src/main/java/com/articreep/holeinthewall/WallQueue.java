@@ -211,15 +211,19 @@ public class WallQueue {
     }
 
     /**
-     * Counts all walls that are visible, including the wall currently being animated.
-     * @return The number of visible walls.
+     * Counts all walls that are active, including the wall currently being animated, and excluding garbage walls.
+     * @return The number of active walls.
      */
-    public int countVisibleWalls() {
+    public int countActiveWalls() {
         return activeWalls.size() + (animatingWall != null ? 1 : 0);
     }
 
     public int countHiddenWalls() {
         return hiddenWalls.size();
+    }
+
+    public int countHardenedWalls() {
+        return hardenedWalls.size();
     }
 
     public void setHideBottomBorder(boolean hideBottomBorder) {
@@ -296,7 +300,9 @@ public class WallQueue {
     }
 
     public int calculateWallActiveTime(int baseTime) {
-        double ratio = (double) (effectiveLength + ((fullLength - effectiveLength) / 2.0)) / fullLength;
+        // This is the ratio between the effective length and the full length,
+        // but it linearly scales to a minimum of 0.5x the base time.
+        double ratio = (effectiveLength + ((fullLength - effectiveLength) / 2.0)) / fullLength;
         return (int) (baseTime * ratio);
     }
 
