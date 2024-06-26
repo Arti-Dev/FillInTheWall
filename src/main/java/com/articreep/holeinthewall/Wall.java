@@ -26,6 +26,7 @@ public class Wall {
     private int timeRemaining = -1;
     private Vector movementDirection = null;
     private Vector horizontalDirection = null;
+    private int distanceToTraverse = 0;
     // todo this reference entity sometimes will just be a hole so it won't move
     private BlockDisplay referenceEntity = null;
     private final Set<BlockDisplay> entities = new HashSet<>();
@@ -34,6 +35,7 @@ public class Wall {
     private final List<BlockDisplay> toRemove = new ArrayList<>();
     private Material material = null;
     private int tickCooldown = 0;
+    private boolean doSpin = false;
     private final int defaultTeleportDuration = 5;
     private int teleportDuration = defaultTeleportDuration;
 
@@ -65,7 +67,7 @@ public class Wall {
         return state;
     }
 
-    public void spawnWall(PlayingField field, WallQueue queue, boolean hideBottomBorder) {
+    public void spawnWall(PlayingField field, WallQueue queue, WallState nextState, boolean hideBottomBorder) {
         if (state != WallState.HIDDEN) return;
         // go to the end of the queue
         // spawn block display entities
@@ -75,8 +77,7 @@ public class Wall {
         Location spawnReferencePoint = field.getReferencePoint();
         movementDirection = field.getIncomingDirection();
         horizontalDirection = field.getFieldDirection();
-        // todo should be effective length, in the future
-        spawnReferencePoint.subtract(movementDirection.clone().multiply(queue.getFullLength()));
+        spawnReferencePoint.subtract(movementDirection.clone().multiply(queue.getEffectiveLength()));
 
         World world = spawnReferencePoint.getWorld();
         for (int x = 0; x < length; x++) {
@@ -87,15 +88,17 @@ public class Wall {
                 // spawn block display entity
                 BlockDisplay display = (BlockDisplay) loc.getWorld().spawnEntity(loc, EntityType.BLOCK_DISPLAY);
                 if (x == 0 && y == 0) referenceEntity = display;
-                // make invisible for now
-                display.setBlock(Material.AIR.createBlockData());
                 display.setTransformation(new Transformation(
                         new Vector3f(-0.5f, -0.5f, -0.5f),
                         new AxisAngle4f(0, 0, 0, 1), new Vector3f(1, 1, 1),
                         new AxisAngle4f(0, 0, 0, 1)));
 
                 if (holes.contains(Pair.with(x, y))) {
-                    toRemove.add(display);
+                    if (nextState == WallState.HARDENED) {
+                        display.remove();
+                    } else {
+                        toRemove.add(display);
+                    }
                 }
                 blocks.add(display);
                 entities.add(display);
@@ -104,7 +107,7 @@ public class Wall {
 
         // borders
 
-        Location centerOfWall = field.getCenter().subtract(movementDirection.clone().multiply(queue.getFullLength()));
+        Location centerOfWall = field.getCenter().subtract(movementDirection.clone().multiply(queue.getEffectiveLength()));
 
         // todo this code is ugly
         // horizontal ones
@@ -187,6 +190,16 @@ public class Wall {
             display.setInterpolationDuration(1);
         }
 
+        if (nextState == WallState.HARDENED) {
+            for (BlockDisplay display : blocks) {
+                display.setBlock(Material.GRAY_WOOL.createBlockData());
+            }
+            for (BlockDisplay display : border) {
+                display.setBlock(Material.STONE.createBlockData());
+            }
+            state = WallState.HARDENED;
+        }
+
     }
 
     public void activateWall(Set<Player> players, Material defaultMaterial) {
@@ -228,13 +241,12 @@ public class Wall {
     public int tick(WallQueue queue) {
         if (state != WallState.VISIBLE) return -1;
 
-        int length = queue.getFullLength();
-
         if (tickCooldown == 0) {
             correct();
             for (BlockDisplay display : entities) {
                 Location target = display.getLocation()
-                        .add(movementDirection.clone().multiply(length * teleportDuration / (double) maxTime));
+                        .add(movementDirection.clone().multiply(distanceToTraverse * teleportDuration / (double) maxTime));
+                if (doSpin && blocks.contains(display)) target.setYaw(target.getYaw() + 10);
                 display.teleport(target);
             }
             // Note where we're teleporting to in case we need to correct the wall's location during interpolation
@@ -244,7 +256,8 @@ public class Wall {
         }
         tickCooldown--;
 
-        if (timeRemaining == 100) {
+
+        if (timeRemaining == 80) {
             spin();
         }
 
@@ -265,22 +278,15 @@ public class Wall {
 
     public void spin() {
         setTeleportDuration(1);
+        doSpin = true;
         new BukkitRunnable() {
-            int i = 0;
             @Override
             public void run() {
-                for (BlockDisplay display : blocks) {
-                    Location loc = display.getLocation();
-                    loc.setYaw(loc.getYaw() + 10);
-                    display.teleport(loc);
-                }
-                i++;
-                if (i >= 18) {
-                    setTeleportDuration(defaultTeleportDuration);
-                    cancel();
-                }
+                setTeleportDuration(defaultTeleportDuration);
+                doSpin = false;
+                cancel();
             }
-        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
+        }.runTaskLater(HoleInTheWall.getInstance(), 18);
     }
 
     /* SCORING */
@@ -473,22 +479,24 @@ public class Wall {
     }
 
     public void setTeleportDuration(int ticks) {
+        //correct();
         teleportDuration = ticks;
         for (BlockDisplay display : entities) {
             display.setTeleportDuration(ticks);
         }
         tickCooldown = 0;
-        correct();
     }
 
-    // Snap the wall to where it should be at this instant.
+    // This was used for when teleport durations would change, but it seems to cause problems.
     public void correct() {
         int lastTeleportDuration = teleportDuration;
         setTeleportDurationWithoutCorrection(0);
         for (BlockDisplay display : entities) {
             Location target = display.getLocation()
-                    .subtract(movementDirection.clone().multiply(length * (maxTime - teleportTo) / (double) maxTime))
-                    .add(movementDirection.clone().multiply(length * (maxTime - timeRemaining) / (double) maxTime));
+                    // Go back to this entity's starting position
+                    .subtract(movementDirection.clone().multiply(distanceToTraverse * (maxTime - teleportTo) / (double) maxTime))
+                    // Add the distance it should have traveled by now
+                    .add(movementDirection.clone().multiply(distanceToTraverse * (maxTime - timeRemaining) / (double) maxTime));
             display.teleport(target);
         }
         setTeleportDurationWithoutCorrection(lastTeleportDuration);
@@ -512,5 +520,9 @@ public class Wall {
                             .add(0, -0.5, 0),
                     5, 0.3, 0.3, 0.3, 0);
         }
+    }
+
+    public void setDistanceToTraverse(int distanceToTraverse) {
+        this.distanceToTraverse = distanceToTraverse;
     }
 }

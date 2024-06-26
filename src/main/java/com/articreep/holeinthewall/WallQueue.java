@@ -23,9 +23,10 @@ public class WallQueue {
     /**
      * Walls that are spawned but are invisible.
      */
-    private final List<Wall> hiddenWalls;
-    private Wall animatingWall;
-    private final List<Wall> visibleWalls;
+    private final List<Wall> hiddenWalls = new LinkedList<>();
+    private Wall animatingWall = null;
+    private final List<Wall> activeWalls = new ArrayList<>();
+    private final List<Wall> hardenedWalls = new ArrayList<>();
     private int pauseTickLoop = 0;
     private boolean allowMultipleWalls = false;
     private int maxSpawnCooldown = 80;
@@ -39,9 +40,6 @@ public class WallQueue {
     public WallQueue(PlayingField field, Material defaultWallMaterial, boolean hideBottomBorder) {
         setWallMaterial(defaultWallMaterial);
         setHideBottomBorder(hideBottomBorder);
-        hiddenWalls = new LinkedList<>();
-        animatingWall = null;
-        visibleWalls = new ArrayList<>();
         this.field = field;
     }
 
@@ -60,8 +58,14 @@ public class WallQueue {
     public void animateNextWall() {
         if (animatingWall != null) return;
         if (hiddenWalls.isEmpty()) return;
+        // todo check if any of the hardened walls is ready to go - have a separate animation
         animatingWall = hiddenWalls.removeFirst();
-        animatingWall.spawnWall(field, this, hideBottomBorder);
+        // Recalculate wall time
+        animatingWall.setTimeRemaining(calculateWallActiveTime(animatingWall.getTimeRemaining()));
+        // todo temporary
+        updateEffectiveLength();
+        animatingWall.setDistanceToTraverse(effectiveLength);
+        animatingWall.spawnWall(field, this, WallState.ANIMATING, hideBottomBorder);
         animatingWall.activateWall(field.getPlayers(), wallMaterial);
         new BukkitRunnable() {
             @Override
@@ -69,7 +73,7 @@ public class WallQueue {
                 // Wait for wall status to be visible
                 if (animatingWall == null) return;
                 if (animatingWall.getWallState() == WallState.VISIBLE) {
-                    visibleWalls.add(animatingWall);
+                    activeWalls.add(animatingWall);
                     animatingWall = null;
                     this.cancel();
                 }
@@ -92,7 +96,7 @@ public class WallQueue {
         }
 
         // Animate the next wall when possible
-        if (visibleWalls.isEmpty() && !hiddenWalls.isEmpty()) {
+        if (activeWalls.isEmpty() && !hiddenWalls.isEmpty()) {
             spawnCooldown = maxSpawnCooldown;
             animateNextWall();
         // only decrement spawnCooldown if allowMultipleWalls is true
@@ -103,14 +107,14 @@ public class WallQueue {
 
         // If walls are frozen, make particles and return
         if (field.eventActive() && field.getEvent().wallFreeze) {
-            for (Wall wall : visibleWalls) {
+            for (Wall wall : activeWalls) {
                 wall.frozenParticles();
             }
             return;
         }
 
         // Tick all visible walls
-        Iterator<Wall> it = visibleWalls.iterator();
+        Iterator<Wall> it = activeWalls.iterator();
         while (it.hasNext()) {
             Wall wall = it.next();
             int remaining = wall.tick(WallQueue.this);
@@ -134,33 +138,41 @@ public class WallQueue {
      * Insta-sends the current wall to the playing field for matching.
      */
     public void instantSend() {
-        if (visibleWalls.isEmpty()) return;
+        if (activeWalls.isEmpty()) return;
         // sort walls by time remaining
         sortActiveWalls();
-        Wall wall = visibleWalls.getFirst();
+        Wall wall = activeWalls.getFirst();
         field.matchAndScore(wall);
-        visibleWalls.remove(wall);
+        activeWalls.remove(wall);
         wall.despawn();
     }
 
     public void sortActiveWalls() {
-        visibleWalls.sort(Comparator.comparingInt(Wall::getTimeRemaining));
+        activeWalls.sort(Comparator.comparingInt(Wall::getTimeRemaining));
     }
 
     public int getFullLength() {
         return fullLength;
     }
 
+    public int getEffectiveLength() {
+        return effectiveLength;
+    }
+
     public void clearAllWalls() {
-        for (Wall wall : visibleWalls) {
+        for (Wall wall : activeWalls) {
             wall.despawn();
         }
-        visibleWalls.clear();
+        for (Wall wall : hardenedWalls) {
+            wall.despawn();
+        }
+        activeWalls.clear();
         if (animatingWall != null) {
             animatingWall.despawn();
             animatingWall = null;
         }
         hiddenWalls.clear();
+        hardenedWalls.clear();
     }
 
     public void setWallActiveTime(int wallActiveTime) {
@@ -188,7 +200,7 @@ public class WallQueue {
      * @return The number of visible walls.
      */
     public int countVisibleWalls() {
-        return visibleWalls.size() + (animatingWall != null ? 1 : 0);
+        return activeWalls.size() + (animatingWall != null ? 1 : 0);
     }
 
     public int countHiddenWalls() {
@@ -227,8 +239,48 @@ public class WallQueue {
     }
 
     public void correctAllWalls() {
-        for (Wall wall : visibleWalls) {
+        for (Wall wall : activeWalls) {
             wall.correct();
+        }
+    }
+
+    // Wall hardening
+
+    /**
+     * Takes a new wall and hardens it at the end of the queue.
+     * @param wall Wall to harden
+     */
+    public void hardenWall(Wall wall) {
+        if (effectiveLength <= 0) return;
+        if (wall.getWallState() != WallState.HIDDEN) {
+            Bukkit.getLogger().severe(ChatColor.RED + "Attempted to harden wall that is not hidden/new..");
+            return;
+        }
+
+        // Tell wall where to spawn
+        // Set its wall active time ahead of time (it won't be changing)
+        // Add to hardened walls list
+        // Update effective length
+
+        int baseTime = generator.getWallActiveTime();
+        wall.setTimeRemaining(calculateWallActiveTime(baseTime));
+
+        hardenedWalls.add(wall);
+        wall.spawnWall(field, this, WallState.HARDENED, hideBottomBorder);
+
+        updateEffectiveLength();
+    }
+
+    public int calculateWallActiveTime(int baseTime) {
+        double ratio = (double) effectiveLength / fullLength;
+        return (int) (baseTime * ratio);
+    }
+
+    public void updateEffectiveLength() {
+        effectiveLength = fullLength - hardenedWalls.size();
+        if (effectiveLength <= 0) {
+            // End game
+            field.stop();
         }
     }
 }

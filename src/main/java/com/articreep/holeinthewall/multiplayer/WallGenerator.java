@@ -1,10 +1,7 @@
 package com.articreep.holeinthewall.multiplayer;
 
-import com.articreep.holeinthewall.PlayingField;
 import com.articreep.holeinthewall.Wall;
 import com.articreep.holeinthewall.WallQueue;
-import org.bukkit.Bukkit;
-import org.javatuples.Pair;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -16,8 +13,8 @@ public class WallGenerator {
     private final Set<WallQueue> queues = new HashSet<>();
 
     // Settings
-    private int wallLength;
-    private int wallHeight;
+    private final int wallLength;
+    private final int wallHeight;
 
     private int wallTimeDecrease = -1;
     private int wallTimeDecreaseInterval = -1;
@@ -113,5 +110,9 @@ public class WallGenerator {
 
     public void setWallHolesIncreaseInterval(int wallHolesIncreaseInterval) {
         this.wallHolesIncreaseInterval = wallHolesIncreaseInterval;
+    }
+
+    public int getWallActiveTime() {
+        return wallActiveTime;
     }
 }

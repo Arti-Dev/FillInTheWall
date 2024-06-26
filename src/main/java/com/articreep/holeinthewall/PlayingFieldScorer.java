@@ -93,6 +93,15 @@ public class PlayingFieldScorer {
             if (meter < 0) meter = 0;
         }
 
+        // If judgement was a MISS, copy the wall and harden it
+        if (judgement == Judgement.MISS && gamemode.hasAttribute(GamemodeAttribute.GARBAGE_WALLS)) {
+            for (Pair<Integer, Integer> hole : wall.getCorrectBlocks(field).keySet()) {
+                wall.removeHole(hole);
+            }
+            Wall copy = wall.copy();
+            field.getQueue().hardenWall(copy);
+        }
+
         // Update meter item
         setMeterItemGlint(isMeterFilledEnough(meter / meterMax));
 
