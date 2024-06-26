@@ -488,7 +488,6 @@ public class Wall {
         tickCooldown = 0;
     }
 
-    // This was used for when teleport durations would change, but it seems to cause problems.
     public void correct() {
         int lastTeleportDuration = teleportDuration;
         setTeleportDurationWithoutCorrection(0);
@@ -500,6 +499,7 @@ public class Wall {
                     .add(movementDirection.clone().multiply(distanceToTraverse * (maxTime - timeRemaining) / (double) maxTime));
             display.teleport(target);
         }
+        teleportTo = timeRemaining;
         setTeleportDurationWithoutCorrection(lastTeleportDuration);
     }
 

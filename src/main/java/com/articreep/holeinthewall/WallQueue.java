@@ -130,6 +130,10 @@ public class WallQueue {
             // If wall runs out of time -
             if (remaining <= 0 && wall.getWallState() == WallState.VISIBLE) {
                 wall.despawn();
+                /* todo concurrent modification exception happening here when game ends:
+                - wall naturally comes to playing field
+                - too many garbage walls so game ends, so something with updateEffectiveLength
+                 */
                 field.matchAndScore(wall);
                 it.remove();
                 if (field.eventActive() && field.getEvent() instanceof Rush) {
@@ -294,6 +298,7 @@ public class WallQueue {
     }
 
     public int calculateWallActiveTime(int baseTime) {
+        // todo could probably make this more lenient - it's very hard to keep up with a non-linear speed increase
         double ratio = (double) effectiveLength / fullLength;
         return (int) (baseTime * ratio);
     }
