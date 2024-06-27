@@ -19,9 +19,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.javatuples.Pair;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class PlayingFieldScorer {
     PlayingField field;
@@ -101,11 +99,22 @@ public class PlayingFieldScorer {
         if (gamemode.hasAttribute(GamemodeAttribute.GARBAGE_WALLS)) {
             if (judgement == Judgement.MISS) {
                 Wall copy = wall.copy();
-                for (Pair<Integer, Integer> hole : wall.getMissingBlocks(field).keySet()) {
-                    copy.insertHole(hole);
+                Set<Pair<Integer, Integer>> correctBlocks = wall.getCorrectBlocks(field).keySet();
+
+                for (Pair<Integer, Integer> hole : correctBlocks) {
+                    copy.removeHole(hole);
                 }
-                for (Pair<Integer, Integer> hole : wall.getExtraBlocks(field).keySet()) {
-                    copy.insertHole(hole);
+
+                // If all holes are filled in and it's still a miss, randomly insert holes from the original wall
+                // todo subject to change
+                if (copy.getHoles().isEmpty()) {
+                    Iterator<Pair<Integer, Integer>> iterator = correctBlocks.iterator();
+                    for (int i = 0; i < wall.getExtraBlocks(field).size(); i++) {
+                        if (iterator.hasNext()) {
+                            Pair<Integer, Integer> correctHole = iterator.next();
+                            copy.insertHole(correctHole);
+                        }
+                    }
                 }
                 field.getQueue().hardenWall(copy, 3);
             } else if (field.getQueue().countHardenedWalls() > 0) {
@@ -221,6 +230,7 @@ public class PlayingFieldScorer {
     }
 
     public double calculatePercent(Wall wall, int score) {
+        if (wall.getHoles().isEmpty() && score == 0) return 1;
         return (double) score / wall.getHoles().size();
     }
 
