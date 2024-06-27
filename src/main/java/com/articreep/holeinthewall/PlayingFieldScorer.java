@@ -101,9 +101,10 @@ public class PlayingFieldScorer {
         if (gamemode.hasAttribute(GamemodeAttribute.GARBAGE_WALLS)) {
             if (judgement == Judgement.MISS) {
                 Wall copy = wall.copy();
-                // todo this is abusable
-                // you can fill the holes, place a bunch of extra blocks to get a bad grade, and get a free garbage wall
                 for (Pair<Integer, Integer> hole : wall.getMissingBlocks(field).keySet()) {
+                    copy.insertHole(hole);
+                }
+                for (Pair<Integer, Integer> hole : wall.getExtraBlocks(field).keySet()) {
                     copy.insertHole(hole);
                 }
                 field.getQueue().hardenWall(copy, 3);
