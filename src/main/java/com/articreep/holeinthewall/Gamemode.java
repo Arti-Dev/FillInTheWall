@@ -79,7 +79,7 @@ public enum Gamemode {
         MARATHON.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         MARATHON.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         MARATHON.addAttribute(GamemodeAttribute.GARBAGE_WALLS, true);
-        MARATHON.addAttribute(GamemodeAttribute.WALL_TIME_DECREASE_AMOUNT, 13);
+        MARATHON.addAttribute(GamemodeAttribute.WALL_TIME_DECREASE_AMOUNT, 14);
 
 
 
