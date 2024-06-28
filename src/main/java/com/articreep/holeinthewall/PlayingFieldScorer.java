@@ -495,7 +495,7 @@ public class PlayingFieldScorer {
 
     private void setDifficulty(int level) {
         WallQueue queue = field.getQueue();
-        queue.setWallActiveTime(Math.max(200 - level * wallTimeDecreaseAmount, 40));
+        queue.setWallActiveTime(Math.max(200 - level * wallTimeDecreaseAmount, 30));
 
         if (level == 1) {
             queue.setRandomHoleCount(1);
