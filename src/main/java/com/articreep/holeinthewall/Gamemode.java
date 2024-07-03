@@ -11,12 +11,13 @@ import java.util.HashMap;
 
 public enum Gamemode {
 
-    INFINITE(ChatColor.LIGHT_PURPLE + "Infinite", ChatColor.GRAY + "Step off the playing field to stop playing.", new HashMap<>(), Rush.class),
-    TUTORIAL("Tutorial", ChatColor.GRAY + "Learn how to play!", new HashMap<>(), Tutorial.class),
-    SCORE_ATTACK(ChatColor.GOLD + "Score Attack", ChatColor.GRAY + "Score as much as you can in 2 minutes!", new HashMap<>(),null),
-    RAPID_SCORE_ATTACK(ChatColor.RED + "Rapid Score Attack", ChatColor.GRAY + "Rapid fire version of Score Attack", new HashMap<>(),Rush.class),
-    MULTIPLAYER_SCORE_ATTACK(ChatColor.AQUA + "Multiplayer Score Attack", ChatColor.GRAY + "Hypixel-style game", new HashMap<>(), Freeze.class),
-    MARATHON(ChatColor.GRAY + "Marathon", ChatColor.GRAY + "Survive as long as you can!", new HashMap<>(), null);
+    INFINITE(ChatColor.LIGHT_PURPLE + "Infinite", ChatColor.GRAY + "Step off the playing field to stop playing.", Rush.class),
+    TUTORIAL("Tutorial", ChatColor.GRAY + "Learn how to play!", Tutorial.class),
+    SCORE_ATTACK(ChatColor.GOLD + "Score Attack", ChatColor.GRAY + "Score as much as you can in 2 minutes!",null),
+    RAPID_SCORE_ATTACK(ChatColor.RED + "Rapid Score Attack", ChatColor.GRAY + "Rapid fire version of Score Attack", Rush.class),
+    MULTIPLAYER_SCORE_ATTACK(ChatColor.AQUA + "Multiplayer Score Attack", ChatColor.GRAY + "Hypixel-style game", Freeze.class),
+    MARATHON(ChatColor.GRAY + "Marathon", ChatColor.GRAY + "Survive as long as you can!", null),
+    VERSUS(ChatColor.BLUE + "2-player Versus", ChatColor.GRAY + "Experimental versus system with garbage walls", null);
 
     static {
         INFINITE.addAttribute(GamemodeAttribute.CONSISTENT_HOLE_COUNT, false);
@@ -78,8 +79,21 @@ public enum Gamemode {
         MARATHON.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.LEVEL);
         MARATHON.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         MARATHON.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
-        MARATHON.addAttribute(GamemodeAttribute.GARBAGE_WALLS, true);
+        MARATHON.addAttribute(GamemodeAttribute.DO_GARBAGE_WALLS, true);
         MARATHON.addAttribute(GamemodeAttribute.WALL_TIME_DECREASE_AMOUNT, 14);
+
+        VERSUS.addAttribute(GamemodeAttribute.CONSISTENT_HOLE_COUNT, false);
+        VERSUS.addAttribute(GamemodeAttribute.STARTING_WALL_ACTIVE_TIME, 2000);
+        VERSUS.addAttribute(GamemodeAttribute.DO_GARBAGE_WALLS, true);
+        VERSUS.addAttribute(GamemodeAttribute.DO_GARBAGE_ATTACK, true);
+        VERSUS.addAttribute(GamemodeAttribute.MULTIPLAYER, true);
+        VERSUS.addAttribute(GamemodeAttribute.RANDOM_HOLE_COUNT, 2);
+        VERSUS.addAttribute(GamemodeAttribute.CONNECTED_HOLE_COUNT, 6);
+        VERSUS.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
+        VERSUS.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.PERFECT_WALLS);
+        VERSUS.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.SPEED);
+        VERSUS.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
+        VERSUS.addAttribute(GamemodeAttribute.GARBAGE_WALL_HARDNESS, 2);
 
 
 
@@ -89,12 +103,12 @@ public enum Gamemode {
     final String description;
     final Class<? extends ModifierEvent> modifier;
     final HashMap<GamemodeAttribute, Object> attributes;
-    Gamemode(String title, String description, HashMap<GamemodeAttribute, Object> map,
+    Gamemode(String title, String description,
              Class<? extends ModifierEvent> modifier) {
         this.title = title;
         this.description = description;
         this.modifier = modifier;
-        this.attributes = map;
+        this.attributes = new HashMap<>();
     }
 
     public String getTitle() {
