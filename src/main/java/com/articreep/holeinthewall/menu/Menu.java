@@ -1,15 +1,10 @@
 package com.articreep.holeinthewall.menu;
 
-import com.articreep.holeinthewall.Gamemode;
-import com.articreep.holeinthewall.HoleInTheWall;
-import com.articreep.holeinthewall.PlayingField;
-import com.articreep.holeinthewall.PlayingFieldManager;
-import com.articreep.holeinthewall.multiplayer.MultiplayerGame;
+import com.articreep.holeinthewall.*;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -74,7 +69,7 @@ public class Menu implements Listener {
             return;
         }
         Gamemode mode = Gamemode.values()[gamemodeIndex];
-        if (mode == Gamemode.MULTIPLAYER_SCORE_ATTACK) {
+        if (mode.hasAttribute(GamemodeAttribute.MULTIPLAYER)) {
             field.sendMessageToPlayers(ChatColor.RED + "You cannot start a multiplayer game through this menu!");
         } else {
             field.countdownStart(Gamemode.values()[gamemodeIndex]);
