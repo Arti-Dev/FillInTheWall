@@ -56,27 +56,49 @@ public class WallQueue {
         }
     }
 
-    public void animateNextWall() {
+    public void spawnNextWall() {
         if (animatingWall != null) return;
+        if (!field.getScorer().getGarbageQueue().isEmpty()) {
+            spawnGarbageWall();
+            return;
+        }
+
+        // If we cannot spawn a new active wall, end the game
+        if (effectiveLength <= 0) {
+            field.stop(false);
+        } else {
+            animateNextWall();
+        }
+    }
+
+    public void spawnGarbageWall() {
+        if (field.getScorer().getGarbageQueue().isEmpty()) return;
+        Wall wall = field.getScorer().getGarbageQueue().removeFirst();
+        field.playSoundToPlayers(Sound.BLOCK_NETHER_BRICKS_STEP, 0.5F);
+        int hardness = (int) field.getScorer().getGamemode().getAttribute(GamemodeAttribute.GARBAGE_WALL_HARDNESS);
+        hardenWall(wall, hardness);
+        pauseTickLoop = 5;
+    }
+
+    public void animateNextWall() {
         if (hiddenWalls.isEmpty()) return;
 
         if (!hardenedWalls.isEmpty() && hardenedWalls.peek().getHardness() <= 0) {
             field.playSoundToPlayers(Sound.ENTITY_GOAT_HORN_BREAK, 0.5f, 0.5f);
             animatingWall = hardenedWalls.poll();
             updateEffectiveLength();
-            animatingWall.setDistanceToTraverse(effectiveLength);
             int baseTime = generator.getWallActiveTime();
             animatingWall.setTimeRemaining(calculateWallActiveTime(baseTime));
-            animatingWall.activateWall(field.getPlayers(), wallMaterial);
         } else {
             animatingWall = hiddenWalls.removeFirst();
+            updateEffectiveLength();
             // Recalculate wall time
             animatingWall.setTimeRemaining(calculateWallActiveTime(animatingWall.getTimeRemaining()));
-            updateEffectiveLength();
-            animatingWall.setDistanceToTraverse(effectiveLength);
             animatingWall.spawnWall(field, this, WallState.ANIMATING, hideBottomBorder);
-            animatingWall.activateWall(field.getPlayers(), wallMaterial);
         }
+
+        animatingWall.setDistanceToTraverse(effectiveLength);
+        animatingWall.activateWall(field.getPlayers(), wallMaterial);
 
         new BukkitRunnable() {
             @Override
@@ -109,11 +131,11 @@ public class WallQueue {
         // Animate the next wall when possible
         if (activeWalls.isEmpty() && !hiddenWalls.isEmpty()) {
             spawnCooldown = maxSpawnCooldown;
-            animateNextWall();
+            spawnNextWall();
         // only decrement spawnCooldown if allowMultipleWalls is true
         } else if (allowMultipleWalls && spawnCooldown-- <= 0) {
             spawnCooldown = maxSpawnCooldown;
-            animateNextWall();
+            spawnNextWall();
         }
 
         // If walls are frozen, make particles and return
@@ -267,7 +289,6 @@ public class WallQueue {
      * @param hardness Resistance to positive judgements (perfect = 2, cool = 1)
      */
     public void hardenWall(Wall wall, int hardness) {
-        if (effectiveLength <= 0) return;
         if (wall.getWallState() != WallState.HIDDEN) {
             Bukkit.getLogger().severe(ChatColor.RED + "Attempted to harden wall that is not hidden/new..");
             return;
@@ -304,9 +325,5 @@ public class WallQueue {
 
     public void updateEffectiveLength() {
         effectiveLength = fullLength - hardenedWalls.size();
-        if (effectiveLength <= 0) {
-            // End game
-            field.stop(false);
-        }
     }
 }

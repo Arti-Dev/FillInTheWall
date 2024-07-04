@@ -49,6 +49,10 @@ public class PlayingFieldScorer {
     private Scoreboard scoreboard = null;
     private Objective objective = null;
     private final List<ScoreboardEntry> scoreboardEntries = new ArrayList<>();
+    
+    // todo add the ability to neutralize garbage
+    private final Deque<Wall> garbageQueue = new ArrayDeque<>();
+    private PlayingField opponent;
 
     public PlayingFieldScorer(PlayingField field) {
         this.field = field;
@@ -95,38 +99,30 @@ public class PlayingFieldScorer {
         }
 
         // If judgement was a MISS, copy the wall and harden it
-        // Otherwise count credit towards hardened walls
-        if (gamemode.hasAttribute(GamemodeAttribute.GARBAGE_WALLS)) {
+        // Otherwise count credit towards garbage points
+        if (gamemode.hasAttribute(GamemodeAttribute.DO_GARBAGE_WALLS)) {
             if (judgement == Judgement.MISS) {
-                Wall copy = wall.copy();
-                Set<Pair<Integer, Integer>> correctBlocks = wall.getCorrectBlocks(field).keySet();
+                Wall garbageWall = createMissGarbageWall(wall);
+                field.getQueue().hardenWall(garbageWall,
+                        (int) gamemode.getAttribute(GamemodeAttribute.GARBAGE_WALL_HARDNESS));
+            } else {
+                if (field.getQueue().countHardenedWalls() > 0) {
+                    if (judgement == Judgement.COOL) {
+                        garbagePoints += 1;
+                    } else if (judgement == Judgement.PERFECT) {
+                        garbagePoints += 2;
+                    }
 
-                for (Pair<Integer, Integer> hole : correctBlocks) {
-                    copy.removeHole(hole);
-                }
-
-                // If all holes are filled in and it's still a miss, randomly insert holes from the original wall
-                // todo subject to change
-                if (copy.getHoles().isEmpty()) {
-                    Iterator<Pair<Integer, Integer>> iterator = correctBlocks.iterator();
-                    for (int i = 0; i < wall.getExtraBlocks(field).size(); i++) {
-                        if (iterator.hasNext()) {
-                            Pair<Integer, Integer> correctHole = iterator.next();
-                            copy.insertHole(correctHole);
-                        }
+                    // If we have enough garbage points, crack a hardened wall
+                    if (garbagePoints >= (int) gamemode.getAttribute(GamemodeAttribute.GARBAGE_WALL_HARDNESS)) {
+                        field.getQueue().crackHardenedWall(garbagePoints);
+                        garbagePoints = 0;
                     }
                 }
-                field.getQueue().hardenWall(copy, 3);
-            } else if (field.getQueue().countHardenedWalls() > 0) {
-                if (judgement == Judgement.COOL) {
-                    garbagePoints += 1;
-                } else if (judgement == Judgement.PERFECT) {
-                    garbagePoints += 2;
-                }
 
-                if (garbagePoints >= 3) {
-                    field.getQueue().crackHardenedWall(garbagePoints);
-                    garbagePoints = 0;
+                // Versus attack
+                if (opponent != null && gamemode.hasAttribute(GamemodeAttribute.DO_GARBAGE_ATTACK)) {
+                    opponent.getScorer().addGarbageToQueue(createAttackGarbageWall(wall));
                 }
             }
         }
@@ -138,6 +134,36 @@ public class PlayingFieldScorer {
         playJudgementSound(judgement);
 
         return judgement;
+    }
+
+    private Wall createMissGarbageWall(Wall wall) {
+        Wall copy = wall.copy();
+        Set<Pair<Integer, Integer>> correctBlocks = wall.getCorrectBlocks(field).keySet();
+
+        for (Pair<Integer, Integer> hole : correctBlocks) {
+            copy.removeHole(hole);
+        }
+
+        // If all holes are filled in and it's still a miss, randomly insert holes from the original wall
+        // todo subject to change
+        if (copy.getHoles().isEmpty()) {
+            Iterator<Pair<Integer, Integer>> iterator = correctBlocks.iterator();
+            for (int i = 0; i < wall.getExtraBlocks(field).size(); i++) {
+                if (iterator.hasNext()) {
+                    Pair<Integer, Integer> correctHole = iterator.next();
+                    copy.insertHole(correctHole);
+                }
+            }
+        }
+        return copy;
+    }
+
+    private Wall createAttackGarbageWall(Wall wall) {
+        if (wall.getExtraBlocks(field).size() + wall.getMissingBlocks(field).size() == 0) {
+            return wall.copy();
+        } else {
+            return createMissGarbageWall(wall);
+        }
     }
 
     /**
@@ -563,5 +589,17 @@ public class PlayingFieldScorer {
 
     public void setPlayerCount(int playerCount) {
         this.playerCount = playerCount;
+    }
+    
+    public void addGarbageToQueue(Wall wall) {
+        garbageQueue.push(wall);
+    }
+    
+    public void setOpponent(PlayingField field) {
+        opponent = field;
+    }
+
+    public Deque<Wall> getGarbageQueue() {
+        return garbageQueue;
     }
 }
