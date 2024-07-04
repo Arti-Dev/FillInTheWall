@@ -26,6 +26,7 @@ public class VersusGame extends MultiplayerGame {
 
     @Override
     protected void startGame() {
+        super.startGame();
         // for now, there can only be two players
         if (playingFields.size() != 2) {
             Bukkit.getLogger().severe("Tried to start a versus game with more than two players");
@@ -38,7 +39,6 @@ public class VersusGame extends MultiplayerGame {
             field1.getScorer().setOpponent(field2);
             field2.getScorer().setOpponent(field1);
         }
-        super.startGame();
     }
 
     @Override
@@ -52,6 +52,7 @@ public class VersusGame extends MultiplayerGame {
                         field.getScorer().tick();
                     } else {
                         // If any game has stopped (due to garbage overflow), stop the entire game
+                        // todo no clue why it's stopping the game twice lol
                         stop();
                     }
                 }
@@ -63,7 +64,7 @@ public class VersusGame extends MultiplayerGame {
 
     @Override
     protected void rankPlayingFields() {
-
+        rankings.addAll(playingFields);
     }
 
     @Override
