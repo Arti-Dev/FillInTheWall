@@ -21,6 +21,7 @@ public class Wall {
     private final int height;
     private final HashSet<Pair<Integer, Integer>> holes;
     private WallState state = WallState.HIDDEN;
+    private boolean wasHardened = false;
     private int maxTime = -1;
     private int teleportTo = -1;
     private int timeRemaining = -1;
@@ -200,6 +201,7 @@ public class Wall {
                 display.setBlock(Material.STONE.createBlockData());
             }
             state = WallState.HARDENED;
+            wasHardened = true;
         }
 
     }
@@ -215,7 +217,12 @@ public class Wall {
         }
 
         for (BlockDisplay display : border) {
-            display.setBlock(Material.IRON_BLOCK.createBlockData());
+            if (wasHardened) {
+                // todo this is barely visible. might want to indicate this some other way
+                display.setBlock(Material.STONE.createBlockData());
+            } else {
+                display.setBlock(Material.IRON_BLOCK.createBlockData());
+            }
         }
 
         // Block break animation
@@ -539,5 +546,9 @@ public class Wall {
     public void decreaseHardness(int amount) {
         hardness -= amount;
         if (hardness < 0) hardness = 0;
+    }
+
+    public boolean wasHardened() {
+        return wasHardened;
     }
 }

@@ -256,8 +256,12 @@ public class PlayingField implements Listener {
         player.getInventory().clear();
         player.getInventory().setItem(0, buildingItem(playerMaterial));
         player.getInventory().setItem(1, supportItem());
-        // todo replace this with a custom item
         player.getInventory().setItem(2, meterItem());
+        // todo temporary
+        if (scorer.getGamemode().hasAttribute(GamemodeAttribute.DO_CLEARING_MODES)) {
+            player.getInventory().setItem(3, new ItemStack(Material.FIREWORK_STAR));
+        }
+
     }
 
     public void stop(boolean submitFinalWall) {
@@ -383,7 +387,18 @@ public class PlayingField implements Listener {
                     || event.getAction() == Action.RIGHT_CLICK_AIR
                     || event.getAction() == Action.LEFT_CLICK_AIR) {
                 event.setCancelled(true);
-                scorer.activateEvent(player);
+                scorer.onMeterActivate(player);
+            }
+        }
+
+        if (item.getType() == Material.FIREWORK_STAR) {
+            // Action must be a click
+            if (event.getAction() == Action.RIGHT_CLICK_BLOCK
+                    || event.getAction() == Action.LEFT_CLICK_BLOCK
+                    || event.getAction() == Action.RIGHT_CLICK_AIR
+                    || event.getAction() == Action.LEFT_CLICK_AIR) {
+                event.setCancelled(true);
+                scorer.onClearingModeChange(player);
             }
         }
     }

@@ -94,6 +94,7 @@ public enum Gamemode {
         VERSUS.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.SPEED);
         VERSUS.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         VERSUS.addAttribute(GamemodeAttribute.GARBAGE_WALL_HARDNESS, 2);
+        VERSUS.addAttribute(GamemodeAttribute.DO_CLEARING_MODES, true);
 
 
 

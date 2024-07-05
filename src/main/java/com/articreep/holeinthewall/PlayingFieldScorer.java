@@ -53,6 +53,12 @@ public class PlayingFieldScorer {
     // todo add the ability to neutralize garbage
     private final Deque<Wall> garbageQueue = new ArrayDeque<>();
     private PlayingField opponent;
+    /**
+     * True = attacking mode, walls cleared will send garbage walls to opponent
+     * False = defensive mode, walls cleared will unharden garbage walls on our board
+     * This only applies when the gamemode attribute DO_CLEARING_MODES is active
+     */
+    private boolean clearingMode = true;
 
     public PlayingFieldScorer(PlayingField field) {
         this.field = field;
@@ -78,7 +84,8 @@ public class PlayingFieldScorer {
 
         boolean showScoreTitle = true;
         // Add/subtract to bonus
-        if (percent >= Judgement.COOL.getPercent() && !field.eventActive()) {
+        // todo this code needs to be cleaned up
+        if (percent >= Judgement.COOL.getPercent() && !field.eventActive() && clearingMode) {
             meter += percent;
             if (meter > meterMax) meter = meterMax;
 
@@ -89,7 +96,7 @@ public class PlayingFieldScorer {
             } else if (meter >= meterMax && ((boolean) gamemode.getAttribute(GamemodeAttribute.AUTOMATIC_METER))) {
                 activateEvent(field.getPlayers().iterator().next());
             }
-        } else if (!field.eventActive()) {
+        } else if (!field.eventActive() && clearingMode) {
             // You cannot lose progress if levels are enabled
             if (!doLevels) {
                 meter -= 1;
@@ -99,30 +106,33 @@ public class PlayingFieldScorer {
         }
 
         // If judgement was a MISS, copy the wall and harden it
-        // Otherwise count credit towards garbage points
         if (gamemode.hasAttribute(GamemodeAttribute.DO_GARBAGE_WALLS)) {
             if (judgement == Judgement.MISS) {
                 Wall garbageWall = createMissGarbageWall(wall);
                 field.getQueue().hardenWall(garbageWall,
                         (int) gamemode.getAttribute(GamemodeAttribute.GARBAGE_WALL_HARDNESS));
             } else {
-                if (field.getQueue().countHardenedWalls() > 0) {
-                    if (judgement == Judgement.COOL) {
-                        garbagePoints += 1;
-                    } else if (judgement == Judgement.PERFECT) {
-                        garbagePoints += 2;
-                    }
-
-                    // If we have enough garbage points, crack a hardened wall
-                    if (garbagePoints >= (int) gamemode.getAttribute(GamemodeAttribute.GARBAGE_WALL_HARDNESS)) {
-                        field.getQueue().crackHardenedWall(garbagePoints);
-                        garbagePoints = 0;
-                    }
-                }
-
-                // Versus attack
+                // Clearing modes
                 if (opponent != null && gamemode.hasAttribute(GamemodeAttribute.DO_GARBAGE_ATTACK)) {
-                    opponent.getScorer().addGarbageToQueue(createAttackGarbageWall(wall));
+                    if (clearingMode) {
+                        // attack
+                        opponent.getScorer().addGarbageToQueue(createAttackGarbageWall(wall));
+                    } else {
+                        // defend
+                        awardGarbagePoints(judgement);
+                        // if wall was a garbage wall, attack
+                        if (wall.wasHardened()) opponent.getScorer().addGarbageToQueue(createAttackGarbageWall(wall));
+                        // decrement meter
+                        meter -= 1;
+                        if (meter <= 0) {
+                            clearingMode = true;
+                            field.sendMessageToPlayers("Meter empty! Switched to attack mode!");
+                            meter = 0;
+                        }
+                    }
+                } else {
+                    // If clearing modes aren't enabled, just award garbage points regardless
+                    awardGarbagePoints(judgement);
                 }
             }
         }
@@ -134,6 +144,22 @@ public class PlayingFieldScorer {
         playJudgementSound(judgement);
 
         return judgement;
+    }
+
+    private void awardGarbagePoints(Judgement judgement) {
+        if (field.getQueue().countHardenedWalls() > 0) {
+            if (judgement == Judgement.COOL) {
+                garbagePoints += 1;
+            } else if (judgement == Judgement.PERFECT) {
+                garbagePoints += 2;
+            }
+
+            // If we have enough garbage points, crack a hardened wall
+            if (garbagePoints >= (int) gamemode.getAttribute(GamemodeAttribute.GARBAGE_WALL_HARDNESS)) {
+                field.getQueue().crackHardenedWall(garbagePoints);
+                garbagePoints = 0;
+            }
+        }
     }
 
     private Wall createMissGarbageWall(Wall wall) {
@@ -166,6 +192,39 @@ public class PlayingFieldScorer {
         }
     }
 
+    public void onClearingModeChange(Player player) {
+        if (!gamemode.hasAttribute(GamemodeAttribute.DO_CLEARING_MODES)) return;
+
+        // Meter has to be at least 25% full to switch to defense
+        double percent = meter / meterMax;
+
+        if (!clearingMode) {
+            clearingMode = true;
+            player.sendMessage(ChatColor.GREEN + "Switched to attack mode!");
+        } else {
+            if (percent < 0.25) {
+                player.sendMessage(ChatColor.RED + "Your meter isn't full enough!");
+            } else {
+                clearingMode = false;
+                player.sendMessage(ChatColor.GREEN + "Switched to defense mode!");
+
+            }
+        }
+    }
+
+    public void onMeterActivate(Player player) {
+        if (field.eventActive()) {
+            // Make an exception for the tutorial event
+            if (field.getEvent() instanceof Tutorial tutorial) {
+                tutorial.onMeterActivate(player);
+                return;
+            }
+            player.sendMessage(ChatColor.RED + "An event is already active!");
+        } else {
+            activateEvent(player);
+        }
+    }
+
     /**
      * Attempts to activate the event associated with the current gamemode.
      * @param player Player to send messages to if something goes wrong
@@ -175,18 +234,11 @@ public class PlayingFieldScorer {
             player.sendMessage(ChatColor.RED + "No event to activate!");
             return;
         }
-        if (field.eventActive()) {
-            // Make an exception for the tutorial event
-            if (field.getEvent() instanceof Tutorial tutorial) {
-                tutorial.onMeterActivate(player);
-                return;
-            }
-            return;
-        }
         double percent = meter / meterMax;
 
         if (isMeterFilledEnough(percent)) {
-            activateProperEvent(percent);
+            ModifierEvent event = createEvent(percent);
+            Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(), event::activate);
         } else {
             player.sendMessage(ChatColor.RED + "Your meter isn't full enough!");
             return;
@@ -216,19 +268,16 @@ public class PlayingFieldScorer {
     }
 
     // This only serves to store the redundant logic
-    public void activateProperEvent(double percent) {
+    public ModifierEvent createEvent(double percent) {
         if (gamemode.getModifier() == Rush.class) {
-            // activate rush next tick
-            Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
-                    () -> field.activateEvent(new Rush(field)));
+            return new Rush(field);
 
         } else if (gamemode.getModifier() == Freeze.class) {
-            Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
-                    () -> field.activateEvent(new Freeze(field, (int) (20 * 10 * percent))));
+            return new Freeze(field, (int) (20 * 10 * percent));
         } else if (gamemode.getModifier() == Tutorial.class) {
-            Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
-                    () -> field.activateEvent(new Tutorial(field, 20)));
+            return new Tutorial(field, 20);
         }
+        return null;
     }
 
     public void playJudgementSound(Judgement judgement) {
