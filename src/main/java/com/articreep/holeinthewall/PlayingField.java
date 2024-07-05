@@ -221,7 +221,7 @@ public class PlayingField implements Listener {
 
     /** Returns true if the player was removed, false if unable to (locked to field) */
     public boolean removePlayer(Player player) {
-        if (locked) return false;
+        if (locked && player.isOnline()) return false;
 
         // If this will be our last player, shut the game down
         if (playerCount() == 1) {
