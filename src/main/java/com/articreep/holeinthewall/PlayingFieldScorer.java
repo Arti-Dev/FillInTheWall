@@ -43,6 +43,7 @@ public class PlayingFieldScorer {
     private int garbagePoints = 0;
 
     // Multiplayer variables
+    // todo Might consider adding a reference to the multiplayer game it's a part of
     private int playerCount = 0;
     private int position;
     private int pointsBehind;
@@ -119,6 +120,7 @@ public class PlayingFieldScorer {
                         opponent.getScorer().addGarbageToQueue(createAttackGarbageWall(wall));
                     } else {
                         // defend
+                        // todo should change back to attack mode if there are no longer any garbage walls
                         awardGarbagePoints(judgement);
                         // if wall was a garbage wall, attack
                         if (wall.wasHardened()) opponent.getScorer().addGarbageToQueue(createAttackGarbageWall(wall));
@@ -337,7 +339,7 @@ public class PlayingFieldScorer {
     }
 
     public String getFormattedTime() {
-        return String.format("%02d:%02d", (time/20) / 60, (time/20) % 60);
+        return Utils.getFormattedTime(time);
     }
 
     public int getAbsoluteTimeElapsed() {
@@ -469,7 +471,9 @@ public class PlayingFieldScorer {
         endScreen.addLine("");
         endScreen.addLine(ChatColor.GREEN + "Final score: " + ChatColor.BOLD + score);
         if (gamemode.hasAttribute(GamemodeAttribute.MULTIPLAYER)) {
-            endScreen.addLine(ChatColor.WHITE + "Position: No. " + position);
+            if (gamemode == Gamemode.MULTIPLAYER_SCORE_ATTACK) {
+                endScreen.addLine(ChatColor.WHITE + "Position: No. " + position);
+            }
         }
         if (!gamemode.hasAttribute(GamemodeAttribute.TIME_LIMIT)) {
             endScreen.addLine(ChatColor.AQUA + "Time: " + ChatColor.BOLD + getFormattedTime());

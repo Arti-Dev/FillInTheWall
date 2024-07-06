@@ -6,14 +6,18 @@ import com.articreep.holeinthewall.PlayingField;
 import com.articreep.holeinthewall.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class VersusGame extends MultiplayerGame {
     private final Gamemode gamemode = Gamemode.VERSUS;
+    private final ArrayList<PlayingField> remainingFields = new ArrayList<>();
+    private final HashMap<Set<Player>, Integer> timeKOed = new HashMap<>();
+    // Rankings work differently here
+    private final List<Set<Player>> rankings = new ArrayList<>();
 
     public VersusGame(List<PlayingField> fields) {
         super(fields);
@@ -30,7 +34,6 @@ public class VersusGame extends MultiplayerGame {
         // for now, there can only be two players
         if (playingFields.size() != 2) {
             Bukkit.getLogger().severe("Tried to start a versus game with more than two players");
-            return;
         } else {
             // set each playing field opponent to be the other
             Iterator<PlayingField> iterator = playingFields.iterator();
@@ -38,6 +41,7 @@ public class VersusGame extends MultiplayerGame {
             PlayingField field2 = iterator.next();
             field1.getScorer().setOpponent(field2);
             field2.getScorer().setOpponent(field1);
+            remainingFields.addAll(playingFields);
         }
     }
 
@@ -51,12 +55,15 @@ public class VersusGame extends MultiplayerGame {
                         field.getScorer().setTime(time);
                         field.getScorer().tick();
                     } else {
-                        // If any game has stopped (due to garbage overflow), stop the entire game
-                        // todo no clue why it's stopping the game twice lol
-                        stop();
+                        // If this field has stopped, record the time when it stopped and place in rankings
+                        timeKOed.put(field.getPlayers(), time);
+                        remainingFields.remove(field);
                     }
                 }
 
+                if (remainingFields.size() <= 1) {
+                    stop();
+                }
                 time++;
             }
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
@@ -64,16 +71,24 @@ public class VersusGame extends MultiplayerGame {
 
     @Override
     protected void rankPlayingFields() {
-        rankings.addAll(playingFields);
+        rankings.clear();
+        rankings.addAll(timeKOed.keySet());
+        rankings.sort((a, b) -> timeKOed.get(b) - timeKOed.get(a));
     }
 
     @Override
     protected void broadcastResults() {
-        // todo using score attack results as a placeholder
-        Bukkit.broadcastMessage(ChatColor.AQUA + "Hole In The Wall - Results");
+        Bukkit.broadcastMessage(ChatColor.AQUA + "Hole In The Wall " + ChatColor.BLUE + "VERSUS" + ChatColor.AQUA + " - Results");
+        Bukkit.broadcastMessage("");
+        if (remainingFields.isEmpty()) {
+            Bukkit.broadcastMessage("Victor: " + ChatColor.ITALIC + "It's a tie...?");
+        } else {
+            Bukkit.broadcastMessage("Victor: " + ChatColor.GREEN + Utils.playersToString(remainingFields.getFirst().getPlayers()));
+        }
         Bukkit.broadcastMessage("");
         for (int i = 0; i < rankings.size(); i++) {
-            Bukkit.broadcastMessage("#" + (i+1) + " - " + ChatColor.GREEN + Utils.playersToString(rankings.get(i).getPlayers()) + " with " + rankings.get(i).getScorer().getScore() + " points");
+            time = timeKOed.get(rankings.get(i));
+            Bukkit.broadcastMessage("#" + (i+2) + " - " + ChatColor.GREEN + Utils.playersToString(rankings.get(i)) + " survived for " + Utils.getFormattedTime(time));
         }
         Bukkit.broadcastMessage("");
         Bukkit.broadcastMessage("---");
