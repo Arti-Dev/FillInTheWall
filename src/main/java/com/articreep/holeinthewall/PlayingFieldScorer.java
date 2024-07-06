@@ -32,6 +32,7 @@ public class PlayingFieldScorer {
     /** for calculating blocks per second */
     private int absoluteTimeElapsed = 0;
     private Gamemode gamemode = Gamemode.INFINITE;
+    private int eventCount = 0;
 
     // Levels (if enabled)
     boolean doLevels = false;
@@ -161,11 +162,13 @@ public class PlayingFieldScorer {
 
         if (isMeterFilledEnough(percent)) {
             activateProperEvent(percent);
+            meter = 0;
+            eventCount++;
         } else {
             player.sendMessage(ChatColor.RED + "Your meter isn't full enough!");
             return;
         }
-        meter = 0;
+
         // Update meter item
         setMeterItemGlint(isMeterFilledEnough(meter / meterMax));
     }
@@ -223,7 +226,8 @@ public class PlayingFieldScorer {
 
     public void scoreEvent(ModifierEvent event) {
         if (event instanceof Rush rush) {
-            int rushResults = rush.getBoardsCleared() * 4;
+            // (x/2)^2
+            int rushResults = (int) Math.pow(((double) rush.getBoardsCleared() / 2), 2);
             field.overrideScoreDisplay(80, ChatColor.RED + "+" + ChatColor.BOLD + rushResults + " points from Rush!!!");
             score += rushResults;
         }
@@ -563,5 +567,9 @@ public class PlayingFieldScorer {
 
     public void setPlayerCount(int playerCount) {
         this.playerCount = playerCount;
+    }
+
+    public int getEventCount() {
+        return eventCount;
     }
 }

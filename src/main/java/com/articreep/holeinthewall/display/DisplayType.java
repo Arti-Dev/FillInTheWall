@@ -2,6 +2,8 @@ package com.articreep.holeinthewall.display;
 
 import org.bukkit.ChatColor;
 
+import java.util.ArrayList;
+
 public enum DisplayType {
     NONE(""),
     SCORE(ChatColor.GREEN + "Score: %s"),
@@ -12,7 +14,8 @@ public enum DisplayType {
     LEVEL(ChatColor.DARK_AQUA + "Level %s"),
     POSITION(ChatColor.YELLOW + "Position: %s\n%s"),
     NAME("%s"),
-    GAMEMODE("Playing %s");
+    GAMEMODE("Playing %s"),
+    EVENTS(ChatColor.GRAY + "Events: %s%s");
 
     final String text;
     DisplayType(String text) {
@@ -27,7 +30,7 @@ public enum DisplayType {
         return String.format(text, arg);
     }
 
-    public String getFormattedText(Object[] args) {
-        return String.format(text, args);
+    public String getFormattedText(ArrayList<?> args) {
+        return String.format(text, args.toArray());
     }
 }

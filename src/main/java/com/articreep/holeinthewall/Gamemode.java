@@ -40,13 +40,13 @@ public enum Gamemode {
         SCORE_ATTACK.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         SCORE_ATTACK.addAttribute(GamemodeAttribute.WALL_TIME_DECREASE_AMOUNT, 20);
 
-        RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.TIME_LIMIT, 20*60);
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.DO_LEVELS, false);
+        RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP, 5);
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.RANDOM_HOLE_COUNT, 1);
-        RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.CONNECTED_HOLE_COUNT, 2);
-        RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.METER_MAX, 5);
+        RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.CONNECTED_HOLE_COUNT, 0);
+        RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.METER_MAX, 1);
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
-        RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.PERFECT_WALLS);
+        RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.EVENTS);
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.SPEED);
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         RAPID_SCORE_ATTACK.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
