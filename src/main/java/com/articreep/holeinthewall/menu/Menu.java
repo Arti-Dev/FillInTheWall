@@ -3,6 +3,7 @@ package com.articreep.holeinthewall.menu;
 import com.articreep.holeinthewall.*;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.TextDisplay;
@@ -36,6 +37,9 @@ public class Menu implements Listener {
         if (!field.getPlayers().contains(event.getPlayer())) return;
         if (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK) {
             nextGamemode();
+        } else if (event.getAction() == Action.RIGHT_CLICK_BLOCK &&
+                event.getClickedBlock().getType() == Material.LEVER) {
+            confirmAndDespawn();
         }
     }
 

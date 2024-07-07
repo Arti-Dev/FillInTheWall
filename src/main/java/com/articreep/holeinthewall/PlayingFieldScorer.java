@@ -32,6 +32,7 @@ public class PlayingFieldScorer {
     /** for calculating blocks per second */
     private int absoluteTimeElapsed = 0;
     private Gamemode gamemode = Gamemode.INFINITE;
+    private int eventCount = 0;
 
     // Levels (if enabled)
     boolean doLevels = false;
@@ -241,11 +242,13 @@ public class PlayingFieldScorer {
         if (isMeterFilledEnough(percent)) {
             ModifierEvent event = createEvent(percent);
             Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(), event::activate);
+            meter = 0;
+            eventCount++;
         } else {
             player.sendMessage(ChatColor.RED + "Your meter isn't full enough!");
             return;
         }
-        meter = 0;
+
         // Update meter item
         setMeterItemGlint(isMeterFilledEnough(meter / meterMax));
     }
@@ -300,7 +303,8 @@ public class PlayingFieldScorer {
 
     public void scoreEvent(ModifierEvent event) {
         if (event instanceof Rush rush) {
-            int rushResults = rush.getBoardsCleared() * 4;
+            // (x/2)^2
+            int rushResults = (int) Math.pow(((double) rush.getBoardsCleared() / 2), 2);
             field.overrideScoreDisplay(80, ChatColor.RED + "+" + ChatColor.BOLD + rushResults + " points from Rush!!!");
             score += rushResults;
         }
@@ -574,7 +578,7 @@ public class PlayingFieldScorer {
 
     private void setDifficulty(int level) {
         WallQueue queue = field.getQueue();
-        queue.setWallActiveTime(Math.max(200 - level * wallTimeDecreaseAmount, 40));
+        queue.setWallActiveTime(Math.max(200 - level * wallTimeDecreaseAmount, 30));
 
         if (level == 1) {
             queue.setRandomHoleCount(1);
@@ -654,5 +658,8 @@ public class PlayingFieldScorer {
 
     public Deque<Wall> getGarbageQueue() {
         return garbageQueue;
+
+    public int getEventCount() {
+        return eventCount;
     }
 }

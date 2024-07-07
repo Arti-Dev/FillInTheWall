@@ -22,7 +22,11 @@ public enum GamemodeAttribute {
     DO_GARBAGE_WALLS(boolean.class, false),
     DO_GARBAGE_ATTACK(boolean.class, false),
     GARBAGE_WALL_HARDNESS(int.class, 3),
-    DO_CLEARING_MODES(boolean.class, false),;
+    DO_CLEARING_MODES(boolean.class, false),
+  /**
+     * Amount of modifier events that can be activated until the game ends.
+     */
+    MODIFIER_EVENT_CAP(int.class, 1);
 
     private final Class<?> type;
     private final Object defaultValue;

@@ -167,7 +167,7 @@ public class PlayingFieldManager implements Listener {
             playingFieldLocations.put(box, field);
 
             // todo temporary
-            if (key.startsWith("field_flat")) {
+            if (key.startsWith("field_multi")) {
                 pregame.addAvailablePlayingField(field);
             } else if (key.startsWith("field_versus")) {
                 vsPregame.addAvailablePlayingField(field);

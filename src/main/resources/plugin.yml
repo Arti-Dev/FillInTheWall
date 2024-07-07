@@ -6,3 +6,7 @@ commands:
   holeinthewall:
     description: test
     usage: /holeinthewall <reload/abort>
+    aliases: hitw
+  registerplayingfield:
+    description: Used to create a playing field and register it to config
+    usage: /registerplayingfield

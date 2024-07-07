@@ -221,7 +221,7 @@ public class PlayingField implements Listener {
 
     /** Returns true if the player was removed, false if unable to (locked to field) */
     public boolean removePlayer(Player player) {
-        if (locked) return false;
+        if (locked && player.isOnline()) return false;
 
         // If this will be our last player, shut the game down
         if (playerCount() == 1) {
@@ -642,6 +642,11 @@ public class PlayingField implements Listener {
     public void endEvent() {
         event.end();
         event = null;
+        if (scorer.getGamemode().hasAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP)) {
+            if (scorer.getEventCount() >= (int) scorer.getGamemode().getAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP)) {
+                stop();
+            }
+        }
     }
 
     public void setDefaultDisplaySlots() {
@@ -702,26 +707,44 @@ public class PlayingField implements Listener {
     public void updateTextDisplays() {
         // todo in theory we don't need to tick the gamemode/name displays, but we can for now
         for (int i = 0; i < displaySlotsLength; i++) {
-            // todo we definitely need to refactor this, especially the position display
-            Object data;
+            // todo we definitely need to refactor this
+            Object data = null;
             DisplayType type = displaySlots[i];
             if (type == DisplayType.SCORE && scoreDisplayOverride) continue;
-            data = switch (type) {
-                case NONE -> "";
-                case SCORE -> scorer.getScore();
-                case ACCURACY -> "null";
-                case SPEED -> scorer.getFormattedBlocksPerSecond();
-                case PERFECT_WALLS -> scorer.getPerfectWallsCleared();
-                case TIME -> scorer.getFormattedTime();
-                case LEVEL -> scorer.getLevel();
-                // todo this is some ugly ternary crap, but it does kind of make sense
-                case POSITION -> new Object[]{(scorer.getPosition() > 0 ? scorer.getPosition() : "None"),
-                        (scorer.getPointsBehind() == -1 ? "Way to go!" : scorer.getPointsBehind() + " behind #" + (scorer.getPosition()-1))};
-                case NAME -> players.iterator().next().getName();
-                case GAMEMODE -> scorer.getGamemode().getTitle();
-            };
-            if (data instanceof Object[]) {
-                textDisplays[i].setText(type.getFormattedText((Object[]) data));
+            switch (type) {
+                case NONE -> data = "";
+                case SCORE -> data = scorer.getScore();
+                case ACCURACY -> data = "null";
+                case SPEED -> data = scorer.getFormattedBlocksPerSecond();
+                case PERFECT_WALLS -> data = scorer.getPerfectWallsCleared();
+                case TIME -> data = scorer.getFormattedTime();
+                case LEVEL -> data = scorer.getLevel();
+                case POSITION -> {
+                    ArrayList<Object> array = new ArrayList<>();
+                    if (scorer.getPointsBehind() == -1) {
+                        array.add("Way to go!");
+                        array.add("");
+                    } else {
+                        array.add(scorer.getPointsBehind());
+                        array.add("#" + (scorer.getPosition() - 1));
+                    }
+                    data = array;
+                }
+                case NAME -> data = players.iterator().next().getName();
+                case GAMEMODE -> data = scorer.getGamemode().getTitle();
+                case EVENTS -> {
+                    ArrayList<Object> array = new ArrayList<>();
+                    array.add(scorer.getEventCount());
+                    if (scorer.getGamemode().hasAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP)) {
+                        array.add("/" + scorer.getGamemode().getAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP));
+                    } else {
+                        array.add("");
+                    }
+                    data = array;
+                }
+            }
+            if (data instanceof ArrayList<?> list) {
+                textDisplays[i].setText(type.getFormattedText(list));
             } else {
                 textDisplays[i].setText(type.getFormattedText(data));
             }
