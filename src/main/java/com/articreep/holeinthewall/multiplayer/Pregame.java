@@ -1,5 +1,6 @@
 package com.articreep.holeinthewall.multiplayer;
 
+import com.articreep.holeinthewall.Gamemode;
 import com.articreep.holeinthewall.HoleInTheWall;
 import com.articreep.holeinthewall.PlayingField;
 import com.articreep.holeinthewall.PlayingFieldManager;
@@ -31,6 +32,7 @@ public class Pregame implements Listener {
     private int countdown;
     private final int countdownMax;
     private BukkitTask task = null;
+    private Gamemode gamemode;
 
     private Scoreboard scoreboard;
     private Objective objective;
@@ -38,8 +40,9 @@ public class Pregame implements Listener {
 
     private final List<PlayingField> availablePlayingFields = new ArrayList<>();
 
-    public Pregame(World world, int minPlayers, int countdownMax) {
+    public Pregame(World world, Gamemode gamemode, int minPlayers, int countdownMax) {
         this.world = world;
+        this.gamemode = gamemode;
         this.minPlayers = minPlayers;
         countdown = -1;
         this.countdownMax = countdownMax;
@@ -117,8 +120,13 @@ public class Pregame implements Listener {
             field.setLocked(true);
         }
 
-        PlayingFieldManager.game = new MultiplayerGame(readyToGoPlayingFields);
-        PlayingFieldManager.game.start();
+        if (gamemode == Gamemode.MULTIPLAYER_SCORE_ATTACK) {
+            PlayingFieldManager.game = new ScoreAttackGame(readyToGoPlayingFields);
+            PlayingFieldManager.game.start();
+        } else if (gamemode == Gamemode.VERSUS) {
+            PlayingFieldManager.vsGame = new VersusGame(readyToGoPlayingFields);
+            PlayingFieldManager.vsGame.start();
+        }
     }
 
     private BukkitTask tickLoop() {
@@ -129,6 +137,7 @@ public class Pregame implements Listener {
             public void run() {
                 if (countdown == 0) {
                     startGame();
+                    return;
                 }
 
                 for (Player player : world.getPlayers()) {

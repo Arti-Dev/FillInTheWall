@@ -19,8 +19,11 @@ public enum GamemodeAttribute {
     SINGLEPLAYER(boolean.class, false),
     MULTIPLAYER(boolean.class, false),
     AUTOMATIC_METER(boolean.class, false),
-    GARBAGE_WALLS(boolean.class, false),
-    /**
+    DO_GARBAGE_WALLS(boolean.class, false),
+    DO_GARBAGE_ATTACK(boolean.class, false),
+    GARBAGE_WALL_HARDNESS(int.class, 3),
+    DO_CLEARING_MODES(boolean.class, false),
+  /**
      * Amount of modifier events that can be activated until the game ends.
      */
     MODIFIER_EVENT_CAP(int.class, 1);

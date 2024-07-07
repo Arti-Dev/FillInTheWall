@@ -1,7 +1,8 @@
 package com.articreep.holeinthewall;
 
-import com.articreep.holeinthewall.multiplayer.MultiplayerGame;
+import com.articreep.holeinthewall.multiplayer.ScoreAttackGame;
 import com.articreep.holeinthewall.multiplayer.Pregame;
+import com.articreep.holeinthewall.multiplayer.VersusGame;
 import com.articreep.holeinthewall.utils.WorldBoundingBox;
 import org.bukkit.*;
 import org.bukkit.block.BlockFace;
@@ -23,8 +24,10 @@ public class PlayingFieldManager implements Listener {
     public static Map<Player, PlayingField> activePlayingFields = new HashMap<>();
     public static Map<WorldBoundingBox, PlayingField> playingFieldLocations = new HashMap<>();
     private static final Map<Player, BukkitTask> removalTasks = new HashMap<>();
-    public static MultiplayerGame game = null;
+    public static ScoreAttackGame game = null;
     public static Pregame pregame = null;
+    public static VersusGame vsGame = null;
+    public static Pregame vsPregame = null;
 
     @EventHandler
     public void onPlayerEnterField(PlayerMoveEvent event) {
@@ -166,6 +169,8 @@ public class PlayingFieldManager implements Listener {
             // todo temporary
             if (key.startsWith("field_multi")) {
                 pregame.addAvailablePlayingField(field);
+            } else if (key.startsWith("field_versus")) {
+                vsPregame.addAvailablePlayingField(field);
             }
 
 

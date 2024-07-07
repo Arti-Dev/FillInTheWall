@@ -27,7 +27,9 @@ public final class HoleInTheWall extends JavaPlugin implements CommandExecutor {
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
             // todo temporary
-            PlayingFieldManager.pregame = new Pregame(Bukkit.getWorld("multi"), 2, 30);
+            PlayingFieldManager.pregame = new Pregame(Bukkit.getWorld("multi"), Gamemode.MULTIPLAYER_SCORE_ATTACK,
+                    2, 30);
+            PlayingFieldManager.vsPregame = new Pregame(Bukkit.getWorld("versus"), Gamemode.VERSUS, 2, 15);
             PlayingFieldManager.parseConfig(getConfig());
         }, 1);
 
@@ -44,35 +46,68 @@ public final class HoleInTheWall extends JavaPlugin implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (args.length == 1) {
+        if (args.length >= 1) {
             if (args[0].equalsIgnoreCase("reload")) {
                 reloadConfig();
                 sender.sendMessage(ChatColor.GREEN + "Config reloaded!");
                 return true;
             } else if (args[0].equalsIgnoreCase("abort")) {
-                // todo temporary
+                // todo everything from this line forth is temporary
                 if (PlayingFieldManager.game != null) {
                     PlayingFieldManager.game.stop();
                     PlayingFieldManager.game = null;
-                    sender.sendMessage("Game aborted");
+                    sender.sendMessage("Score attack game aborted");
                 } else {
-                    sender.sendMessage("No game to abort");
+                    sender.sendMessage("No score attack game to abort");
                 }
-                return true;
+
+                if (PlayingFieldManager.vsGame != null) {
+                    PlayingFieldManager.vsGame.stop();
+                    PlayingFieldManager.vsGame = null;
+                    sender.sendMessage("Versus game aborted");
+                } else {
+                    sender.sendMessage("No versus game to abort");
+                }
             } else if (args[0].equalsIgnoreCase("timer")) {
                 if (PlayingFieldManager.pregame.isActive()) {
                     PlayingFieldManager.pregame.cancelCountdown();
-                    sender.sendMessage("Timer cancelled");
+                    sender.sendMessage("Score attack timer cancelled");
                 } else {
                     PlayingFieldManager.pregame.startCountdown();
+                    sender.sendMessage("Score attack timer started");
+                }
+
+                if (PlayingFieldManager.vsPregame.isActive()) {
+                    PlayingFieldManager.vsPregame.cancelCountdown();
+                    sender.sendMessage("Versus timer cancelled");
+                } else {
+                    PlayingFieldManager.vsPregame.startCountdown();
+                    sender.sendMessage("Versus timer started");
+                }
+            } else if (args[0].equalsIgnoreCase("versus")) {
+                if (PlayingFieldManager.vsPregame.isActive()) {
+                    PlayingFieldManager.vsPregame.cancelCountdown();
+                    sender.sendMessage("Timer cancelled");
+                } else {
+                    PlayingFieldManager.vsPregame.startCountdown();
                     sender.sendMessage("Timer started");
                 }
             } else if (args[0].equalsIgnoreCase("start")) {
-                if (PlayingFieldManager.pregame.isActive()) {
-                    PlayingFieldManager.pregame.startGame();
-                    sender.sendMessage("Starting game");
+                if (args.length >= 2 && args[1].equalsIgnoreCase("versus")) {
+                    if (PlayingFieldManager.vsPregame.isActive()) {
+                        PlayingFieldManager.vsPregame.startGame();
+                        sender.sendMessage("Starting versus game");
+                    } else {
+                        sender.sendMessage("Start a timer with /holeinthewall versus first");
+                    }
+                    return true;
                 } else {
-                    sender.sendMessage("Start a timer with /holeinthewall timer first");
+                    if (PlayingFieldManager.pregame.isActive()) {
+                        PlayingFieldManager.pregame.startGame();
+                        sender.sendMessage("Starting game");
+                    } else {
+                        sender.sendMessage("Start a timer with /holeinthewall timer first");
+                    }
                 }
 
             } else {

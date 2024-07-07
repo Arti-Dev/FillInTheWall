@@ -1,7 +1,9 @@
 package com.articreep.holeinthewall.multiplayer;
 
-import com.articreep.holeinthewall.*;
-import com.articreep.holeinthewall.utils.Utils;
+import com.articreep.holeinthewall.Gamemode;
+import com.articreep.holeinthewall.HoleInTheWall;
+import com.articreep.holeinthewall.PlayingField;
+import com.articreep.holeinthewall.PlayingFieldManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
@@ -10,13 +12,12 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
 
-public class MultiplayerGame {
-    private final Set<PlayingField> playingFields = new HashSet<>();
-    private final List<PlayingField> rankings = new ArrayList<>();
-    private final WallGenerator generator;
-    private int time;
-    private BukkitTask task;
-    private BukkitTask sortTask;
+public abstract class MultiplayerGame {
+    protected final Set<PlayingField> playingFields = new HashSet<>();
+    protected final List<PlayingField> rankings = new ArrayList<>();
+    protected final WallGenerator generator;
+    protected int time;
+    protected BukkitTask task;
 
     public MultiplayerGame(List<PlayingField> fields) {
         if (fields.isEmpty()) {
@@ -31,10 +32,6 @@ public class MultiplayerGame {
         generator.setWallTimeDecrease(10);
         generator.setWallTimeDecreaseInterval(2);
         generator.setWallHolesIncreaseInterval(2);
-    }
-
-    public MultiplayerGame(PlayingField field) {
-        this(Collections.singletonList(field));
     }
 
     public void start() {
@@ -81,16 +78,28 @@ public class MultiplayerGame {
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 20);
     }
 
-    private void startGame() {
+    protected boolean verifyFieldDimensions() {
+        int length = -1;
+        int height = -1;
+        for (PlayingField field : playingFields) {
+            if (length == -1) {
+                length = field.getLength();
+                height = field.getHeight();
+            } else if (length != field.getLength() || height != field.getHeight()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    protected void startGame() {
         if (task != null) {
             Bukkit.getLogger().severe("Tried to start multiplayer game that's already been started");
             return;
         }
-        // todo this is disconnected from the attribute system entirely
-        time = 20 * 120;
         for (PlayingField field : playingFields) {
             try {
-                field.start(Gamemode.MULTIPLAYER_SCORE_ATTACK, generator);
+                field.start(getGamemode(), generator);
                 field.getScorer().setPlayerCount(playingFields.size());
                 generator.addQueue(field.getQueue());
             } catch (IllegalStateException e) {
@@ -99,43 +108,11 @@ public class MultiplayerGame {
         }
         generator.addNewWallToQueues();
         task = tickLoop();
-        sortTask = sortLoop();
-
-    }
-
-    private BukkitTask tickLoop() {
-        return new BukkitRunnable() {
-            @Override
-            public void run() {
-                for (PlayingField field : playingFields) {
-                    if (!field.hasStarted()) continue;
-                    field.getScorer().setTime(time);
-                    field.getScorer().tick();
-                }
-
-                // todo possible race condition: we don't know if the board will stop itself due to the scorer, or if the multiplayer game will stop it
-                if (time <= 0) stop();
-                time--;
-            }
-        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
-    }
-
-    private BukkitTask sortLoop() {
-        return new BukkitRunnable() {
-            @Override
-            public void run() {
-                rankPlayingFields();
-                for (PlayingField field : rankings) {
-                    sendRank(field);
-                }
-            }
-        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 20);
     }
 
     public void stop() {
         if (task != null) {
             task.cancel();
-            sortTask.cancel();
         }
 
         rankPlayingFields();
@@ -151,19 +128,13 @@ public class MultiplayerGame {
         PlayingFieldManager.game = null;
     }
 
-    private boolean verifyFieldDimensions() {
-        int length = -1;
-        int height = -1;
-        for (PlayingField field : playingFields) {
-            if (length == -1) {
-                length = field.getLength();
-                height = field.getHeight();
-            } else if (length != field.getLength() || height != field.getHeight()) {
-                return false;
-            }
-        }
-        return true;
-    }
+    public abstract Gamemode getGamemode();
+
+    protected abstract BukkitTask tickLoop();
+
+    protected abstract void rankPlayingFields();
+
+    protected abstract void broadcastResults();
 
     public boolean addPlayingField(PlayingField field) {
         if (field.getLength() == generator.getLength() && field.getHeight() == generator.getHeight()) {
@@ -183,31 +154,4 @@ public class MultiplayerGame {
         }
     }
 
-    private void rankPlayingFields() {
-        rankings.clear();
-        rankings.addAll(playingFields);
-        rankings.sort((a, b) -> b.getScorer().getScore() - a.getScorer().getScore());
-    }
-
-    public void sendRank(PlayingField field) {
-        if (field == null || !rankings.contains(field)) return;
-        int position = rankings.indexOf(field);
-        field.getScorer().setPosition(position+1);
-        if (position == 0) {
-            field.getScorer().setPointsBehind(-1);
-        } else {
-            int pointsOfNextRank = rankings.get(position-1).getScorer().getScore();
-            field.getScorer().setPointsBehind(pointsOfNextRank - field.getScorer().getScore());
-        }
-    }
-
-    private void broadcastResults() {
-        Bukkit.broadcastMessage(ChatColor.AQUA + "Hole In The Wall - Results");
-        Bukkit.broadcastMessage("");
-        for (int i = 0; i < rankings.size(); i++) {
-            Bukkit.broadcastMessage("#" + (i+1) + " - " + ChatColor.GREEN + Utils.playersToString(rankings.get(i).getPlayers()) + " with " + rankings.get(i).getScorer().getScore() + " points");
-        }
-        Bukkit.broadcastMessage("");
-        Bukkit.broadcastMessage("---");
-    }
 }

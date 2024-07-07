@@ -73,4 +73,8 @@ public class Utils {
     public static void resetScoreboard(Player player) {
         player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
     }
+
+    public static String getFormattedTime(int ticks) {
+        return String.format("%02d:%02d", (ticks/20) / 60, (ticks/20) % 60);
+    }
 }
