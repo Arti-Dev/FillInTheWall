@@ -21,9 +21,9 @@ public class RegisterPlayingField implements CommandExecutor, Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (sender.hasPermission("holeinthewall.registerplayingfield")) {
+        if (!sender.isOp()) {
             sender.sendMessage(ChatColor.RED + "You don't have permission to do that.");
-            return false;
+            return true;
         }
         if (!(sender instanceof Player player)) return false;
         if (args.length == 0) {
