@@ -241,7 +241,8 @@ public class PlayingFieldScorer {
 
         if (isMeterFilledEnough(percent)) {
             ModifierEvent event = createEvent(percent);
-            Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(), event::activate);
+            // todo probably need to rewrite the event system. if the event triggers without being linked to the field, it breaks entirely
+            Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(), () -> field.activateEvent(event));
             meter = 0;
             eventCount++;
         } else {
