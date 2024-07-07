@@ -20,7 +20,7 @@ public class MultiplayerGame {
 
     public MultiplayerGame(List<PlayingField> fields) {
         if (fields.isEmpty()) {
-            throw new IllegalArgumentException("Tried to create multiplayer game with no playing fields");
+            Bukkit.getLogger().severe("Tried to create multiplayer game with no playing fields");
         }
         playingFields.addAll(fields);
         // Use the first field to make the generator

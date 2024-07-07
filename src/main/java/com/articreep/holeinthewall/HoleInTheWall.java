@@ -15,16 +15,19 @@ public final class HoleInTheWall extends JavaPlugin implements CommandExecutor {
     @Override
     public void onEnable() {
         instance = this;
+        RegisterPlayingField registerPlayingField = new RegisterPlayingField();
         getCommand("holeinthewall").setExecutor(this);
+        getCommand("registerplayingfield").setExecutor(registerPlayingField);
         getServer().getPluginManager().registerEvents(new PlayingFieldManager(), this);
         getServer().getPluginManager().registerEvents(new TheVoid(), this);
+        getServer().getPluginManager().registerEvents(registerPlayingField, this);
         Bukkit.getLogger().info(ChatColor.BLUE + "HoleInTheWall has been enabled!");
 
         saveDefaultConfig();
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
             // todo temporary
-            PlayingFieldManager.pregame = new Pregame(Bukkit.getWorld("flat"), 2, 30);
+            PlayingFieldManager.pregame = new Pregame(Bukkit.getWorld("multi"), 2, 30);
             PlayingFieldManager.parseConfig(getConfig());
         }, 1);
 
@@ -44,8 +47,6 @@ public final class HoleInTheWall extends JavaPlugin implements CommandExecutor {
         if (args.length == 1) {
             if (args[0].equalsIgnoreCase("reload")) {
                 reloadConfig();
-                PlayingFieldManager.removeAllGames();
-                PlayingFieldManager.parseConfig(getConfig());
                 sender.sendMessage(ChatColor.GREEN + "Config reloaded!");
                 return true;
             } else if (args[0].equalsIgnoreCase("abort")) {
@@ -79,5 +80,11 @@ public final class HoleInTheWall extends JavaPlugin implements CommandExecutor {
             }
         }
         return true;
+    }
+
+    public void reloadConfig() {
+        super.reloadConfig();
+        PlayingFieldManager.removeAllGames();
+        PlayingFieldManager.parseConfig(getConfig());
     }
 }
