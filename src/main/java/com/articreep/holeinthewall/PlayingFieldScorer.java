@@ -658,6 +658,7 @@ public class PlayingFieldScorer {
 
     public Deque<Wall> getGarbageQueue() {
         return garbageQueue;
+    }
 
     public int getEventCount() {
         return eventCount;
