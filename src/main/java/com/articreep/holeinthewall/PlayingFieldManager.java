@@ -201,7 +201,7 @@ public class PlayingFieldManager implements Listener {
                 .add(fieldDirection.clone().multiply(fieldLength))
                 .add(new Vector(0, fieldHeight, 0));
 
-        WorldBoundingBox box = new WorldBoundingBox(corner1, corner2, Particle.HEART);
+        WorldBoundingBox box = new WorldBoundingBox(corner1, corner2);
         box.getBoundingBox().expand(fieldDirection, 2);
         box.getBoundingBox().expand(new Vector(0, fieldHeight, 0), 2);
         box.getBoundingBox().expand(fieldDirection.clone().multiply(-1), 2);
