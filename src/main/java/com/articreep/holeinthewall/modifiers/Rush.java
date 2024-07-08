@@ -105,7 +105,9 @@ public class Rush extends ModifierEvent {
         queue.allowMultipleWalls(true);
         queue.setMaxSpawnCooldown(30);
 
-        TheVoid.spawnRotatingBlocks(field, this);
+        if (field.getEnvironment().equalsIgnoreCase("VOID")) {
+            TheVoid.spawnRotatingBlocks(field, this);
+        }
     }
 
     @Override
