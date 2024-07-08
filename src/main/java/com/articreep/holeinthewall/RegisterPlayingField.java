@@ -28,18 +28,17 @@ public class RegisterPlayingField implements CommandExecutor, Listener {
         if (!(sender instanceof Player player)) return false;
         if (args.length == 0) {
             if (activeSessions.containsKey(player)) {
-                activeSessions.get(sender).onCommandRun();
+                activeSessions.get(sender).onCommandRun("");
             } else {
                 Session session = new Session(player);
                 session.sendInstructions();
                 activeSessions.put(player, session);
             }
         } else {
-            if (args[0].equalsIgnoreCase("cancel")) {
-                activeSessions.remove(sender);
-                sender.sendMessage(ChatColor.RED + "Cancelled playing field registration.");
+            if (activeSessions.containsKey(player)) {
+                activeSessions.get(player).onCommandRun(args[0]);
             } else {
-                sender.sendMessage(ChatColor.RED + "I'm not sure what you're trying to do.");
+                player.sendMessage(ChatColor.RED + "I'm not sure what you're trying to do.");
             }
         }
         return true;
@@ -105,11 +104,17 @@ public class RegisterPlayingField implements CommandExecutor, Listener {
             }
         }
 
-        public void onCommandRun() {
+        public void onCommandRun(String arg) {
             if (stage == 1) {
                 parseData(player.getTargetBlock(null, 5).getLocation());
+            } else if (stage >= 2 && stage <= 6 && arg.equalsIgnoreCase("standard")) {
+                standardSettings();
+                player.sendMessage("Applied standard settings");
             } else if (stage == 10 || stage == 11) {
                 parseData(player.getInventory().getItemInMainHand().getType());
+            } else if (arg.equalsIgnoreCase("cancel")) {
+                activeSessions.remove(player);
+                player.sendMessage(ChatColor.RED + "Cancelled playing field registration.");
             } else {
                 player.sendMessage(ChatColor.RED + "I'm not sure what you're trying to do.");
                 player.sendMessage("To leave, run /registerplayingfield cancel");
@@ -216,6 +221,16 @@ public class RegisterPlayingField implements CommandExecutor, Listener {
 
         public void incorrectData() {
             player.sendMessage(ChatColor.RED + "Wrong data type, try again?");
+            sendInstructions();
+        }
+
+        private void standardSettings() {
+            data.put("queue_length", 20);
+            data.put("field_length", 7);
+            data.put("field_height", 4);
+            data.put("standing_distance", 6);
+            data.put("environment", "NONE");
+            stage = 7;
             sendInstructions();
         }
 

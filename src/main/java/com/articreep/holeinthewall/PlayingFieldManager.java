@@ -129,6 +129,7 @@ public class PlayingFieldManager implements Listener {
 
     public static void parseConfig(FileConfiguration config) {
         // Clear ALL references to any playing fields
+        // todo also need to clear all end screens and menus and such
         playingFieldLocations.clear();
         if (pregame != null) {
             pregame.clearAvailablePlayingFields();
@@ -217,7 +218,7 @@ public class PlayingFieldManager implements Listener {
                 .subtract(incomingDirection.clone().multiply(queueLength))
                 .add(fieldDirection.clone().multiply(fieldLength))
                 .add(new Vector(0, fieldHeight * 2.5, 0));
-        WorldBoundingBox box = new WorldBoundingBox(corner1, corner2, Particle.GLOW);
+        WorldBoundingBox box = new WorldBoundingBox(corner1, corner2);
         box.getBoundingBox().expand(fieldDirection, 7);
         box.getBoundingBox().expand(fieldDirection.clone().multiply(-1), 7);
 
