@@ -51,6 +51,7 @@ public class PlayingField implements Listener {
     private final Vector incomingDirection; // normal to the field
     private final int height;
     private final int length;
+    private final int standingDistance;
     /**
      * Amount of ticks to show wall results after clearing a wall
      */
@@ -84,13 +85,14 @@ public class PlayingField implements Listener {
 
     // Multiplayer settings
     /** Whether to tick the scorer or let another class handle it (e.g. multiplayer) */
+    // todo probably make this a "multiplayer mode" flag instead
     private boolean tickScorer = true;
     /** Whether to prevent new players from joining and current players from leaving, AND prevent players from starting their own games
      * Used for multiplayer games */
     private boolean locked = false;
 
-    public PlayingField(Location referencePoint, Vector direction, Vector incomingDirection, WorldBoundingBox boundingBox,
-                        WorldBoundingBox effectBox, String environment, int length, int height,
+    public PlayingField(Location referencePoint, Vector direction, Vector incomingDirection, int standingDistance,
+                        WorldBoundingBox boundingBox, WorldBoundingBox effectBox, String environment, int length, int height,
                         Material wallMaterial, Material playerMaterial, boolean hideBottomBorder) {
         // define playing field in a very scuffed way
         this.fieldReferencePoint = Utils.centralizeLocation(referencePoint);
@@ -106,6 +108,7 @@ public class PlayingField implements Listener {
         if (this.environment == null) this.environment = "";
         this.hideBottomBorder = hideBottomBorder;
         this.wallMaterial = wallMaterial;
+        this.standingDistance = standingDistance;
         setDefaultDisplaySlots();
 
         // Track border blocks
@@ -196,11 +199,17 @@ public class PlayingField implements Listener {
         start(mode, new WallGenerator(getLength(), getHeight(), 2, 4, 160));
     }
 
-    public boolean addPlayer(Player player) {
+    /**
+     * Adds a player to the game. If locked is true, locks this playing field after the player is added.
+     * @param player Player to add
+     * @param lock Whether to lock the playing field as soon as the player is added
+     * @return
+     */
+    public boolean addPlayer(Player player, boolean lock) {
         if (locked) return false;
         if (player.getGameMode() == GameMode.SPECTATOR) return false;
         players.add(player);
-        if (!hasStarted() && !hasMenu()) {
+        if (!hasStarted() && !hasMenu() && !lock) {
             // Display a new menu
             createMenu();
         } else if (hasStarted()) {
@@ -212,7 +221,15 @@ public class PlayingField implements Listener {
         // Register with the playing field manager
         PlayingFieldManager.activePlayingFields.put(player, this);
 
+        if (lock) {
+            locked = true;
+        }
+
         return true;
+    }
+
+    public boolean addPlayer(Player player) {
+        return addPlayer(player, false);
     }
 
     public int playerCount() {
@@ -946,5 +963,9 @@ public class PlayingField implements Listener {
 
     public Material getWallMaterial() {
         return wallMaterial;
+    }
+
+    public int getStandingDistance() {
+        return standingDistance;
     }
 }

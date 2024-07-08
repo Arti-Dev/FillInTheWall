@@ -9,6 +9,7 @@ import com.articreep.holeinthewall.display.ScoreboardEntryType;
 import com.articreep.holeinthewall.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -27,16 +28,16 @@ import java.util.Iterator;
 import java.util.List;
 
 public class Pregame implements Listener {
-    private World world;
-    private int minPlayers;
+    private final World world;
+    private final int minPlayers;
     private int countdown;
     private final int countdownMax;
     private BukkitTask task = null;
-    private Gamemode gamemode;
+    private final Gamemode gamemode;
 
     private Scoreboard scoreboard;
     private Objective objective;
-    private ArrayList<ScoreboardEntry> scoreboardEntries = new ArrayList<>();
+    private final ArrayList<ScoreboardEntry> scoreboardEntries = new ArrayList<>();
 
     private final List<PlayingField> availablePlayingFields = new ArrayList<>();
 
@@ -107,17 +108,18 @@ public class Pregame implements Listener {
             }
             Player player = playerIterator.next();
             if (field.playerCount() == 0 && !PlayingFieldManager.isInGame(player)) {
-                field.addPlayer(player);
-                // todo placeholder location for now, should have an actual spawn location
-                player.teleport(field.getReferencePoint());
+                field.stop();
+                field.addPlayer(player, true);
+                field.doTickScorer(false);
+                // Spawn location
+                Location spawn = field.getReferencePoint().subtract(0.5, 0.5, 0.5);
+                spawn.add(field.getFieldDirection()
+                        .multiply(field.getLength() / 2.0));
+                spawn.add(field.getIncomingDirection().multiply(field.getStandingDistance() / 2.0));
+                spawn.setDirection(field.getIncomingDirection().multiply(-1));
+                player.teleport(spawn);
                 readyToGoPlayingFields.add(field);
             }
-        }
-
-        for (PlayingField field : readyToGoPlayingFields) {
-            field.stop();
-            field.doTickScorer(false);
-            field.setLocked(true);
         }
 
         if (gamemode == Gamemode.MULTIPLAYER_SCORE_ATTACK) {

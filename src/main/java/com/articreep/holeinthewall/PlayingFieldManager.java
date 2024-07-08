@@ -172,7 +172,7 @@ public class PlayingFieldManager implements Listener {
             WorldBoundingBox effectBox = effectBox(refPoint, incomingDirection, fieldDirection, queueLength, fieldLength, fieldHeight);
 
             PlayingField field = new PlayingField(
-                    refPoint, fieldDirection, incomingDirection, box, effectBox, environment, fieldLength, fieldHeight, wallMaterial, playerMaterial, hideBottomBorder);
+                    refPoint, fieldDirection, incomingDirection, standingDistance, box, effectBox, environment, fieldLength, fieldHeight, wallMaterial, playerMaterial, hideBottomBorder);
             playingFieldLocations.put(box, field);
 
             // todo temporary

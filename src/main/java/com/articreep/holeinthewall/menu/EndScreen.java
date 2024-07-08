@@ -13,7 +13,7 @@ import java.util.List;
 public class EndScreen {
     private final Location location;
     private TextDisplay display;
-    private List<String> lines = new ArrayList<>();
+    private final List<String> lines = new ArrayList<>();
 
     public EndScreen(Location location) {
         this.location = location;
@@ -51,8 +51,8 @@ public class EndScreen {
             }
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
 
-        // Despawn after 2 minutes
-        Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), this::despawn, 20 * 120);
+        // Despawn after 1 minute
+        Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), this::despawn, 20 * 60);
     }
 
     public void addLine(String string) {
