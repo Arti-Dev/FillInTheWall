@@ -128,7 +128,15 @@ public class PlayingFieldManager implements Listener {
     }
 
     public static void parseConfig(FileConfiguration config) {
+        // Clear ALL references to any playing fields
         playingFieldLocations.clear();
+        if (pregame != null) {
+            pregame.clearAvailablePlayingFields();
+        }
+        if (vsPregame != null) {
+            vsPregame.clearAvailablePlayingFields();
+        }
+
         Map<String, Object> map = config.getValues(false);
         for (String key : map.keySet()) {
 

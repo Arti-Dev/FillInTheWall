@@ -212,4 +212,8 @@ public class Pregame implements Listener {
     public void addAvailablePlayingField(PlayingField field) {
         availablePlayingFields.add(field);
     }
+
+    public void clearAvailablePlayingFields() {
+        availablePlayingFields.clear();
+    }
 }
