@@ -15,9 +15,10 @@ import java.util.*;
 public abstract class MultiplayerGame {
     protected final Set<PlayingField> playingFields = new HashSet<>();
     protected final List<PlayingField> rankings = new ArrayList<>();
-    protected final WallGenerator generator;
+    protected WallGenerator generator;
     protected int time;
-    protected BukkitTask task;
+    protected BukkitTask mainTask = null;
+    protected Set<BukkitTask> otherTasks = new HashSet<>();
 
     public MultiplayerGame(List<PlayingField> fields) {
         if (fields.isEmpty()) {
@@ -48,7 +49,6 @@ public abstract class MultiplayerGame {
         // Make sure all games here have stopped completely
         for (PlayingField field : playingFields) {
             field.stop();
-            field.doTickScorer(false);
             field.setLocked(true);
         }
 
@@ -93,7 +93,7 @@ public abstract class MultiplayerGame {
     }
 
     protected void startGame() {
-        if (task != null) {
+        if (mainTask != null) {
             Bukkit.getLogger().severe("Tried to start multiplayer game that's already been started");
             return;
         }
@@ -102,18 +102,26 @@ public abstract class MultiplayerGame {
                 field.start(getGamemode(), generator);
                 field.getScorer().setPlayerCount(playingFields.size());
                 generator.addQueue(field.getQueue());
+                field.getScorer().setMultiplayerGame(this);
             } catch (IllegalStateException e) {
+                e.printStackTrace();
                 removePlayingfield(field);
             }
         }
         generator.addNewWallToQueues();
-        task = tickLoop();
+        mainTask = tickLoop();
     }
 
     public void stop() {
-        if (task != null) {
+        if (mainTask != null) {
+            mainTask.cancel();
+            mainTask = null;
+        }
+
+        for (BukkitTask task : otherTasks) {
             task.cancel();
         }
+        otherTasks.clear();
 
         rankPlayingFields();
         broadcastResults();
@@ -121,7 +129,8 @@ public abstract class MultiplayerGame {
         for (PlayingField field : playingFields) {
             field.stop();
             field.getQueue().resetGenerator();
-            field.doTickScorer(true);
+            field.setLocked(false);
+            field.getScorer().setMultiplayerGame(null);
         }
 
         // todo temporary
@@ -150,7 +159,6 @@ public abstract class MultiplayerGame {
             playingFields.remove(field);
             field.setLocked(false);
             field.getQueue().resetGenerator();
-            field.doTickScorer(true);
         }
     }
 

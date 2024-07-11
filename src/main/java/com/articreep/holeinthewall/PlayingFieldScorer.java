@@ -7,6 +7,8 @@ import com.articreep.holeinthewall.modifiers.Freeze;
 import com.articreep.holeinthewall.modifiers.ModifierEvent;
 import com.articreep.holeinthewall.modifiers.Rush;
 import com.articreep.holeinthewall.modifiers.Tutorial;
+import com.articreep.holeinthewall.multiplayer.MultiplayerGame;
+import com.articreep.holeinthewall.multiplayer.ScoreAttackGame;
 import com.articreep.holeinthewall.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -44,7 +46,7 @@ public class PlayingFieldScorer {
     private int garbagePoints = 0;
 
     // Multiplayer variables
-    // todo Might consider adding a reference to the multiplayer game it's a part of
+    private MultiplayerGame multiplayerGame = null;
     private int playerCount = 0;
     private int position;
     private int pointsBehind;
@@ -398,7 +400,11 @@ public class PlayingFieldScorer {
         for (ScoreboardEntry entry : scoreboardEntries) {
             switch (entry.getType()) {
                 case SCORE -> entry.update(scoreboard, objective, score);
-                case STAGE -> entry.update(scoreboard, objective, ChatColor.AQUA + "" + ChatColor.BOLD + "QUALIFICATIONS");
+                case STAGE -> {
+                    if (multiplayerGame != null && multiplayerGame instanceof ScoreAttackGame game) {
+                        entry.update(scoreboard, objective, game.getStage().getString());
+                    }
+                }
                 case TIME -> entry.update(scoreboard, objective, getFormattedTime());
                 case POSITION -> {
                     if (position == 1) {
@@ -489,6 +495,7 @@ public class PlayingFieldScorer {
     }
 
     public void setGamemode(Gamemode gamemode) {
+        this.gamemode = gamemode;
         for (GamemodeAttribute attribute : GamemodeAttribute.values()) {
             Object value = gamemode.getAttribute(attribute);
             if (value == null) continue;
@@ -519,7 +526,6 @@ public class PlayingFieldScorer {
                 }
             }
         }
-        this.gamemode = gamemode;
         if (gamemode == Gamemode.TUTORIAL) {
             // Immediately activate the tutorial event
             activateEvent(field.getPlayers().iterator().next());
@@ -663,5 +669,9 @@ public class PlayingFieldScorer {
 
     public int getEventCount() {
         return eventCount;
+    }
+
+    public void setMultiplayerGame(MultiplayerGame multiplayerGame) {
+        this.multiplayerGame = multiplayerGame;
     }
 }

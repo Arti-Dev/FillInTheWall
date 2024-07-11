@@ -17,6 +17,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,6 +29,7 @@ public class PlayingFieldManager implements Listener {
     public static Pregame pregame = null;
     public static VersusGame vsGame = null;
     public static Pregame vsPregame = null;
+    public static final ArrayList<PlayingField> finalStageBoards = new ArrayList<>();
 
     @EventHandler
     public void onPlayerEnterField(PlayerMoveEvent event) {
@@ -137,6 +139,7 @@ public class PlayingFieldManager implements Listener {
         if (vsPregame != null) {
             vsPregame.clearAvailablePlayingFields();
         }
+        finalStageBoards.clear();
 
         Map<String, Object> map = config.getValues(false);
         for (String key : map.keySet()) {
@@ -180,6 +183,8 @@ public class PlayingFieldManager implements Listener {
                 pregame.addAvailablePlayingField(field);
             } else if (key.startsWith("field_versus")) {
                 vsPregame.addAvailablePlayingField(field);
+            } else if (key.startsWith("field_finals")) {
+                finalStageBoards.add(field);
             }
 
 

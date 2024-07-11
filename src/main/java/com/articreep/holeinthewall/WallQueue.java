@@ -209,18 +209,26 @@ public class WallQueue {
     }
 
     public void setWallActiveTime(int wallActiveTime) {
+        // todo hotfix
+        if (field.getScorer().getGamemode().hasAttribute(GamemodeAttribute.MULTIPLAYER)) return;
         generator.setWallActiveTime(wallActiveTime);
     }
 
     public void setRandomHoleCount(int randomHoleCount) {
+        // todo hotfix
+        if (field.getScorer().getGamemode().hasAttribute(GamemodeAttribute.MULTIPLAYER)) return;
         generator.setRandomHoleCount(randomHoleCount);
     }
 
     public void setConnectedHoleCount(int connectedHoleCount) {
+        // todo hotfix
+        if (field.getScorer().getGamemode().hasAttribute(GamemodeAttribute.MULTIPLAYER)) return;
         generator.setConnectedHoleCount(connectedHoleCount);
     }
 
     public void setRandomizeFurther(boolean randomizeFurther) {
+        // todo hotfix
+        if (field.getScorer().getGamemode().hasAttribute(GamemodeAttribute.MULTIPLAYER)) return;
         generator.setRandomizeFurther(randomizeFurther);
     }
 

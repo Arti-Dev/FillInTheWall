@@ -101,16 +101,22 @@ public class Pregame implements Listener {
 
         List<PlayingField> readyToGoPlayingFields = new ArrayList<>();
         Iterator<Player> playerIterator = players.iterator();
+        Iterator<PlayingField> fieldIterator = availablePlayingFields.iterator();
         // Assign players to playing fields
-        for (PlayingField field : availablePlayingFields) {
-            if (!playerIterator.hasNext()) {
-                break;
+        while (playerIterator.hasNext() && fieldIterator.hasNext()) {
+            PlayingField field = fieldIterator.next();
+            if (field.playerCount() != 0) {
+                Bukkit.getLogger().info("Field is not empty - skipping");
+                continue;
             }
             Player player = playerIterator.next();
+            if (PlayingFieldManager.isInGame(player)) {
+                Bukkit.getLogger().info("Player is already in a game - skipping");
+                continue;
+            }
             if (field.playerCount() == 0 && !PlayingFieldManager.isInGame(player)) {
                 field.stop();
-                field.addPlayer(player, true);
-                field.doTickScorer(false);
+                field.addPlayer(player);
                 // Spawn location
                 Location spawn = field.getReferencePoint().subtract(0.5, 0.5, 0.5);
                 spawn.add(field.getFieldDirection()
@@ -120,10 +126,11 @@ public class Pregame implements Listener {
                 player.teleport(spawn);
                 readyToGoPlayingFields.add(field);
             }
+
         }
 
         if (gamemode == Gamemode.MULTIPLAYER_SCORE_ATTACK) {
-            PlayingFieldManager.game = new ScoreAttackGame(readyToGoPlayingFields);
+            PlayingFieldManager.game = new ScoreAttackGame(readyToGoPlayingFields, PlayingFieldManager.finalStageBoards);
             PlayingFieldManager.game.start();
         } else if (gamemode == Gamemode.VERSUS) {
             PlayingFieldManager.vsGame = new VersusGame(readyToGoPlayingFields);

@@ -84,12 +84,9 @@ public class PlayingField implements Listener {
     private boolean confirmOnCooldown = false;
 
     // Multiplayer settings
-    /** Whether to tick the scorer or let another class handle it (e.g. multiplayer) */
-    // todo probably make this a "multiplayer mode" flag instead
-    private boolean tickScorer = true;
     /** Whether to prevent new players from joining and current players from leaving, AND prevent players from starting their own games
      * Used for multiplayer games */
-    private boolean locked = false;
+    private boolean multiplayerLocked = false;
 
     public PlayingField(Location referencePoint, Vector direction, Vector incomingDirection, int standingDistance,
                         WorldBoundingBox boundingBox, WorldBoundingBox effectBox, String environment, int length, int height,
@@ -130,7 +127,7 @@ public class PlayingField implements Listener {
 
     public void createMenu() {
         if (players.isEmpty()) return;
-        if (locked) return;
+        if (multiplayerLocked) return;
         if (hasMenu()) removeMenu();
         if (hasEndScreen()) removeEndScreen();
         menu = new Menu(getCenter(), this);
@@ -206,7 +203,7 @@ public class PlayingField implements Listener {
      * @return
      */
     public boolean addPlayer(Player player, boolean lock) {
-        if (locked) return false;
+        if (multiplayerLocked) return false;
         if (player.getGameMode() == GameMode.SPECTATOR) return false;
         players.add(player);
         if (!hasStarted() && !hasMenu() && !lock) {
@@ -222,7 +219,7 @@ public class PlayingField implements Listener {
         PlayingFieldManager.activePlayingFields.put(player, this);
 
         if (lock) {
-            locked = true;
+            multiplayerLocked = true;
         }
 
         return true;
@@ -238,7 +235,7 @@ public class PlayingField implements Listener {
 
     /** Returns true if the player was removed, false if unable to (locked to field) */
     public boolean removePlayer(Player player) {
-        if (locked && player.isOnline()) return false;
+        if (multiplayerLocked && player.isOnline()) return false;
 
         // If this will be our last player, shut the game down
         if (playerCount() == 1) {
@@ -294,7 +291,7 @@ public class PlayingField implements Listener {
         for (TextDisplay display : textDisplays) {
             display.remove();
         }
-        locked = false;
+        multiplayerLocked = false;
         queue.clearAllWalls();
         queue.allowMultipleWalls(false);
         if (event != null) {
@@ -602,7 +599,7 @@ public class PlayingField implements Listener {
                         endEvent();
                     }
                 }
-                if (tickScorer) scorer.tick();
+                if (!multiplayerLocked) scorer.tick();
 
                 // Effects, start them at a slower pace and intensify them as the game goes on
                 // Do not do effects if an event is active
@@ -851,10 +848,6 @@ public class PlayingField implements Listener {
                 .add(new Vector(0, 1, 0).multiply((double) (height - 1) / 2));
     }
 
-    public void doTickScorer(boolean tickScorer) {
-        this.tickScorer = tickScorer;
-    }
-
     public static ItemStack confirmItem() {
         ItemStack item = new ItemStack(Material.GREEN_CONCRETE);
         ItemMeta meta = item.getItemMeta();
@@ -925,11 +918,11 @@ public class PlayingField implements Listener {
     }
 
     public void setLocked(boolean locked) {
-        this.locked = locked;
+        this.multiplayerLocked = locked;
     }
 
     public boolean isLocked() {
-        return locked;
+        return multiplayerLocked;
     }
 
     public World getWorld() {
