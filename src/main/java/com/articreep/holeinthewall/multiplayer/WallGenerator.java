@@ -115,4 +115,8 @@ public class WallGenerator {
     public int getWallActiveTime() {
         return wallActiveTime;
     }
+
+    public static WallGenerator defaultGenerator(int length, int height) {
+       return new WallGenerator(length, height, 2, 4, 160);
+    }
 }

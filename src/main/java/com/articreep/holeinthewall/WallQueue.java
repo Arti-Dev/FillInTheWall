@@ -38,14 +38,11 @@ public class WallQueue {
     boolean hideBottomBorder = false;
     private Material wallMaterial = Material.BLUE_CONCRETE;
 
-    public WallQueue(PlayingField field, Material defaultWallMaterial, boolean hideBottomBorder) {
+    public WallQueue(PlayingField field, Material defaultWallMaterial, WallGenerator generator, boolean hideBottomBorder) {
         setWallMaterial(defaultWallMaterial);
         setHideBottomBorder(hideBottomBorder);
         this.field = field;
-    }
-
-    public WallQueue(PlayingField field, Material defaultWallMaterial) {
-        this(field, defaultWallMaterial, false);
+        this.generator = generator;
     }
 
     public void addWall(Wall wall) {

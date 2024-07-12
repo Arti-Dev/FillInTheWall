@@ -77,6 +77,9 @@ public class PlayingField implements Listener {
     private Material wallMaterial;
     private boolean hideBottomBorder;
 
+    /** The scorer and queue should be reset before each game starts. */
+    private boolean resetRecently = false;
+
     private BukkitTask countdown = null;
     private BukkitTask task = null;
     private Menu menu = null;
@@ -96,6 +99,7 @@ public class PlayingField implements Listener {
         this.fieldDirection = direction;
         this.incomingDirection = incomingDirection;
         this.scorer = new PlayingFieldScorer(this);
+        this.queue = new WallQueue(this, wallMaterial, WallGenerator.defaultGenerator(length, height), hideBottomBorder);
         this.boundingBox = boundingBox;
         this.effectBox = effectBox;
         this.playerMaterial = playerMaterial;
@@ -162,8 +166,14 @@ public class PlayingField implements Listener {
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 10);
     }
 
-    // todo geneator argument is a hotfix
-    public void start(Gamemode mode, WallGenerator generator) {
+    public void reset() {
+        scorer = new PlayingFieldScorer(this);
+        queue = new WallQueue(this, wallMaterial, WallGenerator.defaultGenerator(length, height), hideBottomBorder);
+        resetRecently = true;
+    }
+
+    // Running this method will create new scorer and queue objects
+    public void start(Gamemode mode) {
         // Log fail if this is already running
         if (hasStarted()) {
             Bukkit.getLogger().severe("Tried to start game that's already been started");
@@ -176,10 +186,7 @@ public class PlayingField implements Listener {
             throw new IllegalArgumentException("Gamemode cannot be null");
         }
         HoleInTheWall.getInstance().getServer().getPluginManager().registerEvents(this, HoleInTheWall.getInstance());
-        // Pass gamemode to a brand new scorer object
-        scorer = new PlayingFieldScorer(this);
-        queue = new WallQueue(this, wallMaterial, hideBottomBorder);
-        if (generator != null) queue.setGenerator(generator);
+        if (!resetRecently) reset();
         scorer.setGamemode(mode);
         setDisplaySlotsFromGamemode(mode);
         removeMenu();
@@ -190,10 +197,6 @@ public class PlayingField implements Listener {
             setCreative(player);
         }
         task = tickLoop();
-    }
-
-    public void start(Gamemode mode) {
-        start(mode, new WallGenerator(getLength(), getHeight(), 2, 4, 160));
     }
 
     /**
@@ -302,6 +305,8 @@ public class PlayingField implements Listener {
         scorer.announceFinalScore();
         endScreen = scorer.createEndScreen();
         endScreen.display();
+
+        resetRecently = false;
 
         HandlerList.unregisterAll(this);
     }

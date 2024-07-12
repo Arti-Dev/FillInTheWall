@@ -46,10 +46,15 @@ public abstract class MultiplayerGame {
             return;
         }
 
-        // Make sure all games here have stopped completely
+        // Init playing fields
         for (PlayingField field : playingFields) {
             field.stop();
+            field.reset();
+
             field.setLocked(true);
+            field.getQueue().setGenerator(generator);
+            generator.addQueue(field.getQueue());
+            field.getScorer().setMultiplayerGame(this);
         }
 
         new BukkitRunnable() {
@@ -99,10 +104,8 @@ public abstract class MultiplayerGame {
         }
         for (PlayingField field : playingFields) {
             try {
-                field.start(getGamemode(), generator);
+                field.start(getGamemode());
                 field.getScorer().setPlayerCount(playingFields.size());
-                generator.addQueue(field.getQueue());
-                field.getScorer().setMultiplayerGame(this);
             } catch (IllegalStateException e) {
                 e.printStackTrace();
                 removePlayingfield(field);
