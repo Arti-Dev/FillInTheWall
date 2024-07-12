@@ -648,8 +648,12 @@ public class PlayingField implements Listener {
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
     }
 
-    public void activateEvent(ModifierEvent event) {
+    public void setEvent(ModifierEvent event) {
         this.event = event;
+    }
+
+    public void activateEvent() {
+        if (event == null) return;
         this.event.activate();
     }
 
@@ -778,7 +782,8 @@ public class PlayingField implements Listener {
     }
 
     public boolean eventActive() {
-        return event != null;
+        if (event == null) return false;
+        return event.isActive();
     }
 
     public void overrideScoreDisplay(int ticks, String message) {

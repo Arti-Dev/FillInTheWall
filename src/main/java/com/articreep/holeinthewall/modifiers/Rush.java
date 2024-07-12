@@ -24,7 +24,6 @@ public class Rush extends ModifierEvent {
     private Wall nextWall;
     private int wallSpeed = 200;
     private int boardsCleared = 0;
-    private boolean active = false;
     public Rush(PlayingField field) {
         super(field, 600);
         clearDelay = 5;
@@ -94,7 +93,7 @@ public class Rush extends ModifierEvent {
 
     @Override
     public void activate() {
-        active = true;
+        super.activate();
         for (Player player : field.getPlayers()) {
             player.sendTitle(ChatColor.RED + "RUSH!", ChatColor.RED + "Clear as many walls as you can!", 0, 40, 10);
             player.playSound(player, Sound.ENTITY_ENDER_DRAGON_GROWL, 0.5F, 1);
@@ -112,7 +111,7 @@ public class Rush extends ModifierEvent {
 
     @Override
     public void end() {
-        active = false;
+        super.activate();
         field.clearField();
         queue.clearAllWalls();
         queue.setMaxSpawnCooldown(80);
@@ -166,7 +165,4 @@ public class Rush extends ModifierEvent {
         firstWallCleared = b;
     }
 
-    public boolean isActive() {
-        return active;
-    }
 }

@@ -49,12 +49,14 @@ public class Tutorial extends ModifierEvent implements Listener {
 
     @Override
     public void activate() {
+        super.activate();
         HoleInTheWall.getInstance().getServer().getPluginManager().registerEvents(this, HoleInTheWall.getInstance());
         spawnEnderman();
     }
 
     @Override
     public void end() {
+        super.end();
         currentSlide = -1;
         field.sendTitleToPlayers("", "Good luck!", 10, 40, 20);
         if (enderman != null) {

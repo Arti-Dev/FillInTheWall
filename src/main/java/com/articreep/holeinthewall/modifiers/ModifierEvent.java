@@ -20,6 +20,8 @@ public abstract class ModifierEvent {
     protected int ticksRemaining;
     protected PlayingField field;
 
+    protected boolean active = false;
+
 
     protected ModifierEvent(PlayingField field, int ticks) {
         if (field == null) return;
@@ -43,9 +45,17 @@ public abstract class ModifierEvent {
         return null;
     }
 
-    public abstract void activate();
+    public void activate() {
+        if (field == null) return;
+        field.setEvent(this);
+        active = true;
+    }
 
-    public abstract void end();
+    public void end() {
+        active = false;
+        if (field == null) return;
+        field.setEvent(null);
+    }
 
     public void score(Wall wall) {
 
@@ -57,5 +67,9 @@ public abstract class ModifierEvent {
 
     public double getMeterPercentRequired() {
         return meterPercentRequired;
+    }
+
+    public boolean isActive() {
+        return active;
     }
 }
