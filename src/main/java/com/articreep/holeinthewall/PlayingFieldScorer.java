@@ -88,57 +88,34 @@ public class PlayingFieldScorer {
 
         boolean showScoreTitle = true;
         // Add/subtract to bonus
-        // todo this code needs to be cleaned up
-        if (percent >= Judgement.COOL.getPercent() && !field.eventActive() && clearingMode) {
-            meter += percent;
-            if (meter > meterMax) meter = meterMax;
-
-            if (meter >= meterMax && doLevels) {
-                showScoreTitle = false;
-                setLevel(level + 1);
-                field.sendTitleToPlayers("", ChatColor.GREEN + "Level up!", 0, 10, 5);
-            } else if (meter >= meterMax && ((boolean) gamemode.getAttribute(GamemodeAttribute.AUTOMATIC_METER))) {
-                activateEvent(field.getPlayers().iterator().next());
-            }
-        } else if (!field.eventActive() && clearingMode) {
-            // You cannot lose progress if levels are enabled
-            if (!doLevels) {
-                meter -= 1;
-            }
-
-            if (meter < 0) meter = 0;
+        if (!field.eventActive() && clearingMode) {
+            awardMeterPoints(percent);
         }
 
-        // If judgement was a MISS, copy the wall and harden it
+        // Activate meter
+        if (meter >= meterMax && doLevels) {
+            showScoreTitle = false;
+            setLevel(level + 1);
+            field.sendTitleToPlayers("", ChatColor.GREEN + "Level up!", 0, 10, 5);
+        } else if (meter >= meterMax && ((boolean) gamemode.getAttribute(GamemodeAttribute.AUTOMATIC_METER))) {
+            activateEvent(field.getPlayers().iterator().next());
+        }
+
+        // Garbage wall rules
         if (gamemode.hasAttribute(GamemodeAttribute.DO_GARBAGE_WALLS)) {
-            if (judgement == Judgement.MISS) {
-                Wall garbageWall = createMissGarbageWall(wall);
-                field.getQueue().hardenWall(garbageWall,
-                        (int) gamemode.getAttribute(GamemodeAttribute.GARBAGE_WALL_HARDNESS));
-            } else {
+            if (percent >= Judgement.COOL.getPercent()) {
                 // Clearing modes
                 if (opponent != null && gamemode.hasAttribute(GamemodeAttribute.DO_GARBAGE_ATTACK)) {
-                    if (clearingMode) {
-                        // attack
-                        opponent.getScorer().addGarbageToQueue(createAttackGarbageWall(wall));
-                    } else {
-                        // defend
-                        // todo should change back to attack mode if there are no longer any garbage walls
-                        awardGarbagePoints(judgement);
-                        // if wall was a garbage wall, attack
-                        if (wall.wasHardened()) opponent.getScorer().addGarbageToQueue(createAttackGarbageWall(wall));
-                        // decrement meter
-                        meter -= 1;
-                        if (meter <= 0) {
-                            clearingMode = true;
-                            field.sendMessageToPlayers("Meter empty! Switched to attack mode!");
-                            meter = 0;
-                        }
-                    }
+                    attackOrDefend(wall, judgement);
                 } else {
                     // If clearing modes aren't enabled, just award garbage points regardless
                     awardGarbagePoints(judgement);
                 }
+            } else {
+                // miss
+                Wall garbageWall = createMissGarbageWall(wall);
+                field.getQueue().hardenWall(garbageWall,
+                        (int) gamemode.getAttribute(GamemodeAttribute.GARBAGE_WALL_HARDNESS));
             }
         }
 
@@ -149,6 +126,39 @@ public class PlayingFieldScorer {
         playJudgementSound(judgement);
 
         return judgement;
+    }
+
+    private void awardMeterPoints(double percent) {
+        if (percent >= Judgement.COOL.getPercent()) {
+            meter += percent;
+            if (meter > meterMax) meter = meterMax;
+        } else if (!field.eventActive() && clearingMode) {
+            // You cannot lose progress if levels are enabled
+            if (!doLevels) {
+                meter -= 1;
+            }
+            if (meter < 0) meter = 0;
+        }
+    }
+
+    private void attackOrDefend(Wall wall, Judgement judgement) {
+        if (clearingMode) {
+            // attack
+            opponent.getScorer().addGarbageToQueue(createAttackGarbageWall(wall));
+        } else {
+            // defend
+            // todo should change back to attack mode if there are no longer any garbage walls
+            awardGarbagePoints(judgement);
+            // if wall was a garbage wall, attack
+            if (wall.wasHardened()) opponent.getScorer().addGarbageToQueue(createAttackGarbageWall(wall));
+            // decrement meter
+            meter -= 1;
+            if (meter <= 0) {
+                clearingMode = true;
+                field.sendMessageToPlayers("Meter empty! Switched to attack mode!");
+                meter = 0;
+            }
+        }
     }
 
     private void awardGarbagePoints(Judgement judgement) {
@@ -328,10 +338,6 @@ public class PlayingFieldScorer {
 
     public int getScore() {
         return score;
-    }
-
-    public double getMeter() {
-        return meter;
     }
 
     public void reset() {
