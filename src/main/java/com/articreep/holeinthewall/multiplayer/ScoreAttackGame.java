@@ -140,9 +140,6 @@ public class ScoreAttackGame extends MultiplayerGame {
             @Override
             public void run() {
                 rankPlayingFields();
-                for (PlayingField field : rankings) {
-                    sendRank(field);
-                }
             }
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 20);
     }
@@ -152,18 +149,6 @@ public class ScoreAttackGame extends MultiplayerGame {
         rankings.clear();
         rankings.addAll(playingFields);
         rankings.sort((a, b) -> b.getScorer().getScore() - a.getScorer().getScore());
-    }
-
-    public void sendRank(PlayingField field) {
-        if (field == null || !rankings.contains(field)) return;
-        int position = rankings.indexOf(field);
-        field.getScorer().setPosition(position+1);
-        if (position == 0) {
-            field.getScorer().setPointsBehind(-1);
-        } else {
-            int pointsOfNextRank = rankings.get(position-1).getScorer().getScore();
-            field.getScorer().setPointsBehind(pointsOfNextRank - field.getScorer().getScore());
-        }
     }
 
     @Override

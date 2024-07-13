@@ -105,7 +105,6 @@ public abstract class MultiplayerGame {
         for (PlayingField field : playingFields) {
             try {
                 field.start(getGamemode());
-                field.getScorer().setPlayerCount(playingFields.size());
             } catch (IllegalStateException e) {
                 e.printStackTrace();
                 removePlayingfield(field);
@@ -162,6 +161,26 @@ public abstract class MultiplayerGame {
             playingFields.remove(field);
             field.setLocked(false);
             field.getQueue().resetGenerator();
+        }
+    }
+
+    public int getPlayerCount() {
+        return playingFields.size();
+    }
+
+    public int getRank(PlayingField field) {
+        if (field == null || !rankings.contains(field)) return -1;
+        int position = rankings.indexOf(field);
+        return position + 1;
+    }
+
+    public int getPointsBehindNextRank(PlayingField field) {
+        int position = getRank(field);
+        if (position == 1) {
+            return -1;
+        } else {
+            int pointsOfNextRank = rankings.get(position-1).getScorer().getScore();
+            return pointsOfNextRank - field.getScorer().getScore();
         }
     }
 

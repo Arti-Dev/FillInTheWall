@@ -47,9 +47,6 @@ public class PlayingFieldScorer {
 
     // Multiplayer variables
     private MultiplayerGame multiplayerGame = null;
-    private int playerCount = 0;
-    private int position;
-    private int pointsBehind;
     private Scoreboard scoreboard = null;
     private Objective objective = null;
     private final List<ScoreboardEntry> scoreboardEntries = new ArrayList<>();
@@ -412,6 +409,11 @@ public class PlayingFieldScorer {
                 }
                 case TIME -> entry.update(scoreboard, objective, getFormattedTime());
                 case POSITION -> {
+                    if (multiplayerGame == null) {
+                        entry.update(scoreboard, objective, ChatColor.GOLD + "Singleplayer game!");
+                        break;
+                    }
+                    int position = multiplayerGame.getRank(field);
                     if (position == 1) {
                         entry.update(scoreboard, objective, ChatColor.GOLD + "1");
                     } else {
@@ -420,13 +422,15 @@ public class PlayingFieldScorer {
                 }
                 case EMPTY -> entry.update(scoreboard, objective);
                 case POINTS_BEHIND -> {
+                    int position = multiplayerGame.getRank(field);
+                    int pointsBehind = multiplayerGame.getPointsBehindNextRank(field);
                     if (position == 1) {
                         entry.forceUpdate(scoreboard, objective, ChatColor.GOLD + "You're in the lead!");
                     } else {
                         entry.update(scoreboard, objective, pointsBehind, position-1);
                     }
                 }
-                case PLAYERS -> entry.update(scoreboard, objective, playerCount);
+                case PLAYERS -> entry.update(scoreboard, objective, multiplayerGame.getPlayerCount());
             }
         }
 
@@ -488,7 +492,7 @@ public class PlayingFieldScorer {
         endScreen.addLine(ChatColor.GREEN + "Final score: " + ChatColor.BOLD + score);
         if (gamemode.hasAttribute(GamemodeAttribute.MULTIPLAYER)) {
             if (gamemode == Gamemode.MULTIPLAYER_SCORE_ATTACK) {
-                endScreen.addLine(ChatColor.WHITE + "Position: No. " + position);
+                endScreen.addLine(ChatColor.WHITE + "Position: No. " + multiplayerGame.getRank(field));
             }
         }
         if (!gamemode.hasAttribute(GamemodeAttribute.TIME_LIMIT)) {
@@ -627,22 +631,6 @@ public class PlayingFieldScorer {
         this.time = time;
     }
 
-    public void setPosition(int position) {
-        this.position = position;
-    }
-
-    public int getPosition() {
-        return position;
-    }
-
-    public void setPointsBehind(int pointsBehind) {
-        this.pointsBehind = pointsBehind;
-    }
-
-    public int getPointsBehind() {
-        return pointsBehind;
-    }
-
     public void increaseBlocksPlaced() {
         blocksPlaced++;
     }
@@ -654,10 +642,6 @@ public class PlayingFieldScorer {
 
     public String getFormattedBlocksPerSecond() {
         return String.format("%.2f", getBlocksPerSecond());
-    }
-
-    public void setPlayerCount(int playerCount) {
-        this.playerCount = playerCount;
     }
     
     public void addGarbageToQueue(Wall wall) {
