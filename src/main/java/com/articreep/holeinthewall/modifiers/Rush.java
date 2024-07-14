@@ -143,7 +143,7 @@ public class Rush extends ModifierEvent {
 
     @Override
     public void score(Wall wall) {
-        if (field.getScorer().calculatePercent(wall, field) == 1) {
+        if (field.getScorer().calculatePercent(wall, field) >= 1) {
             double pitch = Math.pow(2, (double) (getBoardsCleared() - 6) / 12);
             if (pitch > 2) pitch = 2;
             for (Player player : field.getPlayers()) player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, (float) pitch);
