@@ -43,7 +43,8 @@ public class PlayingFieldManager implements Listener {
         } else {
             for (WorldBoundingBox box : playingFieldLocations.keySet()) {
                 if (box.isinBoundingBox(event.getPlayer().getLocation())) {
-                    newGame(event.getPlayer(), box);
+                    PlayingField field = playingFieldLocations.get(box);
+                    field.addPlayer(event.getPlayer(), PlayingField.AddReason.IN_RANGE);
                 }
             }
         }
@@ -97,12 +98,6 @@ public class PlayingFieldManager implements Listener {
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 20);
 
         removalTasks.put(player, task);
-    }
-
-    // Managing games
-    public static void newGame(Player player, WorldBoundingBox box) {
-        PlayingField field = playingFieldLocations.get(box);
-        field.addPlayer(player);
     }
 
     /**

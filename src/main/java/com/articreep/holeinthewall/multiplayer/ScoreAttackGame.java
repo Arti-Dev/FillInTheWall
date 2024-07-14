@@ -6,7 +6,6 @@ import com.articreep.holeinthewall.gamemode.GamemodeAttribute;
 import com.articreep.holeinthewall.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -91,10 +90,10 @@ public class ScoreAttackGame extends MultiplayerGame {
 
             for (int i = 0; i < Math.min(finalStageBoards.size(), qualifyingPlayers.size()); i++) {
                 PlayingField field = finalStageBoards.get(i);
-                for (Player player : qualifyingPlayers.get(i)) {
-                    field.addPlayer(player);
-                }
                 field.setLocked(true);
+                for (Player player : qualifyingPlayers.get(i)) {
+                    field.addPlayer(player, PlayingField.AddReason.MULTIPLAYER);
+                }
                 playingFields.add(field);
             }
 
@@ -104,13 +103,8 @@ public class ScoreAttackGame extends MultiplayerGame {
                 public void run() {
                     for (PlayingField field : playingFields) {
                         // Spawn location
-                        Location spawn = field.getReferencePoint().subtract(0.5, 0.5, 0.5);
-                        spawn.add(field.getFieldDirection()
-                                .multiply(field.getLength() / 2.0));
-                        spawn.add(field.getIncomingDirection().multiply(field.getStandingDistance() / 2.0));
-                        spawn.setDirection(field.getIncomingDirection().multiply(-1));
                         for (Player player : field.getPlayers()) {
-                            player.teleport(spawn);
+                            player.teleport(field.getSpawnLocation());
                             player.sendTitle(ChatColor.YELLOW + "Welcome to the Finals!", "Bigger board, bigger competition!", 10, 60, 20);
                         }
                     }

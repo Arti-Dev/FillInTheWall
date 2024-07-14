@@ -9,7 +9,6 @@ import com.articreep.holeinthewall.display.ScoreboardEntryType;
 import com.articreep.holeinthewall.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -92,7 +91,7 @@ public class Pregame implements Listener {
         cancelCountdown();
 
         List<Player> players = world.getPlayers();
-        // Remove all players from any games
+        // Attempt to remove all players from any games
         for (Player player : players) {
             if (PlayingFieldManager.isInGame(player)) {
                 PlayingFieldManager.removeGame(player);
@@ -116,14 +115,9 @@ public class Pregame implements Listener {
             }
             if (field.playerCount() == 0 && !PlayingFieldManager.isInGame(player)) {
                 field.stop();
-                field.addPlayer(player);
-                // Spawn location
-                Location spawn = field.getReferencePoint().subtract(0.5, 0.5, 0.5);
-                spawn.add(field.getFieldDirection()
-                        .multiply(field.getLength() / 2.0));
-                spawn.add(field.getIncomingDirection().multiply(field.getStandingDistance() / 2.0));
-                spawn.setDirection(field.getIncomingDirection().multiply(-1));
-                player.teleport(spawn);
+                field.setLocked(true);
+                field.addPlayer(player, PlayingField.AddReason.MULTIPLAYER);
+                player.teleport(field.getSpawnLocation());
                 readyToGoPlayingFields.add(field);
             }
 

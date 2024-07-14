@@ -134,7 +134,6 @@ public class PlayingField implements Listener {
 
     public void createMenu() {
         if (players.isEmpty()) return;
-        if (multiplayerLocked) return;
         if (hasMenu()) removeMenu();
         if (hasEndScreen()) removeEndScreen();
         menu = new Menu(getCenter(), this);
@@ -205,14 +204,13 @@ public class PlayingField implements Listener {
     /**
      * Adds a player to the game. If locked is true, locks this playing field after the player is added.
      * @param player Player to add
-     * @param lock Whether to lock the playing field as soon as the player is added
      * @return
      */
-    public boolean addPlayer(Player player, boolean lock) {
-        if (multiplayerLocked) return false;
+    public boolean addPlayer(Player player, AddReason reason) {
+        if (multiplayerLocked && reason != AddReason.MULTIPLAYER) return false;
         if (player.getGameMode() == GameMode.SPECTATOR) return false;
         players.add(player);
-        if (!hasStarted() && !hasMenu() && !lock) {
+        if (!hasStarted() && !hasMenu() && !multiplayerLocked) {
             // Display a new menu
             createMenu();
         } else if (hasStarted()) {
@@ -224,15 +222,7 @@ public class PlayingField implements Listener {
         // Register with the playing field manager
         PlayingFieldManager.activePlayingFields.put(player, this);
 
-        if (lock) {
-            multiplayerLocked = true;
-        }
-
         return true;
-    }
-
-    public boolean addPlayer(Player player) {
-        return addPlayer(player, false);
     }
 
     public int playerCount() {
@@ -973,5 +963,18 @@ public class PlayingField implements Listener {
 
     public int getStandingDistance() {
         return standingDistance;
+    }
+
+    public enum AddReason {
+        MULTIPLAYER, IN_RANGE
+    }
+
+    public Location getSpawnLocation() {
+        Location spawn = getReferencePoint().subtract(0.5, 0.5, 0.5);
+        spawn.add(getFieldDirection()
+                .multiply(getLength() / 2.0));
+        spawn.add(getIncomingDirection().multiply(getStandingDistance() / 2.0));
+        spawn.setDirection(getIncomingDirection().multiply(-1));
+        return spawn;
     }
 }

@@ -48,6 +48,7 @@ public abstract class MultiplayerGame {
         }
 
         // Init playing fields
+        // todo this might be redundant
         for (PlayingField field : playingFields) {
             field.stop();
             field.reset();
