@@ -49,7 +49,11 @@ public class ScoreAttackGame extends MultiplayerGame {
 
                 // todo possible race condition: we don't know if the board will stop itself due to the scorer, or if the multiplayer game will stop it
                 if (time <= 0) {
-                    stop();
+                    if (stage == Stage.QUALIFICATIONS && !finalStageBoards.isEmpty()) {
+                        transitionToFinals();
+                    } else {
+                        stop();
+                    }
                 }
                 time--;
             }
@@ -57,16 +61,25 @@ public class ScoreAttackGame extends MultiplayerGame {
     }
 
     @Override
-    public void stop() {
+    public void stop(boolean markAsEnded) {
+        super.stop(markAsEnded);
+        if (sortTask != null) {
+            sortTask.cancel();
+        }
+    }
+
+    private void transitionToFinals() {
         if (stage == Stage.QUALIFICATIONS && !finalStageBoards.isEmpty()) {
             ArrayList<Set<Player>> qualifyingPlayers = new ArrayList<>();
+
+            rankPlayingFields();
 
             // record top four players and put them in the finals
             for (int i = 0; i < Math.min(finalStageBoards.size(), rankings.size()); i++) {
                 qualifyingPlayers.add(new HashSet<>(rankings.get(i).getPlayers()));
             }
 
-            super.stop();
+            stop(false);
 
             stage = Stage.FINALS;
             for (PlayingField field : playingFields) {
@@ -75,29 +88,21 @@ public class ScoreAttackGame extends MultiplayerGame {
 
             playingFields.clear();
 
-            PlayingField example = finalStageBoards.getFirst();
             // New generator
+            PlayingField example = finalStageBoards.getFirst();
             generator = new WallGenerator(example.getLength(), example.getHeight(),
                     5, 10, 200);
             generator.setRandomizeFurther(false);
 
-            // remove
+            // Move players from old playing field to final playing field
             for (Set<Player> set : qualifyingPlayers) {
                 for (Player player : set) {
                     PlayingFieldManager.removeGame(player);
                 }
             }
 
-            for (int i = 0; i < Math.min(finalStageBoards.size(), qualifyingPlayers.size()); i++) {
-                PlayingField field = finalStageBoards.get(i);
-                field.setLocked(true);
-                for (Player player : qualifyingPlayers.get(i)) {
-                    field.addPlayer(player, PlayingField.AddReason.MULTIPLAYER);
-                }
-                playingFields.add(field);
-            }
+            playingFields.addAll(Pregame.assignPlayerSetsToPlayingFields(qualifyingPlayers, finalStageBoards));
 
-            // todo maybe i'll just make a new pregame object???
             otherTasks.add(new BukkitRunnable() {
                 @Override
                 public void run() {
@@ -120,14 +125,8 @@ public class ScoreAttackGame extends MultiplayerGame {
                     PlayingFieldManager.game = ScoreAttackGame.this;
                 }
             }.runTaskLater(HoleInTheWall.getInstance(), 20 * 10));
-
-            time = (int) gamemode.getDefaultSettings().getAttribute(GamemodeAttribute.TIME_LIMIT);
         } else {
-            super.stop();
-        }
-
-        if (sortTask != null) {
-            sortTask.cancel();
+            stop();
         }
     }
 

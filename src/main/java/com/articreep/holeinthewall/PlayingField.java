@@ -92,7 +92,7 @@ public class PlayingField implements Listener {
     // Multiplayer settings
     /** Whether to prevent new players from joining and current players from leaving, AND prevent players from starting their own games
      * Used for multiplayer games */
-    private boolean multiplayerLocked = false;
+    private boolean multiplayerMode = false;
 
     public PlayingField(Location referencePoint, Vector direction, Vector incomingDirection, int standingDistance,
                         WorldBoundingBox boundingBox, WorldBoundingBox effectBox, String environment, int length, int height,
@@ -207,10 +207,10 @@ public class PlayingField implements Listener {
      * @return
      */
     public boolean addPlayer(Player player, AddReason reason) {
-        if (multiplayerLocked && reason != AddReason.MULTIPLAYER) return false;
+        if (multiplayerMode && reason != AddReason.MULTIPLAYER) return false;
         if (player.getGameMode() == GameMode.SPECTATOR) return false;
         players.add(player);
-        if (!hasStarted() && !hasMenu() && !multiplayerLocked) {
+        if (!hasStarted() && !hasMenu() && !multiplayerMode) {
             // Display a new menu
             createMenu();
         } else if (hasStarted()) {
@@ -231,7 +231,7 @@ public class PlayingField implements Listener {
 
     /** Returns true if the player was removed, false if unable to (locked to field) */
     public boolean removePlayer(Player player) {
-        if (multiplayerLocked && player.isOnline()) return false;
+        if (multiplayerMode && player.isOnline()) return false;
 
         // If this will be our last player, shut the game down
         if (playerCount() == 1) {
@@ -287,7 +287,7 @@ public class PlayingField implements Listener {
         for (TextDisplay display : textDisplays) {
             display.remove();
         }
-        multiplayerLocked = false;
+        multiplayerMode = false;
         queue.clearAllWalls();
         queue.allowMultipleWalls(false);
         if (event != null) {
@@ -597,7 +597,7 @@ public class PlayingField implements Listener {
                         endEvent();
                     }
                 }
-                if (!multiplayerLocked) scorer.tick();
+                if (!multiplayerMode) scorer.tick();
 
                 // Effects, start them at a slower pace and intensify them as the game goes on
                 // Do not do effects if an event is active
@@ -920,12 +920,12 @@ public class PlayingField implements Listener {
         }
     }
 
-    public void setLocked(boolean locked) {
-        this.multiplayerLocked = locked;
+    public void setMultiplayerMode(boolean bool) {
+        this.multiplayerMode = bool;
     }
 
     public boolean isLocked() {
-        return multiplayerLocked;
+        return multiplayerMode;
     }
 
     public World getWorld() {

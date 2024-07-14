@@ -106,11 +106,12 @@ public class PlayingFieldManager implements Listener {
      *
      * @param player Player to check
      */
-    public static void removeGame(Player player) {
+    public static boolean removeGame(Player player) {
         PlayingField field = activePlayingFields.get(player);
         if (field != null) {
-            field.removePlayer(player);
+            return field.removePlayer(player);
         }
+        return false;
     }
 
     public static boolean isInGame(Player player) {

@@ -7,6 +7,7 @@ import com.articreep.holeinthewall.PlayingFieldManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -48,18 +49,14 @@ public abstract class MultiplayerGame {
         }
 
         // Init playing fields
-        // todo this might be redundant
         for (PlayingField field : playingFields) {
-            field.stop();
-            field.reset();
 
-            field.setLocked(true);
             field.getQueue().setGenerator(generator);
             generator.addQueue(field.getQueue());
             field.getScorer().setMultiplayerGame(this);
         }
 
-        new BukkitRunnable() {
+        otherTasks.add(new BukkitRunnable() {
             int i = 3;
             @Override
             public void run() {
@@ -82,7 +79,7 @@ public abstract class MultiplayerGame {
                 }
                 i--;
             }
-        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 20);
+        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 20));
     }
 
     protected boolean verifyFieldDimensions() {
@@ -116,7 +113,7 @@ public abstract class MultiplayerGame {
         mainTask = tickLoop();
     }
 
-    public void stop() {
+    public void stop(boolean markAsEnded) {
         if (mainTask != null) {
             mainTask.cancel();
             mainTask = null;
@@ -127,18 +124,27 @@ public abstract class MultiplayerGame {
         }
         otherTasks.clear();
 
+        for (PlayingField field : playingFields) {
+            field.stop();
+        }
+
         rankPlayingFields();
         broadcastResults();
 
         for (PlayingField field : playingFields) {
-            field.stop();
             field.getQueue().resetGenerator();
-            field.setLocked(false);
+            field.setMultiplayerMode(false);
             field.getScorer().setMultiplayerGame(null);
         }
 
-        // todo temporary
-        PlayingFieldManager.game = null;
+        if (markAsEnded) {
+            // todo temporary
+            PlayingFieldManager.game = null;
+        }
+    }
+
+    public void stop() {
+        stop(true);
     }
 
     public abstract Gamemode getGamemode();
@@ -161,7 +167,7 @@ public abstract class MultiplayerGame {
     public void removePlayingfield(PlayingField field) {
         if (playingFields.contains(field)) {
             playingFields.remove(field);
-            field.setLocked(false);
+            field.setMultiplayerMode(false);
             field.getQueue().resetGenerator();
         }
     }

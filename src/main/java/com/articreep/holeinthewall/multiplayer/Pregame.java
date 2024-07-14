@@ -21,10 +21,9 @@ import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
+import org.checkerframework.checker.units.qual.A;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class Pregame implements Listener {
     private final World world;
@@ -82,6 +81,9 @@ public class Pregame implements Listener {
         removeScoreboard();
     }
 
+    /**
+     * Assigns playing fields to players, puts them in multiplayer mode, and creates a new game
+     */
     public void startGame() {
         if (PlayingFieldManager.game != null) {
             Bukkit.getLogger().severe("Tried to start game while another game is running");
@@ -98,29 +100,13 @@ public class Pregame implements Listener {
             }
         }
 
-        List<PlayingField> readyToGoPlayingFields = new ArrayList<>();
-        Iterator<Player> playerIterator = players.iterator();
-        Iterator<PlayingField> fieldIterator = availablePlayingFields.iterator();
-        // Assign players to playing fields
-        while (playerIterator.hasNext() && fieldIterator.hasNext()) {
-            PlayingField field = fieldIterator.next();
-            if (field.playerCount() != 0) {
-                Bukkit.getLogger().info("Field is not empty - skipping");
-                continue;
-            }
-            Player player = playerIterator.next();
-            if (PlayingFieldManager.isInGame(player)) {
-                Bukkit.getLogger().info("Player is already in a game - skipping");
-                continue;
-            }
-            if (field.playerCount() == 0 && !PlayingFieldManager.isInGame(player)) {
-                field.stop();
-                field.setLocked(true);
-                field.addPlayer(player, PlayingField.AddReason.MULTIPLAYER);
-                player.teleport(field.getSpawnLocation());
-                readyToGoPlayingFields.add(field);
-            }
+        List<PlayingField> readyToGoPlayingFields =
+                assignPlayersToPlayingFields(new ArrayList<>(world.getPlayers()), availablePlayingFields);
 
+        for (PlayingField field : readyToGoPlayingFields) {
+            for (Player player : field.getPlayers()) {
+                player.teleport(field.getSpawnLocation());
+            }
         }
 
         if (gamemode == Gamemode.MULTIPLAYER_SCORE_ATTACK) {
@@ -130,6 +116,85 @@ public class Pregame implements Listener {
             PlayingFieldManager.vsGame = new VersusGame(readyToGoPlayingFields);
             PlayingFieldManager.vsGame.start();
         }
+    }
+
+    // Supports multiple players on one playing field!
+    public static List<PlayingField> assignPlayerSetsToPlayingFields(List<Set<Player>> players, List<PlayingField> availablePlayingFields) {
+        List<PlayingField> readyToGoPlayingFields = new ArrayList<>();
+
+        Iterator<Set<Player>> playerSetIterator = players.iterator();
+        Set<Player> currentPlayerSet = playerSetIterator.next();
+        Iterator<PlayingField> fieldIterator = availablePlayingFields.iterator();
+        PlayingField currentPlayingField = fieldIterator.next();
+
+        // while true statement with iterator.hasNext checks
+        while (true) {
+            if (currentPlayingField.playerCount() != 0) {
+                Bukkit.getLogger().info("Field is not empty - skipping");
+                if (fieldIterator.hasNext()) {
+                    currentPlayingField = fieldIterator.next();
+                } else {
+                    break;
+                }
+                continue;
+            }
+
+            // Filter out players already in games
+            Iterator<Player> playerIterator = currentPlayerSet.iterator();
+            while (playerIterator.hasNext()) {
+                Player player = playerIterator.next();
+                if (PlayingFieldManager.isInGame(player)) {
+                    Bukkit.getLogger().info(player.getName() + " is already in a game - skipping (remove them first!)");
+                    playerIterator.remove();
+                }
+            }
+
+            if (currentPlayerSet.isEmpty()) {
+                Bukkit.getLogger().info("No players left to add to field - skipping");
+                if (playerSetIterator.hasNext()) {
+                    currentPlayerSet = playerSetIterator.next();
+                } else {
+                    break;
+                }
+                continue;
+            }
+
+            // Add remaining players to the field
+            if (currentPlayingField.playerCount() == 0 || !currentPlayerSet.isEmpty()) {
+                currentPlayingField.stop();
+                currentPlayingField.reset();
+                currentPlayingField.setMultiplayerMode(true);
+                for (Player player : currentPlayerSet) {
+                    currentPlayingField.addPlayer(player, PlayingField.AddReason.MULTIPLAYER);
+                }
+                readyToGoPlayingFields.add(currentPlayingField);
+
+                if (fieldIterator.hasNext()) {
+                    currentPlayingField = fieldIterator.next();
+                } else {
+                    break;
+                }
+
+                if (playerSetIterator.hasNext()) {
+                    currentPlayerSet = playerSetIterator.next();
+                } else {
+                    break;
+                }
+            }
+
+        }
+        return readyToGoPlayingFields;
+    }
+
+    public static List<PlayingField> assignPlayersToPlayingFields(List<Player> players, List<PlayingField> availablePlayingFields) {
+        List<Set<Player>> playerSets = new ArrayList<>();
+        for (Player player : players) {
+            // Create singleton sets (have to be mutable though)
+            Set<Player> playerSet = new HashSet<>();
+            playerSet.add(player);
+            playerSets.add(playerSet);
+        }
+        return assignPlayerSetsToPlayingFields(playerSets, availablePlayingFields);
     }
 
     private BukkitTask tickLoop() {
