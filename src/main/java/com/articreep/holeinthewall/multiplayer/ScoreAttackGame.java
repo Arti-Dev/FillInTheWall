@@ -15,7 +15,7 @@ public class ScoreAttackGame extends MultiplayerGame {
     private final Gamemode gamemode = Gamemode.MULTIPLAYER_SCORE_ATTACK;
     private BukkitTask sortTask;
     private Stage stage = Stage.QUALIFICATIONS;
-    private ArrayList<PlayingField> finalStageBoards;
+    private final ArrayList<PlayingField> finalStageBoards;
 
     public ScoreAttackGame(List<PlayingField> fields, ArrayList<PlayingField> finalStageBoards) {
         super(fields);

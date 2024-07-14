@@ -663,4 +663,14 @@ public class PlayingFieldScorer {
     public void setMultiplayerGame(MultiplayerGame multiplayerGame) {
         this.multiplayerGame = multiplayerGame;
     }
+
+    public int getPointsBehind() {
+        if (multiplayerGame == null) return -1;
+        return multiplayerGame.getPointsBehindNextRank(field);
+    }
+
+    public int getPosition() {
+        if (multiplayerGame == null) return -1;
+        return multiplayerGame.getRank(field);
+    }
 }

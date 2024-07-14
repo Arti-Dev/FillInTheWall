@@ -2,6 +2,7 @@ package com.articreep.holeinthewall.multiplayer;
 
 import com.articreep.holeinthewall.Wall;
 import com.articreep.holeinthewall.WallQueue;
+import org.bukkit.Bukkit;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -46,8 +47,12 @@ public class WallGenerator {
         Wall wall = new Wall(wallLength, wallHeight);
         wall.generateHoles(randomHoleCount, connectedHoleCount, randomizeFurther);
         wall.setTimeRemaining(wallActiveTime);
-        for (WallQueue queue : queues) {
-            queue.addWall(wall.copy());
+        if (queues.isEmpty()) {
+            Bukkit.getLogger().warning("No queues to add walls to..?");
+        } else {
+            for (WallQueue queue : queues) {
+                queue.addWall(wall.copy());
+            }
         }
 
         // todo very subject to change

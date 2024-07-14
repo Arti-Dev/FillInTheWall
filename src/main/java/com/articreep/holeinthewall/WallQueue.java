@@ -43,6 +43,7 @@ public class WallQueue {
         setHideBottomBorder(hideBottomBorder);
         this.field = field;
         this.generator = generator;
+        this.generator.addQueue(this);
     }
 
     public void addWall(Wall wall) {
