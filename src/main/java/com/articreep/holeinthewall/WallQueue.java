@@ -74,7 +74,7 @@ public class WallQueue {
         if (field.getScorer().getGarbageQueue().isEmpty()) return;
         Wall wall = field.getScorer().getGarbageQueue().removeFirst();
         field.playSoundToPlayers(Sound.BLOCK_NETHER_BRICKS_STEP, 0.5F);
-        int hardness = (int) field.getScorer().getGamemode().getAttribute(GamemodeAttribute.GARBAGE_WALL_HARDNESS);
+        int hardness = (int) field.getScorer().getSettings().getAttribute(GamemodeAttribute.GARBAGE_WALL_HARDNESS);
         hardenWall(wall, hardness);
         pauseTickLoop = 5;
     }
@@ -209,25 +209,25 @@ public class WallQueue {
 
     public void setWallActiveTime(int wallActiveTime) {
         // todo hotfix
-        if (field.getScorer().getGamemode().hasAttribute(GamemodeAttribute.MULTIPLAYER)) return;
+        if (field.getScorer().getSettings().hasAttribute(GamemodeAttribute.MULTIPLAYER)) return;
         generator.setWallActiveTime(wallActiveTime);
     }
 
     public void setRandomHoleCount(int randomHoleCount) {
         // todo hotfix
-        if (field.getScorer().getGamemode().hasAttribute(GamemodeAttribute.MULTIPLAYER)) return;
+        if (field.getScorer().getSettings().hasAttribute(GamemodeAttribute.MULTIPLAYER)) return;
         generator.setRandomHoleCount(randomHoleCount);
     }
 
     public void setConnectedHoleCount(int connectedHoleCount) {
         // todo hotfix
-        if (field.getScorer().getGamemode().hasAttribute(GamemodeAttribute.MULTIPLAYER)) return;
+        if (field.getScorer().getSettings().hasAttribute(GamemodeAttribute.MULTIPLAYER)) return;
         generator.setConnectedHoleCount(connectedHoleCount);
     }
 
     public void setRandomizeFurther(boolean randomizeFurther) {
         // todo hotfix
-        if (field.getScorer().getGamemode().hasAttribute(GamemodeAttribute.MULTIPLAYER)) return;
+        if (field.getScorer().getSettings().hasAttribute(GamemodeAttribute.MULTIPLAYER)) return;
         generator.setRandomizeFurther(randomizeFurther);
     }
 

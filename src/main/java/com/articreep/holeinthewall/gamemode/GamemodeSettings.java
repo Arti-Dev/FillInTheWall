@@ -1,0 +1,51 @@
+package com.articreep.holeinthewall.gamemode;
+
+import com.articreep.holeinthewall.display.DisplayType;
+import com.articreep.holeinthewall.modifiers.ModifierEvent;
+
+import java.util.HashMap;
+
+// Flexible class that allows overriding default settings
+public class GamemodeSettings {
+    private final HashMap<GamemodeAttribute, Object> settings = new HashMap<>();
+    private Class<? extends ModifierEvent> eventClass = null;
+
+    public void setAttribute(GamemodeAttribute attribute, Object value) {
+        // Try casting value
+        try {
+            attribute.getType().cast(value);
+        } catch (ClassCastException e) {
+            throw new IllegalArgumentException("Value " + value + " is not of type " + attribute.getType().getSimpleName());
+        }
+        settings.put(attribute, value);
+    }
+
+    public boolean hasAttribute(GamemodeAttribute attribute) {
+        return settings.containsKey(attribute);
+    }
+
+    public Object getAttribute(GamemodeAttribute attribute) {
+        if (!hasAttribute(attribute)) return attribute.getDefaultValue();
+        return settings.get(attribute);
+    }
+
+    public int getIntAttribute(GamemodeAttribute attribute) {
+        return (int) getAttribute(attribute);
+    }
+
+    public boolean getBooleanAttribute(GamemodeAttribute attribute) {
+        return (boolean) getAttribute(attribute);
+    }
+
+    public DisplayType getDisplayTypeAttribute(GamemodeAttribute attribute) {
+        return (DisplayType) getAttribute(attribute);
+    }
+
+    public void setEventClass(Class<? extends ModifierEvent> eventClass) {
+        this.eventClass = eventClass;
+    }
+
+    public Class<? extends ModifierEvent> getEventClass() {
+        return eventClass;
+    }
+}

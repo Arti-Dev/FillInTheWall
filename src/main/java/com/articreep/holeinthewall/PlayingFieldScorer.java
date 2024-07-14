@@ -4,6 +4,7 @@ import com.articreep.holeinthewall.display.ScoreboardEntry;
 import com.articreep.holeinthewall.display.ScoreboardEntryType;
 import com.articreep.holeinthewall.gamemode.Gamemode;
 import com.articreep.holeinthewall.gamemode.GamemodeAttribute;
+import com.articreep.holeinthewall.gamemode.GamemodeSettings;
 import com.articreep.holeinthewall.menu.EndScreen;
 import com.articreep.holeinthewall.modifiers.Freeze;
 import com.articreep.holeinthewall.modifiers.ModifierEvent;
@@ -36,6 +37,7 @@ public class PlayingFieldScorer {
     /** for calculating blocks per second */
     private int absoluteTimeElapsed = 0;
     private Gamemode gamemode = Gamemode.INFINITE;
+    private GamemodeSettings settings = Gamemode.INFINITE.getDefaultSettings();
     private int eventCount = 0;
 
     // Levels (if enabled)
@@ -96,15 +98,15 @@ public class PlayingFieldScorer {
             showScoreTitle = false;
             setLevel(level + 1);
             field.sendTitleToPlayers("", ChatColor.GREEN + "Level up!", 0, 10, 5);
-        } else if (meter >= meterMax && ((boolean) gamemode.getAttribute(GamemodeAttribute.AUTOMATIC_METER))) {
+        } else if (meter >= meterMax && ((boolean) settings.getAttribute(GamemodeAttribute.AUTOMATIC_METER))) {
             activateEvent(field.getPlayers().iterator().next());
         }
 
         // Garbage wall rules
-        if (gamemode.hasAttribute(GamemodeAttribute.DO_GARBAGE_WALLS)) {
+        if (settings.hasAttribute(GamemodeAttribute.DO_GARBAGE_WALLS)) {
             if (percent >= Judgement.COOL.getPercent()) {
                 // Clearing modes
-                if (opponent != null && gamemode.hasAttribute(GamemodeAttribute.DO_GARBAGE_ATTACK)) {
+                if (opponent != null && settings.hasAttribute(GamemodeAttribute.DO_GARBAGE_ATTACK)) {
                     attackOrDefend(wall, judgement);
                 } else {
                     // If clearing modes aren't enabled, just award garbage points regardless
@@ -114,7 +116,7 @@ public class PlayingFieldScorer {
                 // miss
                 Wall garbageWall = createMissGarbageWall(wall);
                 field.getQueue().hardenWall(garbageWall,
-                        (int) gamemode.getAttribute(GamemodeAttribute.GARBAGE_WALL_HARDNESS));
+                        (int) settings.getAttribute(GamemodeAttribute.GARBAGE_WALL_HARDNESS));
             }
         }
 
@@ -169,7 +171,7 @@ public class PlayingFieldScorer {
             }
 
             // If we have enough garbage points, crack a hardened wall
-            if (garbagePoints >= (int) gamemode.getAttribute(GamemodeAttribute.GARBAGE_WALL_HARDNESS)) {
+            if (garbagePoints >= (int) settings.getAttribute(GamemodeAttribute.GARBAGE_WALL_HARDNESS)) {
                 field.getQueue().crackHardenedWall(garbagePoints);
                 garbagePoints = 0;
             }
@@ -207,7 +209,7 @@ public class PlayingFieldScorer {
     }
 
     public void onClearingModeChange(Player player) {
-        if (!gamemode.hasAttribute(GamemodeAttribute.DO_CLEARING_MODES)) return;
+        if (!settings.hasAttribute(GamemodeAttribute.DO_CLEARING_MODES)) return;
 
         // Meter has to be at least 25% full to switch to defense
         double percent = meter / meterMax;
@@ -244,7 +246,7 @@ public class PlayingFieldScorer {
      * @param player Player to send messages to if something goes wrong
      */
     public void activateEvent(Player player) {
-        if (gamemode.getModifier() == null) {
+        if (settings.getEventClass() == null) {
             player.sendMessage(ChatColor.RED + "No event to activate!");
             return;
         }
@@ -273,11 +275,11 @@ public class PlayingFieldScorer {
 
     // todo these two methods could be replaced with some reflection
     public boolean isMeterFilledEnough(double percent) {
-        if (gamemode.getModifier() == Rush.class && percent >= Rush.singletonInstance.getMeterPercentRequired()) {
+        if (settings.getEventClass() == Rush.class && percent >= Rush.singletonInstance.getMeterPercentRequired()) {
             return true;
-        } else if (gamemode.getModifier() == Freeze.class && percent >= Freeze.singletonInstance.getMeterPercentRequired()) {
+        } else if (settings.getEventClass() == Freeze.class && percent >= Freeze.singletonInstance.getMeterPercentRequired()) {
             return true;
-        } else if (gamemode.getModifier() == Tutorial.class) {
+        } else if (settings.getEventClass() == Tutorial.class) {
             return true;
         }
         return false;
@@ -285,12 +287,12 @@ public class PlayingFieldScorer {
 
     // This only serves to store the redundant logic
     public ModifierEvent createEvent(double percent) {
-        if (gamemode.getModifier() == Rush.class) {
+        if (settings.getEventClass() == Rush.class) {
             return new Rush(field);
 
-        } else if (gamemode.getModifier() == Freeze.class) {
+        } else if (settings.getEventClass() == Freeze.class) {
             return new Freeze(field, (int) (20 * 10 * percent));
-        } else if (gamemode.getModifier() == Tutorial.class) {
+        } else if (settings.getEventClass() == Tutorial.class) {
             return new Tutorial(field, 20);
         }
         return null;
@@ -345,6 +347,7 @@ public class PlayingFieldScorer {
         perfectWallsCleared = 0;
         time = 0;
         gamemode = null;
+        settings = null;
         level = 1;
         doLevels = false;
     }
@@ -362,13 +365,13 @@ public class PlayingFieldScorer {
 
         // if a timefreeze modifier event is active and we're in a singleplayer game, pause the timer
         if (field.eventActive() && field.getEvent().timeFreeze
-                && gamemode.hasAttribute(GamemodeAttribute.SINGLEPLAYER)) return;
+                && settings.hasAttribute(GamemodeAttribute.SINGLEPLAYER)) return;
         // if we're in a score attack game, decrement the time
-        if (gamemode.hasAttribute(GamemodeAttribute.TIME_LIMIT)) time--;
+        if (settings.hasAttribute(GamemodeAttribute.TIME_LIMIT)) time--;
         else time++;
 
-        if (gamemode.hasAttribute(GamemodeAttribute.TIME_LIMIT)) {
-            if ((int) gamemode.getAttribute(GamemodeAttribute.TIME_LIMIT) >= 120 * 20) {
+        if (settings.hasAttribute(GamemodeAttribute.TIME_LIMIT)) {
+            if ((int) settings.getAttribute(GamemodeAttribute.TIME_LIMIT) >= 120 * 20) {
                 if (time <= 0) {
                     field.sendMessageToPlayers(ChatColor.RED + "Time's up!");
                     field.stop();
@@ -492,12 +495,12 @@ public class PlayingFieldScorer {
         endScreen.addLine(gamemode.getTitle());
         endScreen.addLine("");
         endScreen.addLine(ChatColor.GREEN + "Final score: " + ChatColor.BOLD + score);
-        if (gamemode.hasAttribute(GamemodeAttribute.MULTIPLAYER)) {
+        if (settings.hasAttribute(GamemodeAttribute.MULTIPLAYER)) {
             if (gamemode == Gamemode.MULTIPLAYER_SCORE_ATTACK) {
                 endScreen.addLine(ChatColor.WHITE + "Position: No. " + multiplayerGame.getRank(field));
             }
         }
-        if (!gamemode.hasAttribute(GamemodeAttribute.TIME_LIMIT)) {
+        if (!settings.hasAttribute(GamemodeAttribute.TIME_LIMIT)) {
             endScreen.addLine(ChatColor.AQUA + "Time: " + ChatColor.BOLD + getFormattedTime());
         }
         endScreen.addLine(ChatColor.GOLD + "Perfect Walls cleared: " + ChatColor.BOLD + perfectWallsCleared);
@@ -505,11 +508,14 @@ public class PlayingFieldScorer {
         return endScreen;
     }
 
-    public void setGamemode(Gamemode gamemode) {
+    public void setGamemode(Gamemode gamemode, GamemodeSettings settings) {
         this.gamemode = gamemode;
+        this.settings = settings;
         for (GamemodeAttribute attribute : GamemodeAttribute.values()) {
-            Object value = gamemode.getAttribute(attribute);
-            if (value == null) continue;
+            if (!settings.hasAttribute(attribute)) continue;
+            Object value = settings.getAttribute(attribute);
+            
+            // todo decide whether to cast here or use the methods that cast beforehand
 
             switch (attribute) {
                 case TIME_LIMIT -> setTime((int) value);
@@ -541,9 +547,14 @@ public class PlayingFieldScorer {
             // Immediately activate the tutorial event
             activateEvent(field.getPlayers().iterator().next());
         }
-        if (gamemode.getAttribute(GamemodeAttribute.MULTIPLAYER) == Boolean.TRUE) {
+        if (settings.getAttribute(GamemodeAttribute.MULTIPLAYER) == Boolean.TRUE) {
             createScoreboard();
         }
+    }
+    
+    // Default gamemode settings
+    public void setGamemode(Gamemode gamemode) {
+        setGamemode(gamemode, gamemode.getDefaultSettings());
     }
 
     // levels
@@ -556,7 +567,7 @@ public class PlayingFieldScorer {
 
         ChatColor color;
         String modifier = "";
-        if (gamemode.getModifier() != null) modifier = gamemode.getModifier().getSimpleName() + " ";
+        if (settings.getEventClass() != null) modifier = settings.getEventClass().getSimpleName() + " ";
         if (percentFilled <= 0.3) {
             color = ChatColor.GRAY;
         } else if (percentFilled <= 0.7) {
@@ -674,5 +685,9 @@ public class PlayingFieldScorer {
     public int getPosition() {
         if (multiplayerGame == null) return -1;
         return multiplayerGame.getRank(field);
+    }
+
+    public GamemodeSettings getSettings() {
+        return settings;
     }
 }

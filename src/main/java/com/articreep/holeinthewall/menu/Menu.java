@@ -75,7 +75,7 @@ public class Menu implements Listener {
             return;
         }
         Gamemode mode = Gamemode.values()[gamemodeIndex];
-        if (mode.hasAttribute(GamemodeAttribute.MULTIPLAYER)) {
+        if (mode.getDefaultSettings().hasAttribute(GamemodeAttribute.MULTIPLAYER)) {
             field.sendMessageToPlayers(ChatColor.RED + "You cannot start a multiplayer game through this menu!");
         } else {
             field.countdownStart(Gamemode.values()[gamemodeIndex]);

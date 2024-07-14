@@ -4,6 +4,7 @@ import com.articreep.holeinthewall.display.DisplayType;
 import com.articreep.holeinthewall.environments.TheVoid;
 import com.articreep.holeinthewall.gamemode.Gamemode;
 import com.articreep.holeinthewall.gamemode.GamemodeAttribute;
+import com.articreep.holeinthewall.gamemode.GamemodeSettings;
 import com.articreep.holeinthewall.menu.EndScreen;
 import com.articreep.holeinthewall.menu.Menu;
 import com.articreep.holeinthewall.modifiers.ModifierEvent;
@@ -190,7 +191,7 @@ public class PlayingField implements Listener {
         HoleInTheWall.getInstance().getServer().getPluginManager().registerEvents(this, HoleInTheWall.getInstance());
         if (!resetRecently) reset();
         scorer.setGamemode(mode);
-        setDisplaySlotsFromGamemode(mode);
+        setDisplaySlots(scorer.getSettings());
         removeMenu();
         removeEndScreen();
         spawnTextDisplays();
@@ -277,7 +278,7 @@ public class PlayingField implements Listener {
         player.getInventory().setItem(1, supportItem());
         player.getInventory().setItem(2, meterItem());
         // todo temporary
-        if (scorer.getGamemode().hasAttribute(GamemodeAttribute.DO_CLEARING_MODES)) {
+        if (scorer.getSettings().hasAttribute(GamemodeAttribute.DO_CLEARING_MODES)) {
             player.getInventory().setItem(3, new ItemStack(Material.FIREWORK_STAR));
         }
 
@@ -667,8 +668,8 @@ public class PlayingField implements Listener {
     public void endEvent() {
         event.end();
         event = null;
-        if (scorer.getGamemode().hasAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP)) {
-            if (scorer.getEventCount() >= (int) scorer.getGamemode().getAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP)) {
+        if (scorer.getSettings().hasAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP)) {
+            if (scorer.getEventCount() >= (int) scorer.getSettings().getAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP)) {
                 stop();
             }
         }
@@ -683,11 +684,11 @@ public class PlayingField implements Listener {
         displaySlots[5] = DisplayType.GAMEMODE;
     }
 
-    public void setDisplaySlotsFromGamemode(Gamemode mode) {
-        displaySlots[0] = (DisplayType) mode.getAttribute(GamemodeAttribute.DISPLAY_SLOT_0);
-        displaySlots[1] = (DisplayType) mode.getAttribute(GamemodeAttribute.DISPLAY_SLOT_1);
-        displaySlots[2] = (DisplayType) mode.getAttribute(GamemodeAttribute.DISPLAY_SLOT_2);
-        displaySlots[3] = (DisplayType) mode.getAttribute(GamemodeAttribute.DISPLAY_SLOT_3);
+    public void setDisplaySlots(GamemodeSettings settings) {
+        displaySlots[0] = settings.getDisplayTypeAttribute(GamemodeAttribute.DISPLAY_SLOT_0);
+        displaySlots[1] = settings.getDisplayTypeAttribute(GamemodeAttribute.DISPLAY_SLOT_1);
+        displaySlots[2] = settings.getDisplayTypeAttribute(GamemodeAttribute.DISPLAY_SLOT_2);
+        displaySlots[3] = settings.getDisplayTypeAttribute(GamemodeAttribute.DISPLAY_SLOT_3);
     }
 
     public void spawnTextDisplays() {
@@ -760,8 +761,8 @@ public class PlayingField implements Listener {
                 case EVENTS -> {
                     ArrayList<Object> array = new ArrayList<>();
                     array.add(scorer.getEventCount());
-                    if (scorer.getGamemode().hasAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP)) {
-                        array.add("/" + scorer.getGamemode().getAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP));
+                    if (scorer.getSettings().hasAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP)) {
+                        array.add("/" + scorer.getSettings().getAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP));
                     } else {
                         array.add("");
                     }

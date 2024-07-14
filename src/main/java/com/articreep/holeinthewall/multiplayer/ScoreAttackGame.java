@@ -27,7 +27,7 @@ public class ScoreAttackGame extends MultiplayerGame {
     @Override
     protected void startGame() {
         super.startGame();
-        time = (int) gamemode.getAttribute(GamemodeAttribute.TIME_LIMIT);
+        time = (int) gamemode.getDefaultSettings().getAttribute(GamemodeAttribute.TIME_LIMIT);
         sortTask = sortLoop();
     }
 
@@ -127,7 +127,7 @@ public class ScoreAttackGame extends MultiplayerGame {
                 }
             }.runTaskLater(HoleInTheWall.getInstance(), 20 * 10));
 
-            time = (int) gamemode.getAttribute(GamemodeAttribute.TIME_LIMIT);
+            time = (int) gamemode.getDefaultSettings().getAttribute(GamemodeAttribute.TIME_LIMIT);
         } else {
             super.stop();
         }

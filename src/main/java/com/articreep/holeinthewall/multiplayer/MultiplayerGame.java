@@ -21,6 +21,7 @@ public abstract class MultiplayerGame {
     protected Set<BukkitTask> otherTasks = new HashSet<>();
 
     public MultiplayerGame(List<PlayingField> fields) {
+        // todo add some kind of way to input setting changes
         if (fields.isEmpty()) {
             Bukkit.getLogger().severe("Tried to create multiplayer game with no playing fields");
         }

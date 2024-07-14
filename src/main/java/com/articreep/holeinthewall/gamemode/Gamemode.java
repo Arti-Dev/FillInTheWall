@@ -7,17 +7,15 @@ import com.articreep.holeinthewall.modifiers.Rush;
 import com.articreep.holeinthewall.modifiers.Tutorial;
 import org.bukkit.ChatColor;
 
-import java.util.HashMap;
-
 public enum Gamemode {
 
-    INFINITE(ChatColor.LIGHT_PURPLE + "Infinite", ChatColor.GRAY + "Step off the playing field to stop playing.", Rush.class),
-    TUTORIAL("Tutorial", ChatColor.GRAY + "Learn how to play!", Tutorial.class),
-    SCORE_ATTACK(ChatColor.GOLD + "Score Attack", ChatColor.GRAY + "Score as much as you can in 2 minutes!",null),
-    RUSH_SCORE_ATTACK(ChatColor.RED + "Rush Score Attack", ChatColor.GRAY + "Use Rush Attacks to score as much as you can!", Rush.class),
-    MULTIPLAYER_SCORE_ATTACK(ChatColor.AQUA + "Multiplayer Score Attack", ChatColor.GRAY + "Hypixel-style game", Freeze.class),
-    MARATHON(ChatColor.GRAY + "Marathon", ChatColor.GRAY + "Survive as long as you can!", null),
-    VERSUS(ChatColor.BLUE + "2-player Versus", ChatColor.GRAY + "Experimental versus system with garbage walls", null);
+    INFINITE(ChatColor.LIGHT_PURPLE + "Infinite", ChatColor.GRAY + "Step off the playing field to stop playing."),
+    TUTORIAL("Tutorial", ChatColor.GRAY + "Learn how to play!"),
+    SCORE_ATTACK(ChatColor.GOLD + "Score Attack", ChatColor.GRAY + "Score as much as you can in 2 minutes!"),
+    RUSH_SCORE_ATTACK(ChatColor.RED + "Rush Score Attack", ChatColor.GRAY + "Use Rush Attacks to score as much as you can!"),
+    MULTIPLAYER_SCORE_ATTACK(ChatColor.AQUA + "Multiplayer Score Attack", ChatColor.GRAY + "Hypixel-style game"),
+    MARATHON(ChatColor.GRAY + "Marathon", ChatColor.GRAY + "Survive as long as you can!"),
+    VERSUS(ChatColor.BLUE + "2-player Versus", ChatColor.GRAY + "Experimental versus system with garbage walls");
 
     static {
         INFINITE.addAttribute(GamemodeAttribute.CONSISTENT_HOLE_COUNT, false);
@@ -31,6 +29,7 @@ public enum Gamemode {
         INFINITE.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         INFINITE.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         INFINITE.addAttribute(GamemodeAttribute.AUTOMATIC_METER, true);
+        INFINITE.settings.setEventClass(Rush.class);
 
         SCORE_ATTACK.addAttribute(GamemodeAttribute.TIME_LIMIT, 20*120);
         SCORE_ATTACK.addAttribute(GamemodeAttribute.DO_LEVELS, true);
@@ -52,8 +51,8 @@ public enum Gamemode {
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.AUTOMATIC_METER, true);
+        RUSH_SCORE_ATTACK.settings.setEventClass(Rush.class);
 
-        // todo this doesn't affect the game length at all right now
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.TIME_LIMIT, 20*120);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.RANDOM_HOLE_COUNT, 3);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.CONNECTED_HOLE_COUNT, 0);
@@ -64,6 +63,7 @@ public enum Gamemode {
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.SPEED);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.MULTIPLAYER, true);
+        MULTIPLAYER_SCORE_ATTACK.settings.setEventClass(Freeze.class);
 
         TUTORIAL.addAttribute(GamemodeAttribute.STARTING_WALL_ACTIVE_TIME, 20*30);
         TUTORIAL.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
@@ -71,6 +71,7 @@ public enum Gamemode {
         TUTORIAL.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.NONE);
         TUTORIAL.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         TUTORIAL.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
+        TUTORIAL.settings.setEventClass(Tutorial.class);
 
         MARATHON.addAttribute(GamemodeAttribute.DO_LEVELS, true);
         MARATHON.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
@@ -101,14 +102,10 @@ public enum Gamemode {
 
     final String title;
     final String description;
-    final Class<? extends ModifierEvent> modifier;
-    final HashMap<GamemodeAttribute, Object> attributes;
-    Gamemode(String title, String description,
-             Class<? extends ModifierEvent> modifier) {
+    final GamemodeSettings settings = new GamemodeSettings();
+    Gamemode(String title, String description) {
         this.title = title;
         this.description = description;
-        this.modifier = modifier;
-        this.attributes = new HashMap<>();
     }
 
     public String getTitle() {
@@ -120,19 +117,10 @@ public enum Gamemode {
     }
 
     private void addAttribute(GamemodeAttribute attribute, Object value) {
-        attributes.put(attribute, value);
+        settings.setAttribute(attribute, value);
     }
 
-    public Class<? extends ModifierEvent> getModifier() {
-        return modifier;
-    }
-
-    public Object getAttribute(GamemodeAttribute attribute) {
-        if (!hasAttribute(attribute)) return attribute.getDefaultValue();
-        return attributes.get(attribute);
-    }
-
-    public boolean hasAttribute(GamemodeAttribute attribute) {
-        return attributes.containsKey(attribute);
+    public GamemodeSettings getDefaultSettings() {
+        return settings;
     }
 }
