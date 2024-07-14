@@ -1,6 +1,6 @@
 package com.articreep.holeinthewall.multiplayer;
 
-import com.articreep.holeinthewall.Gamemode;
+import com.articreep.holeinthewall.gamemode.Gamemode;
 import com.articreep.holeinthewall.HoleInTheWall;
 import com.articreep.holeinthewall.PlayingField;
 import com.articreep.holeinthewall.PlayingFieldManager;

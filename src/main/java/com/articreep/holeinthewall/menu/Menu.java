@@ -1,6 +1,8 @@
 package com.articreep.holeinthewall.menu;
 
 import com.articreep.holeinthewall.*;
+import com.articreep.holeinthewall.gamemode.Gamemode;
+import com.articreep.holeinthewall.gamemode.GamemodeAttribute;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;

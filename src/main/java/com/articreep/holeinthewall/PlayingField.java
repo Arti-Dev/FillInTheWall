@@ -2,6 +2,8 @@ package com.articreep.holeinthewall;
 
 import com.articreep.holeinthewall.display.DisplayType;
 import com.articreep.holeinthewall.environments.TheVoid;
+import com.articreep.holeinthewall.gamemode.Gamemode;
+import com.articreep.holeinthewall.gamemode.GamemodeAttribute;
 import com.articreep.holeinthewall.menu.EndScreen;
 import com.articreep.holeinthewall.menu.Menu;
 import com.articreep.holeinthewall.modifiers.ModifierEvent;

@@ -1,4 +1,4 @@
-package com.articreep.holeinthewall;
+package com.articreep.holeinthewall.gamemode;
 
 import com.articreep.holeinthewall.display.DisplayType;
 

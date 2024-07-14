@@ -1,6 +1,7 @@
 package com.articreep.holeinthewall;
 
 import com.articreep.holeinthewall.environments.TheVoid;
+import com.articreep.holeinthewall.gamemode.Gamemode;
 import com.articreep.holeinthewall.multiplayer.Pregame;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;

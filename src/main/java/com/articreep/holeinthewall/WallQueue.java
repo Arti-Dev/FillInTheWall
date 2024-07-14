@@ -1,5 +1,6 @@
 package com.articreep.holeinthewall;
 
+import com.articreep.holeinthewall.gamemode.GamemodeAttribute;
 import com.articreep.holeinthewall.modifiers.Rush;
 import com.articreep.holeinthewall.multiplayer.WallGenerator;
 import org.bukkit.Bukkit;
