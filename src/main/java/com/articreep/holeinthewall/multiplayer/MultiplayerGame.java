@@ -187,7 +187,7 @@ public abstract class MultiplayerGame {
         if (position == 1) {
             return -1;
         } else {
-            int pointsOfNextRank = rankings.get(position-1).getScorer().getScore();
+            int pointsOfNextRank = rankings.get(position-2).getScorer().getScore();
             return pointsOfNextRank - field.getScorer().getScore();
         }
     }
