@@ -74,6 +74,12 @@ public class PlayingField implements Listener {
     private final TextDisplay[] textDisplays = new TextDisplay[displaySlotsLength];
     private boolean scoreDisplayOverride = false;
 
+    // Tip statistics
+    private int ticksSinceFlying = 0;
+    private int ticksSinceOffhandSubmit = 0;
+    private boolean hasSubmittedUsingOffhand = false;
+    private TextDisplay tipDisplay = null;
+
     private PlayingFieldScorer scorer;
     private ModifierEvent event = null;
 
@@ -288,6 +294,7 @@ public class PlayingField implements Listener {
         for (TextDisplay display : textDisplays) {
             display.remove();
         }
+        if (tipDisplay != null) tipDisplay.remove();
         multiplayerMode = false;
         queue.clearAllWalls();
         queue.allowMultipleWalls(false);
@@ -326,6 +333,8 @@ public class PlayingField implements Listener {
 
         if (confirmOnCooldown) return;
         queue.instantSend();
+        ticksSinceOffhandSubmit = 0;
+        hasSubmittedUsingOffhand = true;
         PlayerInventory inventory = event.getPlayer().getInventory();
         ItemStack mainHandItem = inventory.getItemInMainHand();
         inventory.setItemInMainHand(confirmItem());
@@ -599,6 +608,18 @@ public class PlayingField implements Listener {
             public void run() {
                 updateTextDisplays();
 
+                // Tips
+                if (!arePlayersFlying()) ticksSinceFlying++;
+                else ticksSinceFlying = 0;
+
+                ticksSinceOffhandSubmit++;
+
+                if (ticksSinceFlying == 20*20) {
+                    setTipDisplay(ChatColor.GRAY + "Tip: " + ChatColor.YELLOW + "You can fly!");
+                } else if (ticksSinceOffhandSubmit == 30*20 && !hasSubmittedUsingOffhand) {
+                    setTipDisplay(ChatColor.GRAY + "Tip: " + ChatColor.YELLOW + "Submit walls by pressing offhand (usually [F])!");
+                }
+
                 if (eventActive() && event.actionBarOverride() != null) {
                     sendActionBarToPlayers(new TextComponent(event.actionBarOverride()));
                 } else {
@@ -658,6 +679,13 @@ public class PlayingField implements Listener {
                 ticks++;
             }
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
+    }
+
+    public boolean arePlayersFlying() {
+        for (Player player : players) {
+            if (player.isFlying()) return true;
+        }
+        return false;
     }
 
     public void setEvent(ModifierEvent event) {
@@ -855,14 +883,23 @@ public class PlayingField implements Listener {
     }
 
     /**
-     * Gets the location in the center (height and length) of this playing field.
+     * Returns a location that is the center of the playing field, either on the horizontal axis (on the bottom), vertical axis (on the left side), or both.
      * @return The center location
      */
+    public Location getCenter(boolean alongLength, boolean alongHeight) {
+        Location location = getReferencePoint();
+        if (alongLength) {
+            // There's a -1 on the length because the reference point is in the center of the target block.
+            location.add(fieldDirection.clone().multiply((double) (length - 1) / 2));
+        }
+        if (alongHeight) {
+            location.add(new Vector(0, 1, 0).multiply((double) (height - 1) / 2));
+        }
+        return location;
+    }
+
     public Location getCenter() {
-        return getReferencePoint()
-                // There's a -1 on the length because the reference point is in the center of the target block.
-                .add(fieldDirection.clone().multiply((double) (length - 1) / 2))
-                .add(new Vector(0, 1, 0).multiply((double) (height - 1) / 2));
+        return getCenter(true, true);
     }
 
     public static ItemStack confirmItem() {
@@ -968,7 +1005,6 @@ public class PlayingField implements Listener {
                 i++;
             }
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 5);
-
     }
 
     public Material getWallMaterial() {
@@ -990,5 +1026,24 @@ public class PlayingField implements Listener {
         spawn.add(getIncomingDirection().multiply(getStandingDistance() / 2.0));
         spawn.setDirection(getIncomingDirection().multiply(-1));
         return spawn;
+    }
+
+    public void setTipDisplay(String tip) {
+        if (tipDisplay != null) tipDisplay.remove();
+        Location location = getCenter(true, false).subtract(0, 0.45, 0);
+        location.setDirection(getIncomingDirection());
+        location.setPitch(-90);
+
+        tipDisplay = (TextDisplay) getWorld().spawnEntity(location, EntityType.TEXT_DISPLAY);
+        tipDisplay.setText(tip);
+        tipDisplay.setTransformation(new Transformation(
+                new Vector3f(0, 0, 0),
+                new AxisAngle4f(0, 0, 0, 1),
+                new Vector3f(0.8f, 0.8f, 0.8f),
+                new AxisAngle4f(0, 0, 0, 1)));
+        ;
+        Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), () -> {
+            if (tipDisplay != null) tipDisplay.remove();
+        }, 20*10);
     }
 }
