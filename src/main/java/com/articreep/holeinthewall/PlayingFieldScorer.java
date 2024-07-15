@@ -31,6 +31,7 @@ public class PlayingFieldScorer {
     private int score = 0;
     private double meter = 0;
     private int perfectWallsCleared = 0;
+    private int perfectWallChain = 0;
     private double blocksPlaced = 0;
     // time in ticks (this is displayed on the text display)
     private int time = 0;
@@ -75,7 +76,13 @@ public class PlayingFieldScorer {
         double percent = calculatePercent(wall, score);
 
         // Perfect clear bonus (add one extra point)
-        if (percent >= 1) score++;
+        if (percent >= 1) {
+            score++;
+            perfectWallsCleared++;
+            perfectWallChain++;
+        } else {
+            perfectWallChain = 0;
+        }
         this.score += score;
 
         Judgement judgement = Judgement.MISS;
@@ -87,8 +94,6 @@ public class PlayingFieldScorer {
                 break;
             }
         }
-
-        if (judgement == Judgement.PERFECT) perfectWallsCleared++;
 
         boolean showScoreTitle = true;
         // Add/subtract to bonus
@@ -693,5 +698,9 @@ public class PlayingFieldScorer {
 
     public GamemodeSettings getSettings() {
         return settings;
+    }
+
+    public int getPerfectWallChain() {
+        return perfectWallChain;
     }
 }

@@ -178,6 +178,9 @@ public class PlayingField implements Listener {
     public void reset() {
         scorer = new PlayingFieldScorer(this);
         queue = new WallQueue(this, wallMaterial, WallGenerator.defaultGenerator(length, height), hideBottomBorder);
+        ticksSinceOffhandSubmit = 0;
+        ticksSinceFlying = 0;
+        hasSubmittedUsingOffhand = false;
         resetRecently = true;
     }
 
@@ -490,17 +493,29 @@ public class PlayingField implements Listener {
                 TheVoid.judgementEffect(this, judgement);
             } else if (environment.equalsIgnoreCase("FINALS") && judgement == Judgement.PERFECT) {
                 // hardcoded values lol
-                Finals.torchGeyser(getReferencePoint()
+                Location left = getReferencePoint()
                         .add(0.5, 0.5, 0.5)
-                        .add(getFieldDirection().multiply(length + 7))
-                        .add(getIncomingDirection().multiply(-13))
-                        .add(0, -5, 0));
-                Finals.torchGeyser(getReferencePoint()
+                        // todo not sure why i have to shift over by 8 compared to 6???
+                        .add(getFieldDirection().multiply(-8))
+                        .add(getIncomingDirection().multiply(-14))
+                        .add(0, -5, 0);
+                Location right = getReferencePoint()
                         .add(0.5, 0.5, 0.5)
-                        // todo not sure why i have to shift over by 9 compared to 7???
-                        .add(getFieldDirection().multiply(-9))
-                        .add(getIncomingDirection().multiply(-13))
-                        .add(0, -5, 0));
+                        .add(getFieldDirection().multiply(length + 6))
+                        .add(getIncomingDirection().multiply(-14))
+                        .add(0, -5, 0);
+                new BukkitRunnable() {
+                    int i = 0;
+                    @Override
+                    public void run() {
+                        Finals.torchGeyser(left);
+                        Finals.torchGeyser(right);
+                        left.add(getFieldDirection().multiply(-1)).add(getIncomingDirection().multiply(1));
+                        right.add(getFieldDirection().multiply(1)).add(getIncomingDirection().multiply(1));
+                        i++;
+                        if (i >= Math.min(10, getScorer().getPerfectWallChain())) cancel();
+                    }
+                }.runTaskTimer(HoleInTheWall.getInstance(), 0, 3);
             }
         } else {
             event.score(wall);

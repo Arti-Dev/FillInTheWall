@@ -25,7 +25,7 @@ public class Finals implements Listener {
 
     // FINALS_TORCH_GEYSER
     public static void torchGeyser(Location referenceLocation) {
-
+        referenceLocation = referenceLocation.clone();
         World world = referenceLocation.getWorld();
 
         List<BlockDisplay> blockDisplays = new ArrayList<>();
@@ -45,6 +45,7 @@ public class Finals implements Listener {
             blockDisplay.setInterpolationDuration(1);
         }
 
+        Location finalReferenceLocation = referenceLocation;
         new BukkitRunnable() {
             int ticks = 0;
             final double acceleration = 7.0;
@@ -98,7 +99,7 @@ public class Finals implements Listener {
                     // Set water blocks until deque size is equal to how much the torch is offset
                     // todo currently not storing the original blocks.. might want to in the future
                     while (waterStack.size() < torchOffset) {
-                        Location location = referenceLocation.clone().add(0, waterStack.size() + 1, 0);
+                        Location location = finalReferenceLocation.clone().add(0, waterStack.size() + 1, 0);
                         Block block = location.getBlock();
                         if (block.getType() == Material.AIR || block.getType() == Material.WATER || block.getType() == Material.BUBBLE_COLUMN) {
                             block.setType(Material.WATER);
