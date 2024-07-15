@@ -71,10 +71,13 @@ public class PlayingFieldScorer {
 
     public Judgement scoreWall(Wall wall, PlayingField field) {
 
-        int score = calculateScore(wall, field, true);
+        int score = calculateScore(wall, field);
+        double percent = calculatePercent(wall, score);
+
+        // Perfect clear bonus (add one extra point)
+        if (percent >= 1) score++;
         this.score += score;
 
-        double percent = calculatePercent(wall, score);
         Judgement judgement = Judgement.MISS;
 
         // Determine judgement
@@ -304,7 +307,7 @@ public class PlayingFieldScorer {
         }
     }
 
-    public int calculateScore(Wall wall, PlayingField field, boolean perfectClearBonus) {
+    public int calculateScore(Wall wall, PlayingField field) {
         Map<Pair<Integer, Integer>, Block> extraBlocks = wall.getExtraBlocks(field);
         Map<Pair<Integer, Integer>, Block> correctBlocks = wall.getCorrectBlocks(field);
         Map<Pair<Integer, Integer>, Block> missingBlocks = wall.getMissingBlocks(field);
@@ -312,8 +315,6 @@ public class PlayingFieldScorer {
         // Check score
         int points = correctBlocks.size() - extraBlocks.size();
         if (points < 0) points = 0;
-        // Perfect clear bonus (add one extra point)
-        if (perfectClearBonus && extraBlocks.isEmpty() && missingBlocks.isEmpty()) points++;
         return points;
     }
 
@@ -332,7 +333,7 @@ public class PlayingFieldScorer {
     }
 
     public double calculatePercent(Wall wall, PlayingField field) {
-        return (double) calculateScore(wall, field, false) / wall.getHoles().size();
+        return (double) calculateScore(wall, field) / wall.getHoles().size();
     }
 
     public int getPerfectWallsCleared() {
