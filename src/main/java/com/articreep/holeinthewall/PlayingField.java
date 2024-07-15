@@ -1,6 +1,7 @@
 package com.articreep.holeinthewall;
 
 import com.articreep.holeinthewall.display.DisplayType;
+import com.articreep.holeinthewall.environments.Finals;
 import com.articreep.holeinthewall.environments.TheVoid;
 import com.articreep.holeinthewall.gamemode.Gamemode;
 import com.articreep.holeinthewall.gamemode.GamemodeAttribute;
@@ -478,6 +479,19 @@ public class PlayingField implements Listener {
             changeBorderBlocks(judgement.getBorder());
             if (environment.equalsIgnoreCase("VOID")) {
                 TheVoid.judgementEffect(this, judgement);
+            } else if (environment.equalsIgnoreCase("FINALS") && judgement == Judgement.PERFECT) {
+                // hardcoded values lol
+                Finals.torchGeyser(getReferencePoint()
+                        .add(0.5, 0.5, 0.5)
+                        .add(getFieldDirection().multiply(length + 7))
+                        .add(getIncomingDirection().multiply(-13))
+                        .add(0, -5, 0));
+                Finals.torchGeyser(getReferencePoint()
+                        .add(0.5, 0.5, 0.5)
+                        // todo not sure why i have to shift over by 9 compared to 7???
+                        .add(getFieldDirection().multiply(-9))
+                        .add(getIncomingDirection().multiply(-13))
+                        .add(0, -5, 0));
             }
         } else {
             event.score(wall);

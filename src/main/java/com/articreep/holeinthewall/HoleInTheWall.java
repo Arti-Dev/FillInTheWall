@@ -1,5 +1,6 @@
 package com.articreep.holeinthewall;
 
+import com.articreep.holeinthewall.environments.Finals;
 import com.articreep.holeinthewall.environments.TheVoid;
 import com.articreep.holeinthewall.gamemode.Gamemode;
 import com.articreep.holeinthewall.multiplayer.Pregame;
@@ -22,6 +23,7 @@ public final class HoleInTheWall extends JavaPlugin implements CommandExecutor {
         getServer().getPluginManager().registerEvents(new PlayingFieldManager(), this);
         getServer().getPluginManager().registerEvents(new TheVoid(), this);
         getServer().getPluginManager().registerEvents(registerPlayingField, this);
+        getServer().getPluginManager().registerEvents(new Finals(), this);
         Bukkit.getLogger().info(ChatColor.BLUE + "HoleInTheWall has been enabled!");
 
         saveDefaultConfig();
