@@ -13,6 +13,7 @@ import com.articreep.holeinthewall.modifiers.Tutorial;
 import com.articreep.holeinthewall.multiplayer.MultiplayerGame;
 import com.articreep.holeinthewall.multiplayer.ScoreAttackGame;
 import com.articreep.holeinthewall.utils.Utils;
+import net.md_5.bungee.api.chat.*;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
@@ -571,7 +572,7 @@ public class PlayingFieldScorer {
         this.meterMax = meterMax;
     }
 
-    public String getFormattedMeter() {
+    public BaseComponent getFormattedMeter() {
         double percentFilled = meter / meterMax;
 
         ChatColor color;
@@ -584,11 +585,12 @@ public class PlayingFieldScorer {
         } else {
             color = ChatColor.GREEN;
         }
-        String string = color + modifier + "Meter: " + String.format("%.2f", meter) + "/" + meterMax;
+        ComponentBuilder builder = new ComponentBuilder(color + modifier + "Meter: " + String.format("%.2f", meter) + "/" + meterMax);
         if (isMeterFilledEnough(percentFilled)) {
-            string += " " + ChatColor.AQUA + ChatColor.BOLD + "Ready!";
+            builder.append(" " + ChatColor.BLUE + ChatColor.BOLD + "Ready! Press ")
+                    .append(new KeybindComponent(Keybinds.DROP)).color(ChatColor.BLUE.asBungee()).bold(true);
         }
-        return string;
+        return builder.build();
     }
 
     public void setLevel(int level) {

@@ -300,7 +300,7 @@ public class Tutorial extends ModifierEvent implements Listener {
             if (percent >= 0.5) fakeMeter += percent;
             else fakeMeter -= 1;
             if (fakeMeter >= fakeMeterMax) {
-                field.sendTitleToPlayers(ChatColor.GREEN + "Your meter is full!", "Hold the firework in your hotbar and click!", 10, 60, 10);
+                field.sendTitleToPlayers(ChatColor.GREEN + "Press your drop key to activate the Meter", "or hold the firework in your hotbar and click", 10, 60, 10);
                 fakeMeter = fakeMeterMax;
             }
             if (fakeMeter < 0) fakeMeter = 0;

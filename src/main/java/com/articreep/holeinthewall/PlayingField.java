@@ -14,6 +14,7 @@ import com.articreep.holeinthewall.multiplayer.WallGenerator;
 import com.articreep.holeinthewall.utils.Utils;
 import com.articreep.holeinthewall.utils.WorldBoundingBox;
 import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -27,6 +28,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
@@ -381,7 +383,7 @@ public class PlayingField implements Listener {
     }
 
     @EventHandler
-    public void onCrackedStoneClick(PlayerInteractEvent event) {
+    public void onClick(PlayerInteractEvent event) {
         if (!players.contains(event.getPlayer())) return;
         Player player = event.getPlayer();
         // Player must click with an item in hand
@@ -426,6 +428,14 @@ public class PlayingField implements Listener {
                 scorer.onClearingModeChange(player);
             }
         }
+    }
+
+    @EventHandler
+    public void onDropItem(PlayerDropItemEvent event) {
+        if (!players.contains(event.getPlayer())) return;
+        Player player = event.getPlayer();
+        event.setCancelled(true);
+        scorer.onMeterActivate(player);
     }
 
     /**
@@ -638,7 +648,7 @@ public class PlayingField implements Listener {
                 if (eventActive() && event.actionBarOverride() != null) {
                     sendActionBarToPlayers(new TextComponent(event.actionBarOverride()));
                 } else {
-                    sendActionBarToPlayers(new TextComponent(scorer.getFormattedMeter()));
+                    sendActionBarToPlayers(scorer.getFormattedMeter());
                 }
                 queue.tick();
                 if (eventActive()) {
@@ -968,7 +978,7 @@ public class PlayingField implements Listener {
         }
     }
 
-    public void sendActionBarToPlayers(TextComponent component) {
+    public void sendActionBarToPlayers(BaseComponent component) {
         for (Player player : players) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, component);
         }
