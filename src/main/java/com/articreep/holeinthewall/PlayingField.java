@@ -16,6 +16,7 @@ import com.articreep.holeinthewall.utils.WorldBoundingBox;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Display;
@@ -277,11 +278,12 @@ public class PlayingField implements Listener {
         // since this is a minigame
         player.getInventory().clear();
         player.getInventory().setItem(0, buildingItem(playerMaterial));
-        player.getInventory().setItem(1, supportItem());
-        player.getInventory().setItem(2, meterItem());
+        player.getInventory().setItem(1, stoneSupportItem());
+        player.getInventory().setItem(2, copperSupportItem());
+        player.getInventory().setItem(3, meterItem());
         // todo temporary
         if (scorer.getSettings().hasAttribute(GamemodeAttribute.DO_CLEARING_MODES)) {
-            player.getInventory().setItem(3, new ItemStack(Material.FIREWORK_STAR));
+            player.getInventory().setItem(4, new ItemStack(Material.FIREWORK_STAR));
         }
 
     }
@@ -396,9 +398,9 @@ public class PlayingField implements Listener {
                 Location newBlock = event.getClickedBlock().getLocation().add(event.getBlockFace().getDirection());
                 if (isInField(newBlock)) {
                     // Despawn the cracked stone bricks
-                    player.getWorld().spawnParticle(Particle.BLOCK,
-                            event.getClickedBlock().getLocation(),
-                            10, 0.5, 0.5, 0.5, 0.1,
+                    getWorld().spawnParticle(Particle.BLOCK,
+                            event.getClickedBlock().getLocation().add(0.5, 0.5, 0.5),
+                            100, 0.5, 0.5, 0.5, 0.1,
                             Material.CRACKED_STONE_BRICKS.createBlockData());
                     Bukkit.getScheduler().runTask(HoleInTheWall.getInstance(),
                             () -> event.getClickedBlock().breakNaturally(new ItemStack(Material.LEAD)));
@@ -494,7 +496,16 @@ public class PlayingField implements Listener {
      * @param wall Wall to check against
      */
     public void matchAndScore(Wall wall) {
-        // Check score
+        // First, break all copper support blocks
+        for (Block block : getPlayingFieldBlocks().values()) {
+            if (block.getType() == Material.COPPER_GRATE) {
+                getWorld().spawnParticle(Particle.BLOCK,
+                        block.getLocation().add(0.5, 0.5, 0.5),
+                        100, 0.5, 0.5, 0.5, 0.1,
+                        Material.COPPER_GRATE.createBlockData());
+                block.setType(Material.AIR);
+            }
+        }
         // Events can override scoring
         if (!eventActive() || !event.overrideScoring) {
             Judgement judgement = scorer.scoreWall(wall, this);
@@ -502,30 +513,7 @@ public class PlayingField implements Listener {
             if (environment.equalsIgnoreCase("VOID")) {
                 TheVoid.judgementEffect(this, judgement);
             } else if (environment.equalsIgnoreCase("FINALS") && judgement == Judgement.PERFECT) {
-                // hardcoded values lol
-                Location left = getReferencePoint()
-                        .add(0.5, 0.5, 0.5)
-                        // todo not sure why i have to shift over by 8 compared to 6???
-                        .add(getFieldDirection().multiply(-8))
-                        .add(getIncomingDirection().multiply(-14))
-                        .add(0, -5, 0);
-                Location right = getReferencePoint()
-                        .add(0.5, 0.5, 0.5)
-                        .add(getFieldDirection().multiply(length + 6))
-                        .add(getIncomingDirection().multiply(-14))
-                        .add(0, -5, 0);
-                new BukkitRunnable() {
-                    int i = 0;
-                    @Override
-                    public void run() {
-                        Finals.torchGeyser(left);
-                        Finals.torchGeyser(right);
-                        left.add(getFieldDirection().multiply(-1)).add(getIncomingDirection().multiply(1));
-                        right.add(getFieldDirection().multiply(1)).add(getIncomingDirection().multiply(1));
-                        i++;
-                        if (i >= Math.min(10, getScorer().getPerfectWallChain())) cancel();
-                    }
-                }.runTaskTimer(HoleInTheWall.getInstance(), 0, 3);
+                Finals.torchGeyser(this);
             }
         } else {
             event.score(wall);
@@ -943,14 +931,26 @@ public class PlayingField implements Listener {
         return item;
     }
 
-    public static ItemStack supportItem() {
+    public static ItemStack stoneSupportItem() {
         ItemStack item = new ItemStack(Material.CRACKED_STONE_BRICKS);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.GRAY + "Support Block");
+        meta.setDisplayName(ChatColor.GRAY + "Stone Support Block");
         meta.setLore(Arrays.asList(ChatColor.GRAY + "- place this block on the field",
                 ChatColor.GRAY + "- place another block against this block",
                 ChatColor.YELLOW + "" + ChatColor.BOLD + "- ???",
                 ChatColor.AQUA + "- floating block"));
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    public static ItemStack copperSupportItem() {
+        ItemStack item = new ItemStack(Material.COPPER_GRATE);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.of(new java.awt.Color(154, 95, 74)) + "Copper Support Block");
+        meta.setLore(Arrays.asList(ChatColor.GRAY + "- place this block on the field",
+                ChatColor.GRAY + "- block breaks right before wall is submitted",
+                ChatColor.YELLOW + "" + ChatColor.BOLD + "- ???",
+                ChatColor.AQUA + "- no left clicks required"));
         item.setItemMeta(meta);
         return item;
     }

@@ -1,6 +1,7 @@
 package com.articreep.holeinthewall.environments;
 
 import com.articreep.holeinthewall.HoleInTheWall;
+import com.articreep.holeinthewall.PlayingField;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.BlockDisplay;
@@ -23,8 +24,35 @@ public class Finals implements Listener {
         if (noFlowBlocks.contains(event.getBlock())) event.setCancelled(true);
     }
 
+    public static void torchGeyser(PlayingField field) {
+        // hardcoded values lol
+        Location left = field.getReferencePoint()
+                .add(0.5, 0.5, 0.5)
+                // todo not sure why i have to shift over by 8 compared to 6???
+                .add(field.getFieldDirection().multiply(-8))
+                .add(field.getIncomingDirection().multiply(-14))
+                .add(0, -5, 0);
+        Location right = field.getReferencePoint()
+                .add(0.5, 0.5, 0.5)
+                .add(field.getFieldDirection().multiply(field.getLength() + 6))
+                .add(field.getIncomingDirection().multiply(-14))
+                .add(0, -5, 0);
+        new BukkitRunnable() {
+            int i = 0;
+            @Override
+            public void run() {
+                Finals.singleTorchGeyser(left);
+                Finals.singleTorchGeyser(right);
+                left.add(field.getFieldDirection().multiply(-1)).add(field.getIncomingDirection().multiply(1));
+                right.add(field.getFieldDirection().multiply(1)).add(field.getIncomingDirection().multiply(1));
+                i++;
+                if (i >= Math.min(10, field.getScorer().getPerfectWallChain())) cancel();
+            }
+        }.runTaskTimer(HoleInTheWall.getInstance(), 0, 3);
+    }
+
     // FINALS_TORCH_GEYSER
-    public static void torchGeyser(Location referenceLocation) {
+    public static void singleTorchGeyser(Location referenceLocation) {
         referenceLocation = referenceLocation.clone();
         World world = referenceLocation.getWorld();
 
