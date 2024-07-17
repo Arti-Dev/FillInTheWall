@@ -184,6 +184,7 @@ public abstract class MultiplayerGame {
 
     public int getPointsBehindNextRank(PlayingField field) {
         int position = getRank(field);
+        if (position <= 0) return -1;
         if (position == 1) {
             return -1;
         } else {
