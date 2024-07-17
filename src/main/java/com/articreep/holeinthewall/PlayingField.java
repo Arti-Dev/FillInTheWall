@@ -79,6 +79,7 @@ public class PlayingField implements Listener {
 
     // Tip statistics
     private int ticksSinceFlying = 0;
+    private boolean hasFlownBefore = false;
     private int ticksSinceOffhandSubmit = 0;
     private boolean hasSubmittedUsingOffhand = false;
     private TextDisplay tipDisplay = null;
@@ -183,6 +184,7 @@ public class PlayingField implements Listener {
         queue = new WallQueue(this, wallMaterial, WallGenerator.defaultGenerator(length, height), hideBottomBorder);
         ticksSinceOffhandSubmit = 0;
         ticksSinceFlying = 0;
+        hasFlownBefore = false;
         hasSubmittedUsingOffhand = false;
         resetRecently = true;
     }
@@ -623,7 +625,10 @@ public class PlayingField implements Listener {
 
                 // Tips
                 if (!arePlayersFlying()) ticksSinceFlying++;
-                else ticksSinceFlying = 0;
+                else {
+                    ticksSinceFlying = 0;
+                    hasFlownBefore = true;
+                }
 
                 ticksSinceOffhandSubmit++;
 
