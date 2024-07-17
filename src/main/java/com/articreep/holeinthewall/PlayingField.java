@@ -297,6 +297,7 @@ public class PlayingField implements Listener {
         }
 
         if (submitFinalWall) queue.instantSend();
+        else clearField();
 
         task.cancel();
         task = null;
