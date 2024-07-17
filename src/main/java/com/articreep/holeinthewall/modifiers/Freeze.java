@@ -1,7 +1,7 @@
 package com.articreep.holeinthewall.modifiers;
 
 import com.articreep.holeinthewall.PlayingField;
-import org.bukkit.ChatColor;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 

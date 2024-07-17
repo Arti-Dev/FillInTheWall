@@ -5,7 +5,7 @@ import com.articreep.holeinthewall.gamemode.Gamemode;
 import com.articreep.holeinthewall.gamemode.GamemodeAttribute;
 import com.articreep.holeinthewall.utils.Utils;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;

@@ -15,7 +15,7 @@ import com.articreep.holeinthewall.multiplayer.ScoreAttackGame;
 import com.articreep.holeinthewall.utils.Utils;
 import net.md_5.bungee.api.chat.*;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -588,7 +588,7 @@ public class PlayingFieldScorer {
         ComponentBuilder builder = new ComponentBuilder(color + modifier + "Meter: " + String.format("%.2f", meter) + "/" + meterMax);
         if (isMeterFilledEnough(percentFilled)) {
             builder.append(" " + ChatColor.BLUE + ChatColor.BOLD + "Ready! Press ")
-                    .append(new KeybindComponent(Keybinds.DROP)).color(ChatColor.BLUE.asBungee()).bold(true);
+                    .append(new KeybindComponent(Keybinds.DROP)).color(ChatColor.BLUE).bold(true);
         }
         return builder.build();
     }

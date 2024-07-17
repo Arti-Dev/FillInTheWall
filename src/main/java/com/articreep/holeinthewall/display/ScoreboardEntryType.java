@@ -1,6 +1,6 @@
 package com.articreep.holeinthewall.display;
 
-import org.bukkit.ChatColor;
+import net.md_5.bungee.api.ChatColor;
 
 public enum ScoreboardEntryType {
     SCORE(ChatColor.YELLOW + "Score: %s"),

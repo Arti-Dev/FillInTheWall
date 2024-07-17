@@ -3,7 +3,7 @@ package com.articreep.holeinthewall.menu;
 import com.articreep.holeinthewall.*;
 import com.articreep.holeinthewall.gamemode.Gamemode;
 import com.articreep.holeinthewall.gamemode.GamemodeAttribute;
-import org.bukkit.ChatColor;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Display;

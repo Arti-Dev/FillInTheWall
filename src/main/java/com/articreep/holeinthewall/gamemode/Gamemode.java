@@ -2,10 +2,9 @@ package com.articreep.holeinthewall.gamemode;
 
 import com.articreep.holeinthewall.display.DisplayType;
 import com.articreep.holeinthewall.modifiers.Freeze;
-import com.articreep.holeinthewall.modifiers.ModifierEvent;
 import com.articreep.holeinthewall.modifiers.Rush;
 import com.articreep.holeinthewall.modifiers.Tutorial;
-import org.bukkit.ChatColor;
+import net.md_5.bungee.api.ChatColor;
 
 public enum Gamemode {
 

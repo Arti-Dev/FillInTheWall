@@ -8,7 +8,7 @@ import com.articreep.holeinthewall.display.ScoreboardEntry;
 import com.articreep.holeinthewall.display.ScoreboardEntryType;
 import com.articreep.holeinthewall.utils.Utils;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
