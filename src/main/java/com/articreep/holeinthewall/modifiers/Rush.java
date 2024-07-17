@@ -111,7 +111,7 @@ public class Rush extends ModifierEvent {
 
     @Override
     public void end() {
-        super.activate();
+        super.end();
         field.clearField();
         queue.clearAllWalls();
         queue.setMaxSpawnCooldown(80);

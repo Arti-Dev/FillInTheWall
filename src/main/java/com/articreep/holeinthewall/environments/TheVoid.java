@@ -54,7 +54,6 @@ public class TheVoid implements Listener {
                     double x = 0.5 * t - 0.5 * Math.sin(t / 2);
                     double y = -0.125 + 0.125 * Math.cos(t);
                     // spawn particle at x, y
-                    // todo we could follow the player.. should experiment
                     player.spawnParticle(particle, location.clone().add(vector.clone().multiply(x)).add(0, y, 0),
                             1, 0.1, 0, 0.1, 0);
                 }
@@ -66,19 +65,21 @@ public class TheVoid implements Listener {
             }
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
     }
-    // todo this is hard-coded to display on the x-y plane only as of right now
-    private static void regularPolygon(int sides, int radius, Location location, Color dustColor) {
+
+    private static void regularPolygon(int sides, int radius, Location location, Vector xVector, Color dustColor) {
         if (sides < 3) return;
 
         List<Location> locations = new ArrayList<>();
         for (int d = 0; d < 360; d += 360/sides) {
-            Location corner = location.clone().add(radius * Math.cos(Math.toRadians(d)), radius * Math.sin(Math.toRadians(d)), 0);
+            Location corner = location.clone()
+                    .add(xVector.clone().multiply(radius * Math.cos(Math.toRadians(d))))
+                    .add(0, radius * Math.sin(Math.toRadians(d)), 0);
             locations.add(corner);
         }
-        connectLocations(locations, dustColor);
+        connectLocationsWithParticles(locations, dustColor);
     }
 
-    private static void animateRegularPetals(int petals, int radius, Location location, Color dustColor) {
+    private static void animateRegularPetals(int petals, int radius, Location location, Vector xVector, Color dustColor) {
         if (petals < 3) return;
         int coeff;
         int thetaMultplier;
@@ -90,22 +91,22 @@ public class TheVoid implements Listener {
             thetaMultplier = 1;
         }
 
-        // todo each will take 20 ticks to draw. subject to change
+        // with this system, each petal takes 20 ticks to draw
         new BukkitRunnable() {
             int theta = 0;
             @Override
             public void run() {
-                petalPolarEquation(radius, location, Color.WHITE, coeff, theta, 1.5f);
+                spawnParticleAlongPetal(radius, location, xVector, Color.WHITE, coeff, theta, 1.5f);
                 theta += 9 * thetaMultplier;
                 if (theta >= 180 * thetaMultplier) {
-                    regularPetals(petals, radius, location, dustColor);
+                    regularPetals(petals, radius, location, xVector, dustColor);
                     this.cancel();
                 }
             }
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
     }
 
-    private static void regularPetals(int petals, int radius, Location location, Color dustColor) {
+    private static void regularPetals(int petals, int radius, Location location, Vector xVector, Color dustColor) {
         if (petals < 3) return;
         int coeff;
         int thetaMultplier;
@@ -117,14 +118,16 @@ public class TheVoid implements Listener {
             thetaMultplier = 1;
         }
         for (int theta = 0; theta < 180 * thetaMultplier; theta++) {
-            petalPolarEquation(radius, location, dustColor, coeff, theta, 1.5f);
+            spawnParticleAlongPetal(radius, location, xVector, dustColor, coeff, theta, 1.5f);
         }
     }
 
-    private static void petalPolarEquation(int radius, Location location, Color dustColor, int coeff, int theta, float size) {
+    private static void spawnParticleAlongPetal(int radius, Location location, Vector xVector, Color dustColor, int coeff, int theta, float size) {
         double r = radius * Math.sin(coeff * Math.toRadians(theta));
-        location.getWorld().spawnParticle(Particle.DUST, location.clone().add(
-                r * Math.cos(Math.toRadians(theta)), r * Math.sin(Math.toRadians(theta)), 0),
+        Location spawnLocation = location.clone()
+                .add(xVector.clone().multiply(r * Math.cos(Math.toRadians(theta))))
+                .add(0, r * Math.sin(Math.toRadians(theta)), 0);
+        location.getWorld().spawnParticle(Particle.DUST, spawnLocation,
                 1, new Particle.DustOptions(dustColor, size));
     }
 
@@ -134,7 +137,7 @@ public class TheVoid implements Listener {
         int shape = random.nextInt(3,8);
         int radius = random.nextInt(1, 5);
         Color dustColor = Color.fromRGB(random.nextInt(255), random.nextInt(255), random.nextInt(255));
-        regularPolygon(shape, radius, location, dustColor);
+        regularPolygon(shape, radius, location, field.getFieldDirection(), dustColor);
     }
 
     public static void randomPetal(PlayingField field) {
@@ -143,7 +146,7 @@ public class TheVoid implements Listener {
         int petals = random.nextInt(3, 8);
         int radius = random.nextInt(1, 5);
         Color dustColor = Color.fromRGB(random.nextInt(255), random.nextInt(255), random.nextInt(255));
-        animateRegularPetals(petals, radius, location, dustColor);
+        animateRegularPetals(petals, radius, location, field.getFieldDirection(), dustColor);
     }
 
     // VOID_SONIC_BOOM
@@ -213,10 +216,10 @@ public class TheVoid implements Listener {
                     cancel();
                 }
                 Location bottomLeft = location.clone().add(movingDirection.clone().multiply(offset));
-                connectLocations(bottomLeft, bottomLeft.clone().add(0, height, 0), 30, Particle.END_ROD);
+                connectLocationsWithParticles(bottomLeft, bottomLeft.clone().add(0, height, 0), 30, Particle.END_ROD);
 
                 Location bottomRight = bottomLeft.clone().add(fieldDirection.clone().multiply(across));
-                connectLocations(bottomRight, bottomRight.clone().add(0, height, 0), 30, Particle.END_ROD);
+                connectLocationsWithParticles(bottomRight, bottomRight.clone().add(0, height, 0), 30, Particle.END_ROD);
             }
         }.runTaskTimer(HoleInTheWall.getInstance(), field.getClearDelay(), 5);
     }
@@ -258,25 +261,21 @@ public class TheVoid implements Listener {
                 .subtract(field.getFieldDirection().multiply(4))
                 .subtract(field.getIncomingDirection().multiply(field.getQueue().getFullLength() / 2));
         Location rightLocation = field.getReferencePoint()
-                .add(field.getFieldDirection().multiply(field.getLength() + 4))
+                .add(field.getFieldDirection().multiply(field.getLength() + 3))
                 .subtract(field.getIncomingDirection().multiply(field.getQueue().getFullLength() / 2));
         BlockDisplay leftDisplay = (BlockDisplay) leftLocation.getWorld().spawnEntity(leftLocation, EntityType.BLOCK_DISPLAY);
         BlockDisplay rightDisplay = (BlockDisplay) rightLocation.getWorld().spawnEntity(rightLocation, EntityType.BLOCK_DISPLAY);
-        leftDisplay.setGlowing(true);
-        rightDisplay.setGlowing(true);
 
-        leftDisplay.setBlock(Material.END_STONE.createBlockData());
-        rightDisplay.setBlock(Material.END_STONE.createBlockData());
-        leftDisplay.setTeleportDuration(1);
-        rightDisplay.setTeleportDuration(1);
-        leftDisplay.setTransformation(new Transformation(
-                new Vector3f(-size/2, -size/2, -size/2),
-                new AxisAngle4f(0, 0, 0, 1), new Vector3f(size, size, size),
-                new AxisAngle4f(0, 0, 0, 1)));
-        rightDisplay.setTransformation(new Transformation(
-                new Vector3f(-size/2, -size/2, -size/2),
-                new AxisAngle4f(0, 0, 0, 1), new Vector3f(size, size, size),
-                new AxisAngle4f(0, 0, 0, 1)));
+        List<BlockDisplay> displays = new ArrayList<>(Arrays.asList(leftDisplay, rightDisplay));
+        for (BlockDisplay display : displays) {
+            display.setGlowing(true);
+            display.setBlock(Material.END_STONE.createBlockData());
+            display.setTeleportDuration(1);
+            display.setTransformation(new Transformation(
+                    new Vector3f(-size/2, -size/2, -size/2),
+                    new AxisAngle4f(0, 0, 0, 1), new Vector3f(size, size, size),
+                    new AxisAngle4f(0, 0, 0, 1)));
+        }
 
         new BukkitRunnable() {
 
@@ -323,7 +322,8 @@ public class TheVoid implements Listener {
         }.runTaskTimer(HoleInTheWall.getInstance(), 0, 1);
     }
 
-    public static void connectLocations(Location loc1, Location loc2, int amount, Color dustColor) {
+    public static void connectLocationsWithParticles(Location loc1, Location loc2, int amount, Color dustColor) {
+        if (amount < 2) return;
         loc1 = loc1.clone();
         loc2 = loc2.clone();
         Vector v = loc2.toVector().subtract(loc1.toVector());
@@ -334,14 +334,14 @@ public class TheVoid implements Listener {
         }
     }
 
-    public static void connectLocations(List<Location> locations, Color dustColor) {
+    public static void connectLocationsWithParticles(List<Location> locations, Color dustColor) {
         for (int i = 0; i < locations.size() - 1; i++) {
-            connectLocations(locations.get(i), locations.get(i + 1), 30, dustColor);
+            connectLocationsWithParticles(locations.get(i), locations.get(i + 1), 30, dustColor);
         }
-        connectLocations(locations.getLast(), locations.getFirst(), 30, dustColor);
+        connectLocationsWithParticles(locations.getLast(), locations.getFirst(), 30, dustColor);
     }
 
-    public static void connectLocations(Location loc1, Location loc2, int amount, Particle particle) {
+    public static void connectLocationsWithParticles(Location loc1, Location loc2, int amount, Particle particle) {
         loc1 = loc1.clone();
         loc2 = loc2.clone();
         Vector v = loc2.toVector().subtract(loc1.toVector());
