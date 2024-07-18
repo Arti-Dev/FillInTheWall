@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.articreep</groupId>
-    <artifactId>HoleInTheWall</artifactId>
+    <artifactId>FillInTheWall</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
 
-    <name>HoleInTheWall</name>
+    <name>FillInTheWall</name>
 
     <properties>
         <java.version>21</java.version>

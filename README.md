@@ -1,3 +1,5 @@
-# Hole in the Wall: Rush
+# Fill in the Wall
 
-For [HooHacks 2024](https://hoohacks-2024.devpost.com/)
+A modern remake of Hypixel's Hole in the Wall minigame
+
+Originally for [HooHacks 2024](https://hoohacks-2024.devpost.com/)
