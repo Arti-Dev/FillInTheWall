@@ -391,7 +391,6 @@ public class Wall {
                 Bukkit.getLogger().info("Can't insert random hole");
                 break;
             }
-            Bukkit.getLogger().info("Inserting random hole");
             insertHole(Utils.randomSetElement(possibleCoordinates));
         }
     }
