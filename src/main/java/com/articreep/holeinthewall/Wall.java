@@ -372,12 +372,6 @@ public class Wall {
         if (!holes.remove(hole)) {
             Bukkit.getLogger().info("Hole removal failed..??");
         }
-//        for (Pair<Integer, Integer> h : holes) {
-//            if (h.equals(hole)) {
-//                holes.remove(h);
-//                break;
-//            }
-//        }
     }
 
     public Pair<Integer, Integer> randomExistingHole() {
@@ -445,36 +439,6 @@ public class Wall {
             }
         }
         return null;
-//        int attempts = 0;
-//        while (attempts < 10) {
-//            // Choose a random hole in the provided wall
-//            Pair<Integer, Integer> existingHole = randomHole();
-//            if (existingHole == null) {
-//                return randomCoordinates();
-//            }
-//            // Choose a random direction to spread the hole to
-//            Random random = new Random();
-//            Pair<Integer, Integer> newHole;
-//            if (diagonalsOK) {
-//                int x = random.nextInt(-1, 2);
-//                int y = random.nextInt(-1, 2);
-//                newHole = Pair.with(existingHole.getValue0() + x, existingHole.getValue1() + y);
-//            } else {
-//                if (random.nextBoolean()) {
-//                    newHole = Pair.with(existingHole.getValue0() + random.nextInt(-1, 2), existingHole.getValue1());
-//                } else {
-//                    newHole = Pair.with(existingHole.getValue0(), existingHole.getValue1() + random.nextInt(-1, 2));
-//                }
-//            }
-//            // If the new hole is in bounds and is not already a hole, return it
-//            if (newHole.getValue0() >= 0 && newHole.getValue0() < length && newHole.getValue1() >= 0 && newHole.getValue1() < height
-//                    && !hasHole(newHole)) {
-//                return newHole;
-//            } else {
-//                attempts++;
-//            }
-//        }
-//        return null;
     }
 
     public Pair<Integer, Integer> randomCoordinatesConnected() {
