@@ -360,9 +360,15 @@ public class Wall {
     }
 
     public void insertHole(Pair<Integer, Integer> hole) {
-        if (hole == null || this.holes.contains(hole)) return;
+        if (hole == null || this.holes.contains(hole)) {
+            if (hole != null) {
+                Bukkit.getLogger().info("Hole already exists: (" + hole.getValue0() + ", " + hole.getValue1() + ")");
+            }
+            return;
+        }
         // out of bounds check
         if (hole.getValue0() < 0 || hole.getValue0() >= length || hole.getValue1() < 0 || hole.getValue1() >= height) {
+            Bukkit.getLogger().info("Hole is out of bounds: (" + hole.getValue0() + ", " + hole.getValue1() + ")");
             return;
         }
         this.holes.add(hole);
@@ -435,6 +441,7 @@ public class Wall {
                 return possibleCoordinates.get(random.nextInt(possibleCoordinates.size()));
             }
         }
+        Bukkit.getLogger().info("Failed to generate a connected hole");
         return null;
     }
 
