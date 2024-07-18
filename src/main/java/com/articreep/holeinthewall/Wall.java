@@ -369,9 +369,7 @@ public class Wall {
     }
 
     public void removeHole(Pair<Integer, Integer> hole) {
-        if (!holes.remove(hole)) {
-            Bukkit.getLogger().info("Hole removal failed..??");
-        }
+        holes.remove(hole);
     }
 
     public Pair<Integer, Integer> randomExistingHole() {
@@ -457,8 +455,6 @@ public class Wall {
      */
     public void generateHoles(int randomCount, int clusterCount, boolean randomizeFurther) {
         insertRandomNewHole(randomCount);
-
-        Bukkit.getLogger().info(holes.size() + " random holes were assigned");
 
         if (randomizeFurther) {
             Random rng = new Random();
