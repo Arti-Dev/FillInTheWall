@@ -82,7 +82,7 @@ public class PlayingField implements Listener {
     private boolean hasFlownBefore = false;
     private int ticksSinceOffhandSubmit = 0;
     private boolean hasSubmittedUsingOffhand = false;
-    private TextDisplay tipDisplay = null;
+    private Set<TextDisplay> tipDisplays = new HashSet<>();
 
     private PlayingFieldScorer scorer;
     private ModifierEvent event = null;
@@ -304,7 +304,7 @@ public class PlayingField implements Listener {
         for (TextDisplay display : textDisplays) {
             display.remove();
         }
-        if (tipDisplay != null) tipDisplay.remove();
+        if (!tipDisplays.isEmpty()) clearTipDisplays();
         multiplayerMode = false;
         queue.clearAllWalls();
         queue.allowMultipleWalls(false);
@@ -633,9 +633,9 @@ public class PlayingField implements Listener {
 
                 ticksSinceOffhandSubmit++;
 
-                if (ticksSinceFlying == 20*20) {
+                if (ticksSinceFlying % (20*20) == 0 && !hasFlownBefore) {
                     setTipDisplay(ChatColor.GRAY + "Tip: " + ChatColor.YELLOW + "You can fly!");
-                } else if (ticksSinceOffhandSubmit == 30*20 && !hasSubmittedUsingOffhand) {
+                } else if (ticksSinceOffhandSubmit % (30*20) == 0 && !hasSubmittedUsingOffhand) {
                     setTipDisplay(ChatColor.GRAY + "Tip: " + ChatColor.YELLOW + "Submit walls by pressing offhand (usually [F])!");
                 }
 
@@ -1059,22 +1059,46 @@ public class PlayingField implements Listener {
         return spawn;
     }
 
+    // todo maybe the display could slide across the floor?
     public void setTipDisplay(String tip) {
-        if (tipDisplay != null) tipDisplay.remove();
-        Location location = getCenter(true, false).subtract(0, 0.45, 0);
-        location.setDirection(getIncomingDirection());
-        location.setPitch(-90);
+        if (!tipDisplays.isEmpty()) clearTipDisplays();
+        Location bottomLocation = getCenter(true, false)
+                .subtract(0, 0.45, 0)
+                .add(getIncomingDirection().multiply(0.5));
+        bottomLocation.setDirection(getIncomingDirection());
+        bottomLocation.setPitch(-90);
 
-        tipDisplay = (TextDisplay) getWorld().spawnEntity(location, EntityType.TEXT_DISPLAY);
-        tipDisplay.setText(tip);
-        tipDisplay.setTransformation(new Transformation(
+        Location topLocation = bottomLocation.clone()
+                .subtract(getIncomingDirection().multiply(1))
+                .add(0, height-0.1, 0);
+        topLocation.setPitch(90);
+
+        TextDisplay bottomDisplay = (TextDisplay) getWorld().spawnEntity(bottomLocation, EntityType.TEXT_DISPLAY);
+        bottomDisplay.setText(tip);
+        bottomDisplay.setTransformation(new Transformation(
                 new Vector3f(0, 0, 0),
                 new AxisAngle4f(0, 0, 0, 1),
-                new Vector3f(0.8f, 0.8f, 0.8f),
+                new Vector3f(1.3f, 1.3f, 1.3f),
                 new AxisAngle4f(0, 0, 0, 1)));
-        ;
-        Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), () -> {
-            if (tipDisplay != null) tipDisplay.remove();
-        }, 20*10);
+
+        TextDisplay topDisplay = (TextDisplay) getWorld().spawnEntity(topLocation, EntityType.TEXT_DISPLAY);
+        topDisplay.setText(tip);
+        topDisplay.setTransformation(new Transformation(
+                new Vector3f(0, 0, 0),
+                new AxisAngle4f(0, 0, 0, 1),
+                new Vector3f(1.3f, 1.3f, 1.3f),
+                new AxisAngle4f(0, 0, 0, 1)));
+
+        tipDisplays.add(bottomDisplay);
+        tipDisplays.add(topDisplay);
+
+        Bukkit.getScheduler().runTaskLater(HoleInTheWall.getInstance(), this::clearTipDisplays, 20*10);
+    }
+
+    public void clearTipDisplays() {
+        for (TextDisplay display : tipDisplays) {
+            display.remove();
+        }
+        tipDisplays.clear();
     }
 }
