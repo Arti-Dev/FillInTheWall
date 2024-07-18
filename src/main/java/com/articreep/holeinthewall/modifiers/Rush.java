@@ -60,7 +60,7 @@ public class Rush extends ModifierEvent {
         } else {
             for (int i = 0; i < 1; i++) {
                 // Remove an existing hole
-                wall.removeHole(wall.randomHole());
+                wall.removeHole(wall.randomExistingHole());
             }
         }
         return wall;

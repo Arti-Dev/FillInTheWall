@@ -8,6 +8,7 @@ import org.bukkit.util.Vector;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.Set;
 
 public class Utils {
     public static BoundingBox locationsToBoundingBox(Location corner1, Location corner2) {
@@ -76,5 +77,19 @@ public class Utils {
 
     public static String getFormattedTime(int ticks) {
         return String.format("%02d:%02d", (ticks/20) / 60, (ticks/20) % 60);
+    }
+
+    /* Taken from https://www.baeldung.com/java-set-draw-sample */
+    public static <T> T randomSetElement(Set<T> set) {
+        if (set == null || set.isEmpty()) return null;
+        int randomIndex = (int) (Math.random() * set.size());
+        int i = 0;
+        for (T element : set) {
+            if (i == randomIndex) {
+                return element;
+            }
+            i++;
+        }
+        return null;
     }
 }

@@ -300,15 +300,6 @@ public class Wall {
 
     /* SCORING */
 
-    public boolean hasHole(Pair<Integer, Integer> hole) {
-        for (Pair<Integer, Integer> h : holes) {
-            if (h.equals(hole)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     /**
      * Returns a set of coordinates where blocks are missing.
      */
@@ -355,6 +346,11 @@ public class Wall {
 
     /* HOLE MANIPULATION */
 
+    public boolean isInBounds(Pair<Integer, Integer> coords) {
+        return coords.getValue0() >= 0 && coords.getValue0() < length
+                && coords.getValue1() >= 0 && coords.getValue1() < height;
+    }
+
     @SafeVarargs
     public final void insertHoles(Pair<Integer, Integer>... holes) {
         for (Pair<Integer, Integer> hole : holes) {
@@ -373,65 +369,112 @@ public class Wall {
     }
 
     public void removeHole(Pair<Integer, Integer> hole) {
-        for (Pair<Integer, Integer> h : holes) {
-            if (h.equals(hole)) {
-                holes.remove(h);
-                break;
-            }
+        if (!holes.remove(hole)) {
+            Bukkit.getLogger().info("Hole removal failed..??");
         }
+//        for (Pair<Integer, Integer> h : holes) {
+//            if (h.equals(hole)) {
+//                holes.remove(h);
+//                break;
+//            }
+//        }
     }
 
-    /* Some code taken from https://www.baeldung.com/java-set-draw-sample */
-    public Pair<Integer, Integer> randomHole() {
+    public Pair<Integer, Integer> randomExistingHole() {
         if (holes.isEmpty()) return null;
-        // Choose a random hole in the provided wall
-        int randomIndex = (int) (Math.random() * getHoles().size());
-        int i = 0;
-        for (Pair<Integer, Integer> hole : getHoles()) {
-            if (i == randomIndex) {
-                return hole;
+        return Utils.randomSetElement(holes);
+    }
+
+    public void insertRandomNewHole(int count) {
+        if (holes.size() >= length * height) return;
+        Set<Pair<Integer, Integer>> possibleCoordinates = new HashSet<>();
+        for (int x = 0; x < length; x++) {
+            for (int y = 0; y < height; y++) {
+                possibleCoordinates.add(Pair.with(x, y));
             }
-            i++;
         }
-        return null;
+        possibleCoordinates.removeAll(holes);
+        for (int i = 0; i < count; i++) {
+            if (possibleCoordinates.isEmpty()) {
+                Bukkit.getLogger().info("Can't insert random hole");
+                break;
+            }
+            Bukkit.getLogger().info("Inserting random hole");
+            insertHole(Utils.randomSetElement(possibleCoordinates));
+        }
     }
 
     public Pair<Integer, Integer> randomCoordinates() {
         return Pair.with((int) (Math.random() * length), (int) (Math.random() * height));
     }
 
-    // todo optimize so that it doesn't just fail sometimes, and so that the code is neater
+    /**
+     * Returns randomly generated coordinates directly near an existing hole that isn't already a hole.
+     * Returns null if generation failed (wall is all holes)
+     * @param diagonalsOK Whether diagonals are okay to return
+     * @return The coordinates near a randomly selected existing hole
+     */
     public Pair<Integer, Integer> randomCoordinatesConnected(boolean diagonalsOK) {
-        int attempts = 0;
-        while (attempts < 10) {
-            // Choose a random hole in the provided wall
-            Pair<Integer, Integer> existingHole = randomHole();
-            if (existingHole == null) {
-                return randomCoordinates();
-            }
-            // Choose a random direction to spread the hole to
-            Random random = new Random();
-            Pair<Integer, Integer> newHole;
-            if (diagonalsOK) {
-                int x = random.nextInt(-1, 2);
-                int y = random.nextInt(-1, 2);
-                newHole = Pair.with(existingHole.getValue0() + x, existingHole.getValue1() + y);
-            } else {
-                if (random.nextBoolean()) {
-                    newHole = Pair.with(existingHole.getValue0() + random.nextInt(-1, 2), existingHole.getValue1());
-                } else {
-                    newHole = Pair.with(existingHole.getValue0(), existingHole.getValue1() + random.nextInt(-1, 2));
+        if (holes.size() >= length * height) return null;
+        Random random = new Random();
+        // Dump all existing holes into an arraylist, and shuffle
+        List<Pair<Integer, Integer>> holeList = new ArrayList<>();
+        holeList.addAll(holes);
+        Collections.shuffle(holeList);
+
+
+        for (Pair<Integer, Integer> existingHole : holeList) {
+            ArrayList<Pair<Integer, Integer>> possibleCoordinates = new ArrayList<>();
+
+            // Find possible coordinates to choose
+            for (int x = -1; x <= 1; x++) {
+                for (int y = -1; y <= 1; y++) {
+                    // If diagonals are not ok, filter out diagonals
+                    if (!diagonalsOK && !((x != 0 && y == 0) || (x == 0 && y != 0))) {
+                        continue;
+                    }
+                    Pair<Integer, Integer> newPair = Pair.with(existingHole.getValue0() + x, existingHole.getValue1() + y);
+                    if (isInBounds(newPair) && !holes.contains(newPair)) {
+                        possibleCoordinates.add(newPair);
+                    }
                 }
             }
-            // If the new hole is in bounds and is not already a hole, return it
-            if (newHole.getValue0() >= 0 && newHole.getValue0() < length && newHole.getValue1() >= 0 && newHole.getValue1() < height
-                    && !hasHole(newHole)) {
-                return newHole;
-            } else {
-                attempts++;
+
+            if (!possibleCoordinates.isEmpty()) {
+                return possibleCoordinates.get(random.nextInt(possibleCoordinates.size()));
             }
         }
         return null;
+//        int attempts = 0;
+//        while (attempts < 10) {
+//            // Choose a random hole in the provided wall
+//            Pair<Integer, Integer> existingHole = randomHole();
+//            if (existingHole == null) {
+//                return randomCoordinates();
+//            }
+//            // Choose a random direction to spread the hole to
+//            Random random = new Random();
+//            Pair<Integer, Integer> newHole;
+//            if (diagonalsOK) {
+//                int x = random.nextInt(-1, 2);
+//                int y = random.nextInt(-1, 2);
+//                newHole = Pair.with(existingHole.getValue0() + x, existingHole.getValue1() + y);
+//            } else {
+//                if (random.nextBoolean()) {
+//                    newHole = Pair.with(existingHole.getValue0() + random.nextInt(-1, 2), existingHole.getValue1());
+//                } else {
+//                    newHole = Pair.with(existingHole.getValue0(), existingHole.getValue1() + random.nextInt(-1, 2));
+//                }
+//            }
+//            // If the new hole is in bounds and is not already a hole, return it
+//            if (newHole.getValue0() >= 0 && newHole.getValue0() < length && newHole.getValue1() >= 0 && newHole.getValue1() < height
+//                    && !hasHole(newHole)) {
+//                return newHole;
+//            } else {
+//                attempts++;
+//            }
+//        }
+//        return null;
     }
 
     public Pair<Integer, Integer> randomCoordinatesConnected() {
@@ -441,27 +484,28 @@ public class Wall {
     /**
      * Generates holes on the wall.
      * The algorithm works as follows:
-     * Generate x random holes on the wall.
+     * Generate x randomCount holes on the wall.
      * Generate y holes that are connected to existing holes, either horizontally, vertically, or diagonally.
-     * @param random Number of random holes to generate
-     * @param cluster Number of connected holes to generate. This can be random as well with the next argument.
-     * @param randomizeFurther Whether to instead randomize the number of connected holes and use the provided
-     *                         cluster argument as the maximum number of connected holes to generate.
+     * @param randomCount Number of random holes to generate
+     * @param clusterCount Number of connected holes to generate. This can be random as well with the next argument.
+     * @param randomizeFurther Whether to instead randomize the number of connected holes and use the given cluster
+     *                         parameter as an upper bound.
      */
-    public void generateHoles(int random, int cluster, boolean randomizeFurther) {
-        for (int i = 0; i < random; i++) {
-            Pair<Integer, Integer> hole = randomCoordinates();
-            insertHole(hole);
-        }
+    public void generateHoles(int randomCount, int clusterCount, boolean randomizeFurther) {
+        insertRandomNewHole(randomCount);
+
+        Bukkit.getLogger().info(holes.size() + " random holes were assigned");
 
         if (randomizeFurther) {
             Random rng = new Random();
-            cluster = rng.nextInt(0, cluster + 1);
+            clusterCount = rng.nextInt(0, clusterCount + 1);
         }
-        for (int i = 0; i < cluster; i++) {
-            Pair<Integer, Integer> hole = (randomCoordinatesConnected());
+        for (int i = 0; i < clusterCount; i++) {
+            Pair<Integer, Integer> hole = randomCoordinatesConnected();
             if (hole != null) {
                 insertHole(hole);
+            } else {
+                break;
             }
         }
     }
