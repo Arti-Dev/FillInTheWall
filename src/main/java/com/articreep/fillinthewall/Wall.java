@@ -3,9 +3,7 @@ package com.articreep.fillinthewall;
 import com.articreep.fillinthewall.utils.Utils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.entity.BlockDisplay;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
@@ -19,6 +17,7 @@ public class Wall {
     // The walls will be 7x4 blocks
     private final int length;
     private final int height;
+    private String name = null;
     private final HashSet<Pair<Integer, Integer>> holes;
     private WallState state = WallState.HIDDEN;
     private boolean wasHardened = false;
@@ -30,7 +29,7 @@ public class Wall {
     private int distanceToTraverse = 0;
     // todo this reference entity sometimes will just be a hole so it won't move
     private BlockDisplay referenceEntity = null;
-    private final Set<BlockDisplay> entities = new HashSet<>();
+    private final Set<Display> entities = new HashSet<>();
     private final List<BlockDisplay> blocks = new ArrayList<>();
     private final List<BlockDisplay> border = new ArrayList<>();
     private final List<BlockDisplay> toRemove = new ArrayList<>();
@@ -42,14 +41,23 @@ public class Wall {
     // todo hardness mechanic might be confusing in a vs match
     private int hardness = 0;
 
-    public Wall(HashSet<Pair<Integer, Integer>> holes, int length, int height) {
+    public Wall(HashSet<Pair<Integer, Integer>> holes, int length, int height, String name) {
         this.holes = holes;
         this.length = length;
         this.height = height;
+        this.name = name;
+    }
+
+    public Wall(HashSet<Pair<Integer, Integer>> holes, int length, int height) {
+        this(holes, length, height, null);
     }
 
     public Wall(int length, int height) {
-        this(new HashSet<>(), length, height);
+        this(new HashSet<>(), length, height, null);
+    }
+
+    public Wall(int length, int height, String name) {
+        this(new HashSet<>(), length, height, name);
     }
 
     public HashSet<Pair<Integer, Integer>> getHoles() {
@@ -188,7 +196,21 @@ public class Wall {
         if (!hideBottomBorder) border.add(bottomBorder);
         entities.addAll(border);
 
-        for (BlockDisplay display : entities) {
+        // Name label (if added)
+        if (name != null) {
+            Location location = centerOfWall.clone().add(0, ((double) height/2)+0.5, 0);
+            location.setDirection(movementDirection);
+            TextDisplay nameDisplay = (TextDisplay) world.spawnEntity(location, EntityType.TEXT_DISPLAY);
+            nameDisplay.setText(name);
+            nameDisplay.setBillboard(Display.Billboard.HORIZONTAL);
+            nameDisplay.setTransformation(new Transformation(
+                    new Vector3f(0, 0, 0),
+                    new AxisAngle4f(0, 0, 0, 1), new Vector3f(2, 2, 2),
+                    new AxisAngle4f(0, 0, 0, 1)));
+            entities.add(nameDisplay);
+        }
+
+        for (Display display : entities) {
             display.setTeleportDuration(teleportDuration);
             display.setInterpolationDuration(1);
         }
@@ -252,7 +274,7 @@ public class Wall {
 
         if (tickCooldown == 0) {
             correct();
-            for (BlockDisplay display : entities) {
+            for (Display display : entities) {
                 Location target = display.getLocation()
                         .add(movementDirection.clone().multiply(distanceToTraverse * teleportDuration / (double) maxTime));
                 if (doSpin && blocks.contains(display)) target.setYaw(target.getYaw() + 10);
@@ -278,7 +300,7 @@ public class Wall {
     }
 
     public void despawn() {
-        for (BlockDisplay entity : entities) {
+        for (Display entity : entities) {
             entity.remove();
         }
         blocks.clear();
@@ -502,7 +524,7 @@ public class Wall {
     public void setTeleportDuration(int ticks) {
         //correct();
         teleportDuration = ticks;
-        for (BlockDisplay display : entities) {
+        for (Display display : entities) {
             display.setTeleportDuration(ticks);
         }
         tickCooldown = 0;
@@ -511,7 +533,7 @@ public class Wall {
     public void correct() {
         int lastTeleportDuration = teleportDuration;
         setTeleportDurationWithoutCorrection(0);
-        for (BlockDisplay display : entities) {
+        for (Display display : entities) {
             Location target = display.getLocation()
                     // Go back to this entity's starting position
                     .subtract(movementDirection.clone().multiply(distanceToTraverse * (maxTime - teleportTo) / (double) maxTime))
@@ -526,7 +548,7 @@ public class Wall {
     // To prevent recursion when the correct() method is run after new teleport duration is set
     private void setTeleportDurationWithoutCorrection(int ticks) {
         teleportDuration = ticks;
-        for (BlockDisplay display : entities) {
+        for (Display display : entities) {
             display.setTeleportDuration(ticks);
         }
         tickCooldown = 0;
@@ -562,5 +584,43 @@ public class Wall {
 
     public boolean wasHardened() {
         return wasHardened;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public static Wall parseWall(String string) {
+
+        // Parse wall dimensions
+        int xIndex = string.indexOf("x");
+        int nameStart = string.indexOf("'") + 1;
+        if (xIndex == -1) return null;
+
+        int length = Integer.parseInt(string.substring(0, xIndex));
+        int height = Integer.parseInt(string.substring(xIndex + 1, nameStart - 1));
+
+        // Parse wall name
+        int nameEnd = string.indexOf("'", nameStart);
+        String name = string.substring(nameStart, nameEnd);
+
+//        Bukkit.getLogger().info("Length: " + length);
+//        Bukkit.getLogger().info("Height: " + height);
+//        Bukkit.getLogger().info("Name: " + name);
+
+        Wall wall = new Wall(length, height, name);
+        int coordinateLength = Math.max((int) Math.log10(length) + 1, (int) Math.log10(height) + 1);
+
+        for (int i = nameEnd + 1; i < string.length(); i += coordinateLength * 2) {
+            int x = Integer.parseInt(string.substring(i, i + coordinateLength));
+            int y = Integer.parseInt(string.substring(i + coordinateLength, i + coordinateLength * 2));
+            wall.insertHole(Pair.with(x, y));
+        }
+
+        return wall;
     }
 }

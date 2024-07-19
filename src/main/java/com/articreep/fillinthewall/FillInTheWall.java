@@ -9,6 +9,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class FillInTheWall extends JavaPlugin implements CommandExecutor {
@@ -111,6 +112,13 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor {
                     } else {
                         sender.sendMessage("Start a timer with /fillinthewall timer first");
                     }
+                }
+
+            } else if (args[0].equalsIgnoreCase("custom")) {
+                if (args.length >= 2 && sender instanceof Player player && PlayingFieldManager.isInGame(player)) {
+                    PlayingFieldManager.activePlayingFields.get(player).getQueue().addWall(Wall.parseWall(args[1]));
+                } else {
+                    sender.sendMessage("Wrong syntax... I won't tell you how though! >:)");
                 }
 
             } else {
