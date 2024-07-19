@@ -19,10 +19,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Display;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.TextDisplay;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -100,6 +97,8 @@ public class PlayingField implements Listener {
     private EndScreen endScreen = null;
     private boolean confirmOnCooldown = false;
 
+    private final HashMap<Block, BlockDisplay> incorrectBlockHighlights = new HashMap<>();
+
     // Multiplayer settings
     /** Whether to prevent new players from joining and current players from leaving, AND prevent players from starting their own games
      * Used for multiplayer games */
@@ -112,6 +111,8 @@ public class PlayingField implements Listener {
         this.fieldReferencePoint = Utils.centralizeLocation(referencePoint);
         this.fieldDirection = direction;
         this.incomingDirection = incomingDirection;
+        if (!fieldDirection.isZero()) fieldDirection.normalize();
+        if (!incomingDirection.isZero()) incomingDirection.normalize();
         this.scorer = new PlayingFieldScorer(this);
         this.queue = new WallQueue(this, wallMaterial, WallGenerator.defaultGenerator(length, height), hideBottomBorder);
         this.boundingBox = boundingBox;
@@ -374,6 +375,16 @@ public class PlayingField implements Listener {
             player.playSound(player.getLocation(), Sound.BLOCK_CHAIN_PLACE, 0.7f, random.nextFloat(0.5f, 2));
         }
 
+        if (scorer.getSettings().getBooleanAttribute(GamemodeAttribute.HIGHLIGHT_INCORRECT_BLOCKS)) {
+            Block block = event.getBlockPlaced();
+            if (block.getType() != copperSupportItem().getType()) {
+                Pair<Integer, Integer> coordinates = blockToCoordinates(block);
+                if (queue.getFrontmostWall() != null && !queue.getFrontmostWall().getHoles().contains(coordinates)) {
+                    addIncorrectBlockHighlight(block);
+                }
+            }
+        }
+
         scorer.increaseBlocksPlaced();
     }
 
@@ -381,9 +392,15 @@ public class PlayingField implements Listener {
     public void onBlockBreak(BlockBreakEvent event) {
         if (!players.contains(event.getPlayer())) return;
         Player player = event.getPlayer();
-        if (!isInField(event.getBlock().getLocation())) {
+        Block block = event.getBlock();
+        if (!isInField(block.getLocation())) {
             event.setCancelled(true);
             player.sendMessage(ChatColor.RED + "Can't break blocks here!");
+        }
+
+        if (incorrectBlockHighlights.containsKey(block)) {
+            incorrectBlockHighlights.get(block).remove();
+            incorrectBlockHighlights.remove(block);
         }
     }
 
@@ -397,16 +414,21 @@ public class PlayingField implements Listener {
 
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             if (event.getClickedBlock().getType() == Material.CRACKED_STONE_BRICKS) {
+                Block clickedBlock = event.getClickedBlock();
                 // Check to make sure the block placement wasn't an accident
-                Location newBlock = event.getClickedBlock().getLocation().add(event.getBlockFace().getDirection());
+                Location newBlock = clickedBlock.getLocation().add(event.getBlockFace().getDirection());
                 if (isInField(newBlock)) {
                     // Despawn the cracked stone bricks
                     getWorld().spawnParticle(Particle.BLOCK,
-                            event.getClickedBlock().getLocation().add(0.5, 0.5, 0.5),
+                            clickedBlock.getLocation().add(0.5, 0.5, 0.5),
                             100, 0.5, 0.5, 0.5, 0.1,
                             Material.CRACKED_STONE_BRICKS.createBlockData());
                     Bukkit.getScheduler().runTask(FillInTheWall.getInstance(),
-                            () -> event.getClickedBlock().breakNaturally(new ItemStack(Material.LEAD)));
+                            () -> clickedBlock.breakNaturally(new ItemStack(Material.LEAD)));
+                    if (incorrectBlockHighlights.containsKey(clickedBlock)) {
+                        incorrectBlockHighlights.get(clickedBlock).remove();
+                        incorrectBlockHighlights.remove(clickedBlock);
+                    }
                     player.playSound(player.getLocation(), Sound.BLOCK_DEEPSLATE_BREAK, 0.7f, 1);
                 }
             }
@@ -443,6 +465,21 @@ public class PlayingField implements Listener {
         scorer.onMeterActivate(player);
     }
 
+    public void refreshIncorrectBlockHighlights(Wall wall) {
+        for (BlockDisplay display : incorrectBlockHighlights.values()) {
+            display.remove();
+        }
+        incorrectBlockHighlights.clear();
+        if (!scorer.getSettings().getBooleanAttribute(GamemodeAttribute.HIGHLIGHT_INCORRECT_BLOCKS)) return;
+
+
+        for (Pair<Integer, Integer> coordinates : getPlayingFieldBlocks().keySet()) {
+            if (!wall.getHoles().contains(coordinates) && coordinatesToBlock(coordinates).getType() != copperSupportItem().getType()) {
+                addIncorrectBlockHighlight(coordinatesToBlock(coordinates));
+            }
+        }
+    }
+
     /**
      * Returns all blocks in the playing field excluding air blocks.
      * @return all blocks in coordinate to block map
@@ -462,6 +499,7 @@ public class PlayingField implements Listener {
         return blocks;
     }
 
+    // todo add the option to get this reference point in the center of the block or in the natural corner
     public Location getReferencePoint() {
         return fieldReferencePoint.clone();
     }
@@ -479,6 +517,14 @@ public class PlayingField implements Listener {
                         .multiply(coordinates.getValue0())).add(0, coordinates.getValue1(), 0)
                 .getBlock();
 
+    }
+
+    // Generated with GitHub Copilot, then adjusted
+    public Pair<Integer, Integer> blockToCoordinates(Block block) {
+        Vector relative = block.getLocation().subtract(getReferencePoint().subtract(0.5, 0.5, 0.5)).toVector();
+        int x = (int) relative.dot(fieldDirection);
+        int y = (int) relative.getY();
+        return Pair.with(x, y);
     }
 
     public Set<Player> getPlayers() {
@@ -593,6 +639,10 @@ public class PlayingField implements Listener {
 
     public void clearField() {
         fillField(Material.AIR);
+        for (BlockDisplay display : incorrectBlockHighlights.values()) {
+            display.remove();
+        }
+        incorrectBlockHighlights.clear();
     }
 
     public void changeBorderBlocks(Material material) {
@@ -1100,5 +1150,13 @@ public class PlayingField implements Listener {
             display.remove();
         }
         tipDisplays.clear();
+    }
+
+    public void addIncorrectBlockHighlight(Block block) {
+        BlockDisplay display = (BlockDisplay) getWorld().spawnEntity(block.getLocation(), EntityType.BLOCK_DISPLAY);
+        display.setBlock(playerMaterial.createBlockData());
+        display.setGlowing(true);
+        display.setGlowColorOverride(Color.RED);
+        incorrectBlockHighlights.put(block, display);
     }
 }

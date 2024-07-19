@@ -26,7 +26,8 @@ public enum GamemodeAttribute {
   /**
      * Amount of modifier events that can be activated until the game ends.
      */
-    MODIFIER_EVENT_CAP(Integer.class, -1);
+    MODIFIER_EVENT_CAP(Integer.class, -1),
+    HIGHLIGHT_INCORRECT_BLOCKS(Boolean.class, false);
 
     private final Class<?> type;
     private final Object defaultValue;

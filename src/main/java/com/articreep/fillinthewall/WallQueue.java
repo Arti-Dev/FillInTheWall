@@ -34,6 +34,8 @@ public class WallQueue {
     private int maxSpawnCooldown = 80;
     private int spawnCooldown = 80;
 
+    private Wall frontmostWall = null;
+
     // Wall generation settings
     private WallGenerator generator;
     boolean hideBottomBorder = false;
@@ -145,6 +147,8 @@ public class WallQueue {
             return;
         }
 
+        sortActiveWalls();
+
         // Tick all visible walls
         Iterator<Wall> it = activeWalls.iterator();
         while (it.hasNext()) {
@@ -173,14 +177,21 @@ public class WallQueue {
         if (activeWalls.isEmpty()) return;
         // sort walls by time remaining
         sortActiveWalls();
-        Wall wall = activeWalls.getFirst();
-        field.matchAndScore(wall);
-        activeWalls.remove(wall);
-        wall.despawn();
+        field.matchAndScore(frontmostWall);
+        activeWalls.remove(frontmostWall);
+        frontmostWall.despawn();
     }
 
     public void sortActiveWalls() {
         activeWalls.sort(Comparator.comparingInt(Wall::getTimeRemaining));
+        if (!activeWalls.isEmpty()) {
+            if (activeWalls.getFirst() != frontmostWall) {
+                field.refreshIncorrectBlockHighlights(activeWalls.getFirst());
+            }
+            frontmostWall = activeWalls.getFirst();
+        } else {
+            frontmostWall = null;
+        }
     }
 
     public int getFullLength() {
@@ -332,5 +343,9 @@ public class WallQueue {
 
     public void updateEffectiveLength() {
         effectiveLength = fullLength - hardenedWalls.size();
+    }
+
+    public Wall getFrontmostWall() {
+        return frontmostWall;
     }
 }
