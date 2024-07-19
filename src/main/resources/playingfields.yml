@@ -1,0 +1,23 @@
+field_1:
+  # This is the bottom LEFT corner of the playing field excluding the border.
+  location:
+    ==: org.bukkit.Location
+    world: world
+    x: 727.0
+    y: 69.0
+    z: 420.0
+    pitch: 0.0
+    yaw: 0.0
+  # Length of the queue in blocks.
+  queue_length: 20
+  field_length: 7
+  field_height: 4
+  standing_distance: 7
+  environment: "VOID"
+  # Direction where the walls move in.
+  incoming_direction: "NORTH"
+  # Direction parallel to the field.
+  field_direction: "WEST"
+  hide_bottom_border: false
+  wall_material: "BLUE_CONCRETE"
+  player_material: "WHITE_STAINED_GLASS"

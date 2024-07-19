@@ -9,11 +9,16 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
+
 public final class FillInTheWall extends JavaPlugin implements CommandExecutor {
     private static FillInTheWall instance = null;
+    private FileConfiguration playingFieldConfig;
 
     @Override
     public void onEnable() {
@@ -27,6 +32,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor {
         getServer().getPluginManager().registerEvents(new Finals(), this);
         Bukkit.getLogger().info(ChatColor.BLUE + "FillInTheWall has been enabled!");
 
+        loadPlayingFieldConfig();
         saveDefaultConfig();
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
@@ -34,7 +40,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor {
             PlayingFieldManager.pregame = new Pregame(Bukkit.getWorld("multi"), Gamemode.MULTIPLAYER_SCORE_ATTACK,
                     2, 30);
             PlayingFieldManager.vsPregame = new Pregame(Bukkit.getWorld("versus"), Gamemode.VERSUS, 2, 15);
-            PlayingFieldManager.parseConfig(getConfig());
+            PlayingFieldManager.parseConfig(getPlayingFieldConfig());
         }, 1);
 
     }
@@ -46,6 +52,10 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor {
 
     public static FillInTheWall getInstance() {
         return instance;
+    }
+
+    public FileConfiguration getPlayingFieldConfig() {
+        return playingFieldConfig;
     }
 
     @Override
@@ -130,7 +140,17 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor {
 
     public void reloadConfig() {
         super.reloadConfig();
+        loadPlayingFieldConfig();
         PlayingFieldManager.removeAllGames();
-        PlayingFieldManager.parseConfig(getConfig());
+        PlayingFieldManager.parseConfig(getPlayingFieldConfig());
+    }
+
+    private void loadPlayingFieldConfig() {
+        File playingFieldFile = new File(getDataFolder(), "playingfields.yml");
+        if (!playingFieldFile.exists()) {
+            playingFieldFile.getParentFile().mkdirs();
+            saveResource("playingfields.yml", false);
+        }
+        playingFieldConfig = YamlConfiguration.loadConfiguration(playingFieldFile);
     }
 }
