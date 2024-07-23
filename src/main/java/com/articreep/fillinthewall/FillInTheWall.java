@@ -15,6 +15,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.util.List;
 
 public final class FillInTheWall extends JavaPlugin implements CommandExecutor {
     private static FillInTheWall instance = null;
@@ -125,8 +126,21 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor {
                 }
 
             } else if (args[0].equalsIgnoreCase("custom")) {
-                if (args.length >= 2 && sender instanceof Player player && PlayingFieldManager.isInGame(player)) {
-                    PlayingFieldManager.activePlayingFields.get(player).getQueue().addWall(Wall.parseWall(args[1]));
+                if (args.length == 2 && sender instanceof Player player && PlayingFieldManager.isInGame(player)) {
+                    PlayingField field = PlayingFieldManager.activePlayingFields.get(player);
+                    if (field.getScorer().getGamemode() == Gamemode.CUSTOM) {
+                        WallBundle bundle = WallBundle.getWallBundle(args[1]);
+                        if (bundle.size() == 0) {
+                            sender.sendMessage(ChatColor.RED + "Something went wrong loading custom walls!");
+                        } else {
+                            List<Wall> walls = bundle.getWalls();
+                            field.getQueue().clearAllWalls();
+                            walls.forEach(field.getQueue()::addWall);
+                            sender.sendMessage(ChatColor.GREEN + "Imported " + walls.size() + " walls");
+                        }
+                    } else {
+                        sender.sendMessage(ChatColor.RED + "You can only use this command in custom mode");
+                    }
                 } else {
                     sender.sendMessage("Wrong syntax... I won't tell you how though! >:)");
                 }

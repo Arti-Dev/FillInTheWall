@@ -17,7 +17,7 @@ public class Wall {
     // The walls will be 7x4 blocks
     private final int length;
     private final int height;
-    private String name = null;
+    private String name;
     private final HashSet<Pair<Integer, Integer>> holes;
     private WallState state = WallState.HIDDEN;
     private boolean wasHardened = false;
@@ -518,6 +518,7 @@ public class Wall {
             newWall.insertHole(hole);
         }
         newWall.setTimeRemaining(maxTime);
+        newWall.setName(name);
         return newWall;
     }
 
@@ -619,6 +620,31 @@ public class Wall {
             int x = Integer.parseInt(string.substring(i, i + coordinateLength));
             int y = Integer.parseInt(string.substring(i + coordinateLength, i + coordinateLength * 2));
             wall.insertHole(Pair.with(x, y));
+        }
+
+        return wall;
+    }
+
+    public static Wall parseWall(String string, int length, int height, String name) {
+        Wall wall = new Wall(length, height, name);
+
+        int index = 0;
+        while (index < string.length()) {
+            // look for next comma
+            int commaIndex = string.indexOf(",", index);
+            if (commaIndex == -1) {
+                break;
+            }
+            int x = Integer.parseInt(string.substring(index, commaIndex));
+
+            index = commaIndex + 1;
+            commaIndex = string.indexOf(",", index);
+            if (commaIndex == -1) {
+                commaIndex = string.length();
+            }
+            int y = Integer.parseInt(string.substring(index, commaIndex));
+            wall.insertHole(Pair.with(x, y));
+            index = commaIndex + 1;
         }
 
         return wall;

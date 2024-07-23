@@ -556,6 +556,16 @@ public class PlayingFieldScorer {
         if (gamemode == Gamemode.TUTORIAL) {
             // Immediately activate the tutorial event
             activateEvent(field.getPlayers().iterator().next());
+        } else if (gamemode == Gamemode.CUSTOM) {
+            WallBundle bundle = WallBundle.getWallBundle("amogus");
+            // todo hardcoded dimension check
+            if (bundle.size() == 0 || field.getLength() != 7 || field.getHeight() != 4) {
+                field.sendMessageToPlayers(ChatColor.RED + "Loading custom walls failed");
+            } else {
+                List<Wall> walls = bundle.getWalls();
+                field.getQueue().clearAllWalls();
+                walls.forEach(field.getQueue()::addWall);
+            }
         }
         if (settings.getAttribute(GamemodeAttribute.MULTIPLAYER) == Boolean.TRUE) {
             createScoreboard();

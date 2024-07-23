@@ -14,7 +14,8 @@ public enum Gamemode {
     RUSH_SCORE_ATTACK(ChatColor.RED + "Rush Score Attack", ChatColor.GRAY + "Use Rush Attacks to score as much as you can!"),
     MULTIPLAYER_SCORE_ATTACK(ChatColor.AQUA + "Multiplayer Score Attack", ChatColor.GRAY + "Hypixel-style game"),
     MARATHON(ChatColor.GRAY + "Marathon", ChatColor.GRAY + "Survive as long as you can!"),
-    VERSUS(ChatColor.BLUE + "2-player Versus", ChatColor.GRAY + "Experimental versus system with garbage walls");
+    VERSUS(ChatColor.BLUE + "2-player Versus", ChatColor.GRAY + "Experimental versus system with garbage walls"),
+    CUSTOM(ChatColor.GREEN + "Custom Walls", ChatColor.GRAY + "Load a custom wall pack");
 
     static {
         INFINITE.addAttribute(GamemodeAttribute.CONSISTENT_HOLE_COUNT, false);
@@ -96,6 +97,7 @@ public enum Gamemode {
         VERSUS.addAttribute(GamemodeAttribute.GARBAGE_WALL_HARDNESS, 2);
         VERSUS.addAttribute(GamemodeAttribute.DO_CLEARING_MODES, true);
 
+        CUSTOM.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
 
 
     }
