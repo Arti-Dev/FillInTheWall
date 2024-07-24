@@ -18,6 +18,8 @@ import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -46,6 +48,7 @@ import java.util.*;
 public class PlayingField implements Listener {
     private final Set<Player> players = new HashSet<>();
     private final HashMap<Player, GameMode> previousGamemodes = new HashMap<>();
+    private final HashMap<Player, Double> previousBlockReach = new HashMap<>();
     /**
      * Must be the bottom left corner of the playing field (NOT including the border blocks)
      * The location is situated in the CENTER of the target block when it is set by the constructor.
@@ -213,6 +216,7 @@ public class PlayingField implements Listener {
         for (Player player : players) {
             formatInventory(player);
             setCreative(player);
+            setInfiniteReach(player);
         }
         task = tickLoop();
     }
@@ -232,6 +236,7 @@ public class PlayingField implements Listener {
         } else if (hasStarted()) {
             formatInventory(player);
             setCreative(player);
+            setInfiniteReach(player);
             if (scorer.getScoreboard() != null) player.setScoreboard(scorer.getScoreboard());
         }
 
@@ -264,6 +269,7 @@ public class PlayingField implements Listener {
             if (previousGamemode != null) player.setGameMode(previousGamemode);
         }
         previousGamemodes.remove(player);
+        resetReach(player);
 
         // Remove from playing field manager
         PlayingFieldManager.activePlayingFields.remove(player);
@@ -289,6 +295,20 @@ public class PlayingField implements Listener {
             player.getInventory().setItem(4, new ItemStack(Material.FIREWORK_STAR));
         }
 
+    }
+
+    public void setInfiniteReach(Player player) {
+        if (!scorer.getSettings().getBooleanAttribute(GamemodeAttribute.INFINITE_BLOCK_REACH)) return;
+        AttributeInstance attribute = player.getAttribute(Attribute.PLAYER_BLOCK_INTERACTION_RANGE);
+        previousBlockReach.put(player, attribute.getBaseValue());
+        attribute.setBaseValue(64);
+    }
+
+    public void resetReach(Player player) {
+        if (previousBlockReach.containsKey(player)) {
+            player.getAttribute(Attribute.PLAYER_BLOCK_INTERACTION_RANGE).setBaseValue(previousBlockReach.get(player));
+            previousBlockReach.remove(player);
+        }
     }
 
     public void stop(boolean submitFinalWall) {

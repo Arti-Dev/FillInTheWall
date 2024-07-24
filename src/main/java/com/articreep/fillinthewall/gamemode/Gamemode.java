@@ -29,7 +29,6 @@ public enum Gamemode {
         INFINITE.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         INFINITE.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         INFINITE.addAttribute(GamemodeAttribute.AUTOMATIC_METER, true);
-        INFINITE.addAttribute(GamemodeAttribute.HIGHLIGHT_INCORRECT_BLOCKS, true);
         INFINITE.settings.setEventClass(Rush.class);
 
         SCORE_ATTACK.addAttribute(GamemodeAttribute.TIME_LIMIT, 20*120);
