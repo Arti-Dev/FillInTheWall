@@ -3,10 +3,7 @@ package com.articreep.fillinthewall;
 import com.articreep.fillinthewall.environments.Finals;
 import com.articreep.fillinthewall.environments.TheVoid;
 import com.articreep.fillinthewall.gamemode.Gamemode;
-import com.articreep.fillinthewall.modifiers.Freeze;
-import com.articreep.fillinthewall.modifiers.ModifierEvent;
-import com.articreep.fillinthewall.modifiers.PopIn;
-import com.articreep.fillinthewall.modifiers.Rush;
+import com.articreep.fillinthewall.modifiers.*;
 import com.articreep.fillinthewall.multiplayer.Pregame;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
@@ -157,6 +154,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor {
                     if (args[1].equalsIgnoreCase("popin")) event = new PopIn(field, ticks);
                     else if (args[1].equalsIgnoreCase("freeze")) event = new Freeze(field, ticks);
                     else if (args[1].equalsIgnoreCase("rush")) event = new Rush(field);
+                    else if (args[1].equalsIgnoreCase("scale")) event = new Scale(field, ticks);
                     else {
                         sender.sendMessage(ChatColor.RED + "Unknown modifier");
                         return true;
