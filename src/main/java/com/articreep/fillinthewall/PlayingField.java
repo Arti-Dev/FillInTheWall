@@ -493,7 +493,7 @@ public class PlayingField implements Listener {
         if (!scorer.getSettings().getBooleanAttribute(GamemodeAttribute.HIGHLIGHT_INCORRECT_BLOCKS)) return;
 
 
-        for (Pair<Integer, Integer> coordinates : getPlayingFieldBlocks().keySet()) {
+        for (Pair<Integer, Integer> coordinates : getPlayingFieldBlocks(false).keySet()) {
             if (!wall.getHoles().contains(coordinates) && coordinatesToBlock(coordinates).getType() != copperSupportItem().getType()) {
                 addIncorrectBlockHighlight(coordinatesToBlock(coordinates));
             }
@@ -501,17 +501,19 @@ public class PlayingField implements Listener {
     }
 
     /**
-     * Returns all blocks in the playing field excluding air blocks.
+     * Returns all blocks in the playing field excluding air blocks and copper support blocks (which don't count)
      * @return all blocks in coordinate to block map
      */
-    public Map<Pair<Integer, Integer>, Block> getPlayingFieldBlocks() {
+    public Map<Pair<Integer, Integer>, Block> getPlayingFieldBlocks(boolean includeCopperSupports) {
         HashMap<Pair<Integer, Integer>, Block> blocks = new HashMap<>();
         // y direction loop
         for (int y = 0; y < height; y++) {
             Location loc = getReferencePoint().add(0, y, 0);
             for (int x = 0; x < length; x++) {
                 if (!loc.getBlock().isEmpty()) {
-                    blocks.put(Pair.with(x, y), loc.getBlock());
+                    if (includeCopperSupports || loc.getBlock().getType() != copperSupportItem().getType()) {
+                        blocks.put(Pair.with(x, y), loc.getBlock());
+                    }
                 }
                 loc.add(fieldDirection);
             }
@@ -565,16 +567,6 @@ public class PlayingField implements Listener {
      * @param wall Wall to check against
      */
     public void matchAndScore(Wall wall) {
-        // First, break all copper support blocks
-        for (Block block : getPlayingFieldBlocks().values()) {
-            if (block.getType() == Material.COPPER_GRATE) {
-                getWorld().spawnParticle(Particle.BLOCK,
-                        block.getLocation().add(0.5, 0.5, 0.5),
-                        100, 0.5, 0.5, 0.5, 0.1,
-                        Material.COPPER_GRATE.createBlockData());
-                block.setType(Material.AIR);
-            }
-        }
         // Events can override scoring
         if (!eventActive() || !event.overrideScoring) {
             Judgement judgement = scorer.scoreWall(wall, this);
@@ -591,6 +583,16 @@ public class PlayingField implements Listener {
         // An event may want to do something other than override scoring
         if (eventActive()) {
             event.onWallScore(wall);
+        }
+
+        // Spawn copper break particles - we're not actually breaking them, they're just getting replaced
+        for (Block block : getPlayingFieldBlocks(true).values()) {
+            if (block.getType() == Material.COPPER_GRATE) {
+                getWorld().spawnParticle(Particle.BLOCK,
+                        block.getLocation().add(0.5, 0.5, 0.5),
+                        100, 0.5, 0.5, 0.5, 0.1,
+                        Material.COPPER_GRATE.createBlockData());
+            }
         }
 
         Map<Pair<Integer, Integer>, Block> extraBlocks = wall.getExtraBlocks(this);

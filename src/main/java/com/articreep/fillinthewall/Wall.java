@@ -327,7 +327,7 @@ public class Wall {
      */
     public Map<Pair<Integer, Integer>, Block> getMissingBlocks(PlayingField field) {
         HashMap<Pair<Integer, Integer>, Block> missingBlocks = new HashMap<>();
-        Map<Pair<Integer, Integer>, Block> playingFieldBlocks = field.getPlayingFieldBlocks();
+        Map<Pair<Integer, Integer>, Block> playingFieldBlocks = field.getPlayingFieldBlocks(false);
 
         for (Pair<Integer, Integer> hole : holes) {
             if (!playingFieldBlocks.containsKey(hole)) {
@@ -344,7 +344,7 @@ public class Wall {
      */
     public Map<Pair<Integer, Integer>, Block> getExtraBlocks(PlayingField field) {
         HashMap<Pair<Integer, Integer>, Block> extraBlocks = new HashMap<>();
-        Map<Pair<Integer, Integer>, Block> playingFieldBlocks = field.getPlayingFieldBlocks();
+        Map<Pair<Integer, Integer>, Block> playingFieldBlocks = field.getPlayingFieldBlocks(false);
 
         for (Pair<Integer, Integer> blockCoords : playingFieldBlocks.keySet()) {
             if (!holes.contains(blockCoords)) {
@@ -356,7 +356,7 @@ public class Wall {
 
     public Map<Pair<Integer, Integer>, Block> getCorrectBlocks(PlayingField field) {
         HashMap<Pair<Integer, Integer>, Block> correctBlocks = new HashMap<>();
-        Map<Pair<Integer, Integer>, Block> playingFieldBlocks = field.getPlayingFieldBlocks();
+        Map<Pair<Integer, Integer>, Block> playingFieldBlocks = field.getPlayingFieldBlocks(false);
 
         for (Pair<Integer, Integer> blockCoords : playingFieldBlocks.keySet()) {
             if (holes.contains(blockCoords)) {
