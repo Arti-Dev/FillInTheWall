@@ -89,7 +89,7 @@ public class PlayingFieldScorer {
 
         if (event != null && event.overridePercentCalculation) {
             percent = field.getEvent().calculatePercent(wall);
-        } else percent = calculatePercent(wall, field);
+        } else percent = calculatePercent(wall, score);
 
         if (event != null && event.overrideBonusCalculation) {
             bonusMap = field.getEvent().evaluateBonus(percent, wall);
@@ -372,7 +372,9 @@ public class PlayingFieldScorer {
     }
 
     public double calculatePercent(Wall wall, PlayingField field) {
-        return (double) calculateScore(wall, field) / wall.getHoles().size();
+        int score = calculateScore(wall, field);
+        if (wall.getHoles().isEmpty() && score == 0) return 1;
+        return (double) score / wall.getHoles().size();
     }
 
     public int getPerfectWallsCleared() {
