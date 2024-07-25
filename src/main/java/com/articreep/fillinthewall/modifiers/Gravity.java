@@ -60,8 +60,8 @@ public class Gravity extends ModifierEvent {
                 location.getBlock().setType(display.getBlock().getMaterial());
             }
             display.remove();
-            blockDisplays.remove(display);
         }
+        blockDisplays.clear();
     }
 
     public void convertToFallingBlock(Block block) {
