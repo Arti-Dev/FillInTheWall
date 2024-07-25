@@ -161,6 +161,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor {
                     else if (args[1].equalsIgnoreCase("stripes")) event = new Stripes(field, ticks);
                     else if (args[1].equalsIgnoreCase("gravity")) event = new Gravity(field, ticks);
                     else if (args[1].equalsIgnoreCase("playerinthewall")) event = new PlayerInTheWall(field, ticks);
+                    else if (args[1].equalsIgnoreCase("multiplace")) event = new Multiplace(field, ticks);
                     else {
                         sender.sendMessage(ChatColor.RED + "Unknown modifier");
                         return true;
