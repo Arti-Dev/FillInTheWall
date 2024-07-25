@@ -63,6 +63,7 @@ public class PlayingField implements Listener {
      * Amount of ticks to show wall results after clearing a wall
      */
     private final int clearDelay = 10;
+    private boolean clearDelayActive = false;
 
     private final List<Block> borderBlocks = new ArrayList<>();
     private final Material defaultBorderMaterial = Material.GRAY_CONCRETE;
@@ -567,6 +568,11 @@ public class PlayingField implements Listener {
      * @param wall Wall to check against
      */
     public void matchAndScore(Wall wall) {
+        // An event may want to do something other than override scoring
+        if (eventActive()) {
+            event.onWallScore(wall);
+        }
+
         // Events can override scoring
         if (!eventActive() || !event.overrideCompleteScoring) {
             Judgement judgement = scorer.scoreWall(wall, this);
@@ -578,11 +584,6 @@ public class PlayingField implements Listener {
             }
         } else {
             event.score(wall);
-        }
-
-        // An event may want to do something other than override scoring
-        if (eventActive()) {
-            event.onWallScore(wall);
         }
 
         // Spawn copper break particles - we're not actually breaking them, they're just getting replaced
@@ -597,6 +598,8 @@ public class PlayingField implements Listener {
 
         int pauseTime = this.clearDelay;
         if (eventActive()) pauseTime = event.clearDelay;
+
+        clearDelayActive = true;
         if (eventActive() && event.overrideCorrectBlocksVisual) {
             event.correctBlocksVisual(wall);
         } else {
@@ -609,6 +612,7 @@ public class PlayingField implements Listener {
             else clearField();
 
             resetBorder();
+            clearDelayActive = false;
 
             // Rush jank
             // todo might move to rush class
@@ -1190,5 +1194,9 @@ public class PlayingField implements Listener {
         display.setGlowing(true);
         display.setGlowColorOverride(Color.RED);
         incorrectBlockHighlights.put(block, display);
+    }
+
+    public boolean isClearDelayActive() {
+        return clearDelayActive;
     }
 }
