@@ -9,6 +9,7 @@ import com.articreep.fillinthewall.gamemode.GamemodeSettings;
 import com.articreep.fillinthewall.menu.EndScreen;
 import com.articreep.fillinthewall.menu.Menu;
 import com.articreep.fillinthewall.modifiers.ModifierEvent;
+import com.articreep.fillinthewall.modifiers.PlayerInTheWall;
 import com.articreep.fillinthewall.modifiers.Rush;
 import com.articreep.fillinthewall.multiplayer.WallGenerator;
 import com.articreep.fillinthewall.utils.Utils;
@@ -720,7 +721,10 @@ public class PlayingField implements Listener {
                 ticksSinceOffhandSubmit++;
 
                 if (ticksSinceFlying % (20*20) == 0 && !hasFlownBefore) {
-                    setTipDisplay(ChatColor.GRAY + "Tip: " + ChatColor.YELLOW + "You can fly!");
+                    // one exception
+                    if (!eventActive() || !(event instanceof PlayerInTheWall)) {
+                        setTipDisplay(ChatColor.GRAY + "Tip: " + ChatColor.YELLOW + "You can fly!");
+                    }
                 } else if (ticksSinceOffhandSubmit % (30*20) == 0 && !hasSubmittedUsingOffhand) {
                     setTipDisplay(ChatColor.GRAY + "Tip: " + ChatColor.YELLOW + "Submit walls by pressing offhand (usually [F])!");
                 }
