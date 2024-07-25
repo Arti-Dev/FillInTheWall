@@ -30,11 +30,10 @@ public class Wall {
     // todo this reference entity sometimes will just be a hole so it won't move
     private BlockDisplay referenceEntity = null;
     private final Set<Display> entities = new HashSet<>();
-    private final List<BlockDisplay> blocks = new ArrayList<>();
+    private final Map<BlockDisplay, Pair<Integer, Integer>> blocks = new HashMap<>();
     private final List<BlockDisplay> border = new ArrayList<>();
     private final List<BlockDisplay> toRemove = new ArrayList<>();
     private Material material = null;
-    private Material altMaterial = null;
     private int tickCooldown = 0;
     private boolean doSpin = false;
     private final int defaultTeleportDuration = 5;
@@ -42,6 +41,10 @@ public class Wall {
     private boolean inverted = false;
     // todo hardness mechanic might be confusing in a vs match
     private int hardness = 0;
+
+    // Stripe settings
+    private boolean stripes = false;
+    private Material altMaterial = null;
 
     public Wall(HashSet<Pair<Integer, Integer>> holes, int length, int height, String name) {
         this.holes = holes;
@@ -121,7 +124,7 @@ public class Wall {
                         toRemove.add(display);
                     }
                 }
-                blocks.add(display);
+                blocks.put(display, Pair.with(x, y));
                 entities.add(display);
             }
         }
@@ -226,7 +229,7 @@ public class Wall {
         }
 
         if (nextState == WallState.HARDENED) {
-            for (BlockDisplay display : blocks) {
+            for (BlockDisplay display : blocks.keySet()) {
                 display.setBlock(Material.GRAY_WOOL.createBlockData());
             }
             for (BlockDisplay display : border) {
@@ -238,19 +241,26 @@ public class Wall {
 
     }
 
-    public void activateWall(Set<Player> players, Material defaultMaterial) {
+    public void activateWall(Set<Player> players, Material defaultMaterial, Material defaultAltMaterial) {
         state = WallState.ANIMATING;
         // make them visible immediately
         if (this.material == null) {
             material = defaultMaterial;
         }
-        for (BlockDisplay display : blocks) {
-            display.setBlock(material.createBlockData());
+        if (this.altMaterial == null) {
+            this.altMaterial = defaultAltMaterial;
+        }
+        if (stripes) {
+            setStripes(true);
+        } else {
+            for (BlockDisplay display : blocks.keySet()) {
+                display.setBlock(material.createBlockData());
+            }
         }
 
         for (BlockDisplay display : border) {
             if (wasHardened) {
-                // todo this is barely visible. might want to indicate this some other way
+                // todo this border is barely visible. might want to indicate this some other way
                 display.setBlock(Material.STONE.createBlockData());
             } else {
                 display.setBlock(Material.IRON_BLOCK.createBlockData());
@@ -287,7 +297,7 @@ public class Wall {
             for (Display display : entities) {
                 Location target = display.getLocation()
                         .add(movementDirection.clone().multiply(distanceToTraverse * teleportDuration / (double) maxTime));
-                if (doSpin && blocks.contains(display)) target.setYaw(target.getYaw() + 10);
+                if (doSpin && display instanceof BlockDisplay && blocks.containsKey(display)) target.setYaw(target.getYaw() + 10);
                 display.teleport(target);
             }
             // Note where we're teleporting to in case we need to correct the wall's location during interpolation
@@ -529,6 +539,10 @@ public class Wall {
         this.material = material;
     }
 
+    public void setAltMaterial(Material material) {
+        this.altMaterial = material;
+    }
+
     public Material getMaterial() {
         return material;
     }
@@ -677,5 +691,32 @@ public class Wall {
 
     public boolean isInverted() {
         return inverted;
+    }
+
+    public boolean hasStripes() {
+        return stripes;
+    }
+
+    public void setStripes(boolean stripes) {
+        this.stripes = stripes;
+        if (stripes) {
+            for (BlockDisplay display : blocks.keySet()) {
+                // todo hardcoded for now
+                Pair<Integer, Integer> coordinates = blocks.get(display);
+                if (coordinates.getValue1() % 2 == 0) {
+                    display.setBlock(material.createBlockData());
+                } else {
+                    display.setBlock(altMaterial.createBlockData());
+                }
+            }
+        } else {
+            for (BlockDisplay display : blocks.keySet()) {
+                display.setBlock(material.createBlockData());
+            }
+        }
+    }
+
+    public Material getAltMaterial() {
+        return altMaterial;
     }
 }

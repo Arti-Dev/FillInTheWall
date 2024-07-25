@@ -2,6 +2,7 @@ package com.articreep.fillinthewall.utils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -91,5 +92,16 @@ public class Utils {
             i++;
         }
         return null;
+    }
+
+    public static Material getAlternateMaterial(Material material) {
+        String string = material.toString();
+        if (string.contains("CONCRETE")) {
+            return Material.valueOf(string.replace("CONCRETE", "STAINED_GLASS"));
+        } else if (string.contains("STAINED_GLASS")) {
+            return Material.valueOf(string.replace("STAINED_GLASS", "CONCRETE"));
+        } else {
+            return material;
+        }
     }
 }

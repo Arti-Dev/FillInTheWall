@@ -3,6 +3,7 @@ package com.articreep.fillinthewall;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.modifiers.Rush;
 import com.articreep.fillinthewall.multiplayer.WallGenerator;
+import com.articreep.fillinthewall.utils.Utils;
 import org.bukkit.Bukkit;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
@@ -92,8 +93,12 @@ public class WallQueue {
             animatingWall.setTimeRemaining(calculateWallActiveTime(baseTime));
         } else {
             animatingWall = hiddenWalls.removeFirst();
-            if (field.eventActive() && field.getEvent().invertWalls) {
-                animatingWall.invert();
+            if (field.eventActive()) {
+                if (field.getEvent().invertWalls) {
+                    animatingWall.invert();
+                } else if (field.getEvent().stripeWalls) {
+                    animatingWall.setStripes(true);
+                }
             }
             updateEffectiveLength();
             // Recalculate wall time
@@ -102,7 +107,7 @@ public class WallQueue {
         }
 
         animatingWall.setDistanceToTraverse(effectiveLength);
-        animatingWall.activateWall(field.getPlayers(), wallMaterial);
+        animatingWall.activateWall(field.getPlayers(), wallMaterial, Utils.getAlternateMaterial(field.getPlayerMaterial()));
 
         new BukkitRunnable() {
             @Override

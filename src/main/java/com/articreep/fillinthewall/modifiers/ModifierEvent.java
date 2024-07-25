@@ -1,12 +1,8 @@
 package com.articreep.fillinthewall.modifiers;
 
 import com.articreep.fillinthewall.*;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.javatuples.Pair;
 
 import java.util.HashMap;
-import java.util.Map;
 
 /** Represents an event that affects the playing field and/or queue. */
 public abstract class ModifierEvent {
@@ -30,6 +26,7 @@ public abstract class ModifierEvent {
     public boolean wallFreeze = false;
     public boolean fillFieldAfterSubmission = false;
     public boolean invertWalls = false;
+    public boolean stripeWalls = false;
 
     protected double meterPercentRequired = 1;
     protected WallQueue queue;
