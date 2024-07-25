@@ -14,6 +14,8 @@ public abstract class ModifierEvent {
     public int clearDelay;
     public boolean timeFreeze = false;
     public boolean wallFreeze = false;
+    public boolean fillFieldAfterSubmission = false;
+    public boolean invertWalls = false;
 
     protected double meterPercentRequired = 1;
     protected WallQueue queue;

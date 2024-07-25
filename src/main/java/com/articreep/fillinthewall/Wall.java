@@ -18,7 +18,7 @@ public class Wall {
     private final int length;
     private final int height;
     private String name;
-    private final HashSet<Pair<Integer, Integer>> holes;
+    private final Set<Pair<Integer, Integer>> holes;
     private WallState state = WallState.HIDDEN;
     private boolean wasHardened = false;
     private int maxTime = -1;
@@ -60,7 +60,7 @@ public class Wall {
         this(new HashSet<>(), length, height, name);
     }
 
-    public HashSet<Pair<Integer, Integer>> getHoles() {
+    public Set<Pair<Integer, Integer>> getHoles() {
         return holes;
     }
 
@@ -379,6 +379,20 @@ public class Wall {
             if (hole == null || this.holes.contains(hole)) continue;
             insertHole(hole);
         }
+    }
+
+    public void invert() {
+        HashSet<Pair<Integer, Integer>> newHoles = new HashSet<>();
+        for (int x = 0; x < length; x++) {
+            for (int y = 0; y < height; y++) {
+                Pair<Integer, Integer> hole = Pair.with(x, y);
+                if (!holes.contains(hole)) {
+                    newHoles.add(hole);
+                }
+            }
+        }
+        holes.clear();
+        holes.addAll(newHoles);
     }
 
     public void insertHole(Pair<Integer, Integer> hole) {

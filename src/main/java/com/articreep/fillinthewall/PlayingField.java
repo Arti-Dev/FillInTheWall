@@ -615,7 +615,9 @@ public class PlayingField implements Listener {
 
         // Clear the field after the pauseTime
         Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> {
-            clearField();
+            if (eventActive() && event.fillFieldAfterSubmission) fillField(playerMaterial);
+            else clearField();
+
             resetBorder();
 
             // Rush jank

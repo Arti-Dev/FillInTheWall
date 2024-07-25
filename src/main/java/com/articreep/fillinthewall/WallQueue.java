@@ -92,6 +92,9 @@ public class WallQueue {
             animatingWall.setTimeRemaining(calculateWallActiveTime(baseTime));
         } else {
             animatingWall = hiddenWalls.removeFirst();
+            if (field.eventActive() && field.getEvent().invertWalls) {
+                animatingWall.invert();
+            }
             updateEffectiveLength();
             // Recalculate wall time
             animatingWall.setTimeRemaining(calculateWallActiveTime(animatingWall.getTimeRemaining()));
