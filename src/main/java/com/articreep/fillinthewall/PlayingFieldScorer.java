@@ -71,20 +71,32 @@ public class PlayingFieldScorer {
         this.field = field;
     }
 
+    public enum BonusType {
+        PERFECT, FIRE
+    }
+
     public Judgement scoreWall(Wall wall, PlayingField field) {
+        ModifierEvent event = null;
+        if (field.eventActive()) event = field.getEvent();
 
-        int score = calculateScore(wall, field);
-        double percent = calculatePercent(wall, score);
+        int score;
+        double percent;
+        HashMap<BonusType, Integer> bonusMap;
 
-        // Perfect clear bonus (add one extra point)
-        if (percent >= 1) {
-            score++;
-            perfectWallsCleared++;
-            perfectWallChain++;
-        } else {
-            perfectWallChain = 0;
-        }
-        this.score += score;
+        if (event != null && event.overrideScoreCalculation) {
+            score = field.getEvent().calculateScore(wall);
+        } else score = calculateScore(wall, field);
+
+        if (event != null && event.overridePercentCalculation) {
+            percent = field.getEvent().calculatePercent(wall);
+        } else percent = calculatePercent(wall, field);
+
+        if (event != null && event.overrideBonusCalculation) {
+            bonusMap = field.getEvent().evaluateBonus(percent, wall);
+        } else bonusMap = evaluateBonus(percent);
+
+        int totalBonus = sumBonus(bonusMap);
+        this.score += score + totalBonus;
 
         Judgement judgement = Judgement.MISS;
 
@@ -96,7 +108,10 @@ public class PlayingFieldScorer {
             }
         }
 
-        boolean showScoreTitle = true;
+        if (event != null && event.overrideScoreTitle) event.displayScoreTitle(judgement, score, bonusMap);
+        else displayScoreTitle(judgement, score, bonusMap);
+        playJudgementSound(judgement);
+
         // Add/subtract to bonus
         if (!field.eventActive() && clearingMode) {
             awardMeterPoints(percent);
@@ -104,7 +119,6 @@ public class PlayingFieldScorer {
 
         // Activate meter
         if (meter >= meterMax && doLevels) {
-            showScoreTitle = false;
             setLevel(level + 1);
             field.sendTitleToPlayers("", ChatColor.GREEN + "Level up!", 0, 10, 5);
         } else if (meter >= meterMax && ((boolean) settings.getAttribute(GamemodeAttribute.AUTOMATIC_METER))) {
@@ -132,10 +146,28 @@ public class PlayingFieldScorer {
         // Update meter item
         setMeterItemGlint(isMeterFilledEnough(meter / meterMax));
 
-        if (showScoreTitle) displayScoreTitle(judgement, score);
-        playJudgementSound(judgement);
-
         return judgement;
+    }
+
+    public HashMap<BonusType, Integer> evaluateBonus(double percent) {
+        HashMap<BonusType, Integer> bonusMap = new HashMap<>();
+        if (percent >= 1) {
+            perfectWallsCleared++;
+            perfectWallChain++;
+            bonusMap.put(BonusType.PERFECT, 1);
+        } else {
+            perfectWallChain = 0;
+            bonusMap.put(BonusType.PERFECT, 0);
+        }
+        return bonusMap;
+    }
+
+    private static int sumBonus(HashMap<BonusType, Integer> map) {
+        int bonus = 0;
+        for (Integer i : map.values()) {
+            bonus += i;
+        }
+        return bonus;
     }
 
     private void awardMeterPoints(double percent) {
@@ -263,6 +295,7 @@ public class PlayingFieldScorer {
 
         if (isMeterFilledEnough(percent)) {
             ModifierEvent event = createEvent(percent);
+            // todo remove the need to run this the next tick
             Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), event::activate);
             meter = 0;
             eventCount++;
@@ -275,10 +308,10 @@ public class PlayingFieldScorer {
         setMeterItemGlint(isMeterFilledEnough(meter / meterMax));
     }
 
-    public void displayScoreTitle(Judgement judgement, int score) {
+    public void displayScoreTitle(Judgement judgement, int score, Map<BonusType, Integer> bonusMap) {
         field.sendTitleToPlayers(
                 judgement.getColor() + judgement.getText(),
-                judgement.getColor() + "+" + score + " points",
+                judgement.getColor() + "" + (score + bonusMap.get(BonusType.PERFECT)) + " points",
                 0, 10, 5);
     }
 

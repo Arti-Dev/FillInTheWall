@@ -34,10 +34,12 @@ public class Wall {
     private final List<BlockDisplay> border = new ArrayList<>();
     private final List<BlockDisplay> toRemove = new ArrayList<>();
     private Material material = null;
+    private Material altMaterial = null;
     private int tickCooldown = 0;
     private boolean doSpin = false;
     private final int defaultTeleportDuration = 5;
     private int teleportDuration = defaultTeleportDuration;
+    private boolean inverted = false;
     // todo hardness mechanic might be confusing in a vs match
     private int hardness = 0;
 
@@ -62,6 +64,14 @@ public class Wall {
 
     public Set<Pair<Integer, Integer>> getHoles() {
         return holes;
+    }
+
+    public int getLength() {
+        return length;
+    }
+
+    public int getHeight() {
+        return height;
     }
 
     public void setTimeRemaining(int timeRemaining) {
@@ -393,6 +403,7 @@ public class Wall {
         }
         holes.clear();
         holes.addAll(newHoles);
+        inverted = !inverted;
     }
 
     public void insertHole(Pair<Integer, Integer> hole) {
@@ -662,5 +673,9 @@ public class Wall {
         }
 
         return wall;
+    }
+
+    public boolean isInverted() {
+        return inverted;
     }
 }

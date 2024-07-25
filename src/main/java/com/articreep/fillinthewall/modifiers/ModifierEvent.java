@@ -1,14 +1,28 @@
 package com.articreep.fillinthewall.modifiers;
 
-import com.articreep.fillinthewall.PlayingField;
-import com.articreep.fillinthewall.Wall;
-import com.articreep.fillinthewall.WallQueue;
+import com.articreep.fillinthewall.*;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.javatuples.Pair;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /** Represents an event that affects the playing field and/or queue. */
 public abstract class ModifierEvent {
     /* Settings. Child classes should change these as fit */
     // todo maybe I'll make a json file for these, because doing this in java is hard
-    public boolean overrideScoring = false;
+    /**
+     * Completely override the scorer's scoring method.
+     */
+    public boolean overrideCompleteScoring = false;
+    // Override only some parts of the scoring method.
+    public boolean overrideScoreCalculation = false;
+    public boolean overridePercentCalculation = false;
+    public boolean overrideBonusCalculation = false;
+    public boolean overrideScoreTitle = false;
+
+    public boolean overrideCorrectBlocksVisual = false;
     public boolean overrideGeneration = false;
     public boolean allowMultipleWalls = false;
     public int clearDelay;
@@ -59,12 +73,44 @@ public abstract class ModifierEvent {
         field.setEvent(null);
     }
 
+    /**
+     * If the overrideCompleteScoring variable is true, this method will be called instead of PlayingFieldScorer#score
+     * @param wall Wall to be scored
+     */
     public void score(Wall wall) {
-
+        field.getScorer().scoreWall(wall, field);
     }
 
+    /**
+     * This is called whenever a wall is scored if the event is active.
+     * @param wall Wall being scored
+     */
     public void onWallScore(Wall wall) {
         // override
+    }
+
+    /**
+     * If the overrideScoreCalculation variable is true, this method will be called instead of PlayingFieldScorer#calculateScore
+     * @return The score to award the player
+     */
+    public int calculateScore(Wall wall) {
+        return field.getScorer().calculateScore(wall, field);
+    }
+
+    public double calculatePercent(Wall wall) {
+        return field.getScorer().calculatePercent(wall, field);
+    }
+
+    public HashMap<PlayingFieldScorer.BonusType, Integer> evaluateBonus(double percent, Wall wall) {
+        return field.getScorer().evaluateBonus(percent);
+    }
+
+    public void displayScoreTitle(Judgement judgement, int score, HashMap<PlayingFieldScorer.BonusType, Integer> bonus) {
+        field.getScorer().displayScoreTitle(judgement, score, bonus);
+    }
+
+    public void correctBlocksVisual(Wall wall) {
+        field.correctBlocksVisual(wall);
     }
 
     public double getMeterPercentRequired() {

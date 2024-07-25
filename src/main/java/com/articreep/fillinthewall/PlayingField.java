@@ -568,7 +568,7 @@ public class PlayingField implements Listener {
      */
     public void matchAndScore(Wall wall) {
         // Events can override scoring
-        if (!eventActive() || !event.overrideScoring) {
+        if (!eventActive() || !event.overrideCompleteScoring) {
             Judgement judgement = scorer.scoreWall(wall, this);
             changeBorderBlocks(judgement.getBorder());
             if (environment.equalsIgnoreCase("VOID")) {
@@ -595,22 +595,12 @@ public class PlayingField implements Listener {
             }
         }
 
-        Map<Pair<Integer, Integer>, Block> extraBlocks = wall.getExtraBlocks(this);
-        Map<Pair<Integer, Integer>, Block> correctBlocks = wall.getCorrectBlocks(this);
-        Map<Pair<Integer, Integer>, Block> missingBlocks = wall.getMissingBlocks(this);
-
-        // Visually display what blocks were correct and what were wrong
         int pauseTime = this.clearDelay;
         if (eventActive()) pauseTime = event.clearDelay;
-        fillField(wall.getMaterial());
-        for (Block block : extraBlocks.values()) {
-            block.setType(Material.RED_WOOL);
-        }
-        for (Block block : correctBlocks.values()) {
-            block.setType(Material.GREEN_WOOL);
-        }
-        for (Block block : missingBlocks.values()) {
-            block.setType(Material.AIR);
+        if (eventActive() && event.overrideCorrectBlocksVisual) {
+            event.correctBlocksVisual(wall);
+        } else {
+            correctBlocksVisual(wall);
         }
 
         // Clear the field after the pauseTime
@@ -640,12 +630,30 @@ public class PlayingField implements Listener {
      * Fills the playing field with the given material
      * @param material the material to fill the field with
      */
-    private void fillField(Material material) {
+    public void fillField(Material material) {
         for (int x = 0; x < length; x++) {
             for (int y = 0; y < height; y++) {
                 Location loc = getReferencePoint().clone().add(fieldDirection.clone().multiply(x)).add(0, y, 0);
                 loc.getBlock().setType(material);
             }
+        }
+    }
+
+    public void correctBlocksVisual(Wall wall) {
+        Map<Pair<Integer, Integer>, Block> extraBlocks = wall.getExtraBlocks(this);
+        Map<Pair<Integer, Integer>, Block> correctBlocks = wall.getCorrectBlocks(this);
+        Map<Pair<Integer, Integer>, Block> missingBlocks = wall.getMissingBlocks(this);
+
+        // Visually display what blocks were correct and what were wrong
+        fillField(wall.getMaterial());
+        for (Block block : extraBlocks.values()) {
+            block.setType(Material.RED_WOOL);
+        }
+        for (Block block : correctBlocks.values()) {
+            block.setType(Material.GREEN_WOOL);
+        }
+        for (Block block : missingBlocks.values()) {
+            block.setType(Material.AIR);
         }
     }
 

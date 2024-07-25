@@ -157,6 +157,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor {
                     else if (args[1].equalsIgnoreCase("scale")) event = new Scale(field, ticks);
                     else if (args[1].equalsIgnoreCase("line")) event = new LineMode(field, ticks);
                     else if (args[1].equalsIgnoreCase("inverted")) event = new Inverted(field, ticks);
+                    else if (args[1].equalsIgnoreCase("fireinthehole")) event = new FireInTheHole(field, ticks);
                     else {
                         sender.sendMessage(ChatColor.RED + "Unknown modifier");
                         return true;
