@@ -93,12 +93,8 @@ public class WallQueue {
             animatingWall.setTimeRemaining(calculateWallActiveTime(baseTime));
         } else {
             animatingWall = hiddenWalls.removeFirst();
-            if (field.eventActive()) {
-                if (field.getEvent().invertWalls) {
-                    animatingWall.invert();
-                } else if (field.getEvent().stripeWalls) {
-                    animatingWall.setStripes(true);
-                }
+            if (field.eventActive() && field.getEvent().modifyWalls) {
+                field.getEvent().modifyWall(animatingWall);
             }
             updateEffectiveLength();
             // Recalculate wall time

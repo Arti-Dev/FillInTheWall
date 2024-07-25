@@ -17,7 +17,7 @@ import java.util.Map;
 public class Stripes extends ModifierEvent {
     public Stripes(PlayingField field, int ticks) {
         super(field, ticks);
-        stripeWalls = true;
+        modifyWalls = true;
         overrideBonusCalculation = true;
         overrideScoreTitle = true;
     }
@@ -71,5 +71,10 @@ public class Stripes extends ModifierEvent {
         Wall wall = field.getQueue().getFrontmostWall();
         if (wall != null) wall.setStripes(false);
         field.sendTitleToPlayers("", "Stripes are gone!", 0, 20, 10);
+    }
+
+    @Override
+    public void modifyWall(Wall wall) {
+        wall.setStripes(true);
     }
 }

@@ -72,7 +72,7 @@ public class PlayingFieldScorer {
     }
 
     public enum BonusType {
-        PERFECT, FIRE, STRIPE
+        PERFECT, FIRE, STRIPE, PLAYER
     }
 
     public Judgement scoreWall(Wall wall, PlayingField field) {

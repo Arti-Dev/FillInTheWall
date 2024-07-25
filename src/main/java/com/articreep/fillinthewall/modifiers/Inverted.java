@@ -11,7 +11,7 @@ public class Inverted extends ModifierEvent {
     public Inverted(PlayingField field, int ticks) {
         super(field, ticks);
         fillFieldAfterSubmission = true;
-        invertWalls = true;
+        modifyWalls = true;
         overrideScoreCalculation = true;
         overridePercentCalculation = true;
     }
@@ -46,5 +46,10 @@ public class Inverted extends ModifierEvent {
         field.getQueue().instantSend();
         super.end();
         field.sendTitleToPlayers("", "Walls are back to normal!", 0, 20, 10);
+    }
+
+    @Override
+    public void modifyWall(Wall wall) {
+        wall.invert();
     }
 }

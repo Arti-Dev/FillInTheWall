@@ -25,8 +25,7 @@ public abstract class ModifierEvent {
     public boolean timeFreeze = false;
     public boolean wallFreeze = false;
     public boolean fillFieldAfterSubmission = false;
-    public boolean invertWalls = false;
-    public boolean stripeWalls = false;
+    public boolean modifyWalls = false;
 
     protected double meterPercentRequired = 1;
     protected WallQueue queue;
@@ -108,6 +107,10 @@ public abstract class ModifierEvent {
 
     public void correctBlocksVisual(Wall wall) {
         field.correctBlocksVisual(wall);
+    }
+
+    public void modifyWall(Wall wall) {
+        // override
     }
 
     public double getMeterPercentRequired() {
