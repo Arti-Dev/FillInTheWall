@@ -5,16 +5,24 @@ import com.articreep.fillinthewall.PlayingField;
 import com.articreep.fillinthewall.Wall;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
+import org.bukkit.entity.BlockDisplay;
+import org.bukkit.entity.EntityType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Transformation;
 import org.javatuples.Pair;
+import org.joml.AxisAngle4f;
+import org.joml.Vector3f;
 
 import java.util.HashSet;
 import java.util.Random;
+import java.util.Set;
 
 public class PopIn extends ModifierEvent {
     private final int MAX_BLOCK_COUNT = 5;
+    private final Set<BlockDisplay> blockDisplays = new HashSet<>();
     public PopIn(PlayingField field, int ticks) {
         super(field, ticks);
     }
@@ -34,6 +42,10 @@ public class PopIn extends ModifierEvent {
     @Override
     public void end() {
         super.end();
+        for (BlockDisplay display : blockDisplays) {
+            display.remove();
+        }
+        blockDisplays.clear();
         field.sendTitleToPlayers("", ChatColor.RED + "Blocks no longer randomly pop in!", 0, 20, 10);
         playOutroSound(field);
     }
@@ -65,10 +77,7 @@ public class PopIn extends ModifierEvent {
                 for (Pair<Integer, Integer> coordinate : coordinates) {
                     Block block = field.coordinatesToBlock(coordinate);
                     field.getWorld().playSound(block.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1, 1);
-                    block.setType(field.getPlayerMaterial());
-                    if (field.getScorer().getSettings().getBooleanAttribute(GamemodeAttribute.HIGHLIGHT_INCORRECT_BLOCKS)) {
-                        field.refreshIncorrectBlockHighlights(incomingWall);
-                    }
+                    popInAnimation(block);
                 }
             }
         }.runTaskLater(FillInTheWall.getInstance(), field.getClearDelay()+20);
@@ -98,7 +107,38 @@ public class PopIn extends ModifierEvent {
         }.runTaskTimer(FillInTheWall.getInstance(), 0, 1);
     }
 
-    public static void popInAnimation(Block block) {
-        // todo implement - display entity that scales up to fill the block space in around 5 ticks
+    public void popInAnimation(Block block) {
+        Location location = block.getLocation().add(0.5, 0.5, 0.5);
+        BlockDisplay display = (BlockDisplay) field.getWorld().spawnEntity(location, EntityType.BLOCK_DISPLAY);
+        display.setBlock(field.getPlayerMaterial().createBlockData());
+        display.setTransformation(new Transformation(
+                new Vector3f(0, 0, 0),
+                new AxisAngle4f(0, 0, 0, 1), new Vector3f(0, 0, 0),
+                new AxisAngle4f(0, 0, 0, 1)));
+        display.setInterpolationDuration(1);
+        blockDisplays.add(display);
+
+        new BukkitRunnable() {
+            int i = 0;
+            @Override
+            public void run() {
+                if (i >= 3) {
+                    block.setType(field.getPlayerMaterial());
+                    display.remove();
+                    blockDisplays.remove(display);
+                    if (field.getScorer().getSettings().getBooleanAttribute(GamemodeAttribute.HIGHLIGHT_INCORRECT_BLOCKS)) {
+                        field.refreshIncorrectBlockHighlights(field.getQueue().getFrontmostWall());
+                    }
+                    cancel();
+                }
+                float size = (float) -Math.pow((i-3)/3f, 2.0) + 1;
+                display.setInterpolationDelay(0);
+                display.setTransformation(new Transformation(
+                        new Vector3f(-size/2, -size/2, -size/2),
+                        new AxisAngle4f(0, 0, 0, 1), new Vector3f(size, size, size),
+                        new AxisAngle4f(0, 0, 0, 1)));
+                i++;
+            }
+        }.runTaskTimer(FillInTheWall.getInstance(), 0, 1);
     }
 }
