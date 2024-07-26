@@ -2,7 +2,6 @@ package com.articreep.fillinthewall.modifiers;
 
 import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.PlayingField;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -15,7 +14,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Transformation;
 import org.javatuples.Pair;
 import org.joml.AxisAngle4f;
@@ -48,13 +46,6 @@ public class Multiplace extends ModifierEvent implements Listener {
         if (field.getPlayers().contains(event.getPlayer())) {
             Set<Pair<Integer, Integer>> blockPlacements = calculateBlockPlacements(event.getBlock());
 
-            // In the case that the box ends up not being part of the original placement, remove it (rare)
-            // for some reason setCancelled will break everything, so we have to do this instead
-            // todo this just breaks the entire thing and no blocks place
-            if (!blockPlacements.contains(field.blockToCoordinates(event.getBlock()))) {
-                event.getBlock().setType(Material.AIR);
-            }
-
             for (Pair<Integer, Integer> coords : blockPlacements) {
                 field.coordinatesToBlock(coords).setType(event.getBlock().getType());
             }
@@ -62,7 +53,7 @@ public class Multiplace extends ModifierEvent implements Listener {
     }
 
     // todo this needs a rewrite and a lot of bugfixing
-    @EventHandler
+    //@EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         Player player = event.getPlayer();
         Block block = event.getPlayer().getLastTwoTargetBlocks(null, 5).getFirst();
@@ -103,16 +94,17 @@ public class Multiplace extends ModifierEvent implements Listener {
 
         if (isNotOccupiedByOtherBlocks(blocksToPlace, pivot)) return blocksToPlace;
 
+        int[] x = {-1, 0, -1};
+        int[] y = {0, -1, -1};
+
         // Tetris Super Rotation System style
-        for (int x = -1; x <= 1; x++) {
-            for (int y = -1; y <= 1; y++) {
-                // Deep-copy set
-                Set<Pair<Integer, Integer>> shiftedBlocksToPlace = new HashSet<>();
-                for (Pair<Integer, Integer> coords : blocksToPlace) {
-                    shiftedBlocksToPlace.add(Pair.with(coords.getValue0() + x, coords.getValue1() + y));
-                }
-                if (isNotOccupiedByOtherBlocks(shiftedBlocksToPlace, pivot)) return shiftedBlocksToPlace;
+        for (int i = 0; i < 4; i++) {
+            // Deep-copy set
+            Set<Pair<Integer, Integer>> shiftedBlocksToPlace = new HashSet<>();
+            for (Pair<Integer, Integer> coords : blocksToPlace) {
+                shiftedBlocksToPlace.add(Pair.with(coords.getValue0() + x[i], coords.getValue1() + y[i]));
             }
+            if (isNotOccupiedByOtherBlocks(shiftedBlocksToPlace, pivot)) return shiftedBlocksToPlace;
         }
 
         // If none work, simply return the pivot point
