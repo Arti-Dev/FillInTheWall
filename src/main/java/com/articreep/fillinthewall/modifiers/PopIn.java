@@ -130,6 +130,7 @@ public class PopIn extends ModifierEvent {
                         field.refreshIncorrectBlockHighlights(field.getQueue().getFrontmostWall());
                     }
                     cancel();
+                    return;
                 }
                 float size = (float) -Math.pow((i-3)/3f, 2.0) + 1;
                 display.setInterpolationDelay(0);
