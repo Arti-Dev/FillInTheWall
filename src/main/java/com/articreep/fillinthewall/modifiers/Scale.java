@@ -2,12 +2,15 @@ package com.articreep.fillinthewall.modifiers;
 
 import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.PlayingField;
+import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,8 +20,6 @@ public class Scale extends ModifierEvent implements Listener {
     private final Map<Player, Double> playerScales = new HashMap<>();
     private final Map<Player, Double> playerReachDistances = new HashMap<>();
 
-    private final double DEFAULT_BLOCK_INTERACTION_RANGE = 4.5;
-
     public Scale(PlayingField field, int ticks) {
         super(field, ticks);
     }
@@ -26,15 +27,18 @@ public class Scale extends ModifierEvent implements Listener {
     @Override
     public void activate() {
         super.activate();
-        // todo roll a roulette of random scale values before actually applying for visual effect
         FillInTheWall.getInstance().getServer().getPluginManager().registerEvents(this, FillInTheWall.getInstance());
         Random random = new Random();
         double scale;
+        ChatColor color;
         if (random.nextBoolean()) {
             scale = random.nextDouble(0.0625, 1);
+            color = ChatColor.RED;
         } else {
             scale = random.nextDouble(1, 5);
+            color = ChatColor.BLUE;
         }
+        final double DEFAULT_BLOCK_INTERACTION_RANGE = 4.5;
         double blockInteractionRange = DEFAULT_BLOCK_INTERACTION_RANGE * Math.max(scale, 1);
         for (Player player : field.getPlayers()) {
             playerScales.put(player, player.getAttribute(Attribute.GENERIC_SCALE).getBaseValue());
@@ -42,7 +46,33 @@ public class Scale extends ModifierEvent implements Listener {
             playerReachDistances.put(player, player.getAttribute(Attribute.PLAYER_BLOCK_INTERACTION_RANGE).getBaseValue());
             player.getAttribute(Attribute.PLAYER_BLOCK_INTERACTION_RANGE).setBaseValue(blockInteractionRange);
         }
-        field.sendTitleToPlayers("Scale!", "Your player model has been scaled by " + scale + "!", 0, 40, 10);
+
+        new BukkitRunnable() {
+            int i = 0;
+            @Override
+            public void run() {
+                if (i > 20) {
+                    cancel();
+                    return;
+                }
+
+                double diff = scale - 1;
+                double toDisplay = 1 + (diff * i/20.0);
+
+                float pitch;
+                if (scale <= 1) {
+                    pitch = (float) Math.pow(2, -(1-toDisplay));
+
+                } else {
+                    pitch = (float) Math.pow(2, toDisplay/5);
+                }
+                field.playSoundToPlayers(Sound.BLOCK_NOTE_BLOCK_HARP, 5, pitch);
+
+                field.sendTitleToPlayers("Scale!", "Your player model has been scaled by " +
+                        color + String.format("%.2f", toDisplay) + ChatColor.RESET + "!", 0, 40, 10);
+                i++;
+            }
+        }.runTaskTimer(FillInTheWall.getInstance(), 0, 1);
     }
 
     @EventHandler
@@ -70,6 +100,18 @@ public class Scale extends ModifierEvent implements Listener {
         for (Player player : field.getPlayers()) {
             resetPlayer(player);
         }
+        new BukkitRunnable() {
+            int i = 0;
+            @Override
+            public void run() {
+                if (i >= 3) {
+                    cancel();
+                    return;
+                }
+                field.playSoundToPlayers(Sound.BLOCK_NOTE_BLOCK_HARP, 5, 1);
+                i++;
+            }
+        }.runTaskTimer(FillInTheWall.getInstance(), 0, 1);
         field.sendTitleToPlayers("", "Your player model has been reset!", 0, 20, 10);
     }
 }
