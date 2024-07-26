@@ -118,6 +118,6 @@ public class FireInTheHole extends ModifierEvent {
         super.end();
         // todo remove flint and steel
         field.playSoundToPlayers(Sound.ENTITY_BLAZE_SHOOT, 1);
-        field.sendTitleToPlayers("", ChatColor.GREEN + "Fire no longer gives a point bonus!", 0, 20, 10);
+        field.sendTitleToPlayers("", "Fire no longer gives a point bonus!", 0, 20, 10);
     }
 }

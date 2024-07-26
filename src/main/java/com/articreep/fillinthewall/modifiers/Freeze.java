@@ -20,7 +20,7 @@ public class Freeze extends ModifierEvent {
     public void activate() {
         super.activate();
         for (Player player : field.getPlayers()) {
-            player.sendTitle(ChatColor.AQUA + "FREEZE!", ChatColor.DARK_AQUA + "Walls are temporarily frozen!", 0, 40, 10);
+            player.sendTitle(ChatColor.AQUA + "FREEZE!", "Walls are temporarily frozen!", 0, 40, 10);
             player.playSound(player, Sound.ENTITY_PLAYER_HURT_FREEZE, 0.5F, 1);
         }
         field.getQueue().correctAllWalls();

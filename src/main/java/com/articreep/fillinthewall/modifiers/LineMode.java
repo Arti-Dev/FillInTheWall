@@ -2,6 +2,7 @@ package com.articreep.fillinthewall.modifiers;
 
 import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.PlayingField;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -24,12 +25,14 @@ public class LineMode extends ModifierEvent implements Listener {
     public void activate() {
         super.activate();
         FillInTheWall.getInstance().getServer().getPluginManager().registerEvents(this, FillInTheWall.getInstance());
-        field.sendTitleToPlayers("Line Mode", "Placed blocks extend in a line!", 0, 40, 10);
+        field.sendTitleToPlayers(ChatColor.LIGHT_PURPLE + "Line Mode", "Placed blocks extend in a line!", 0, 40, 10);
+        field.playSoundToPlayers(Sound.ENTITY_SHEEP_AMBIENT, 1, 1);
     }
 
     @Override
     public void end() {
         super.end();
+        field.playSoundToPlayers(Sound.ENTITY_SHEEP_SHEAR, 1, 1);
         field.sendTitleToPlayers("", "Placed blocks are back to normal!", 0, 20, 10);
         HandlerList.unregisterAll(this);
     }

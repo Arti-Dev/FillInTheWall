@@ -7,12 +7,12 @@ import com.articreep.fillinthewall.Wall;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.javatuples.Pair;
 
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -34,7 +34,8 @@ public class PlayerInTheWall extends ModifierEvent {
         for (Player player : field.getPlayers()) {
             player.setAllowFlight(false);
             player.teleport(field.getReferencePoint().setDirection(field.getIncomingDirection().multiply(-1)));
-            player.sendTitle("PLAYER IN THE WALL", "Fit yourself into the holes for bonus points!", 0, 40, 10);
+            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+            player.sendTitle(ChatColor.GREEN + "PLAYER IN THE WALL", "Fit yourself into the holes for bonus points!", 0, 40, 10);
         }
     }
 
@@ -74,7 +75,6 @@ public class PlayerInTheWall extends ModifierEvent {
         return count;
     }
 
-    // todo this is just a copy of the previous method, with only two changes
     private int countPlayerBlocksNotInHoles(Wall wall) {
         int count = 0;
         for (Player player : field.getPlayers()) {
@@ -82,8 +82,14 @@ public class PlayerInTheWall extends ModifierEvent {
             Pair<Integer, Integer> coords1 = field.blockToCoordinates(block);
             Pair<Integer, Integer> coords2 = Pair.with(coords1.getValue0(), coords1.getValue1() + 1);
 
-            if (!wall.getHoles().contains(coords1)) count++;
-            if (!wall.getHoles().contains(coords2)) count++;
+            if (!wall.getHoles().contains(coords1)) {
+                count++;
+                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_HURT, 1, 1);
+            }
+            if (!wall.getHoles().contains(coords2)) {
+                count++;
+                player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_HURT, 1, 1);
+            }
         }
         return count;
     }
@@ -94,6 +100,7 @@ public class PlayerInTheWall extends ModifierEvent {
         setBarriers(Material.AIR);
         for (Player player : field.getPlayers()) {
             player.teleport(field.getSpawnLocation());
+            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             player.setAllowFlight(true);
             player.sendTitle("", "You're free!", 0, 20, 10);
         }

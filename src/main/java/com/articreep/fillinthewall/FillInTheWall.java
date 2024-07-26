@@ -10,15 +10,18 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.StringUtil;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
-public final class FillInTheWall extends JavaPlugin implements CommandExecutor {
+public final class FillInTheWall extends JavaPlugin implements CommandExecutor, TabCompleter {
     private static FillInTheWall instance = null;
     private FileConfiguration playingFieldConfig;
 
@@ -194,5 +197,30 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor {
             saveResource("playingfields.yml", false);
         }
         playingFieldConfig = YamlConfiguration.loadConfiguration(playingFieldFile);
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        List<String> completions = new ArrayList<>();
+        ArrayList<String> strings = new ArrayList<>();
+        if (args.length == 1) {
+            strings.add("modifier");
+            StringUtil.copyPartialMatches(args[0], strings, completions);
+        } else if (args.length == 2) {
+            strings.add("popin");
+            strings.add("freeze");
+            strings.add("rush");
+            strings.add("scale");
+            strings.add("line");
+            strings.add("inverted");
+            strings.add("fireinthehole");
+            strings.add("stripes");
+            strings.add("gravity");
+            strings.add("playerinthewall");
+            strings.add("multiplace");
+            strings.add("flip");
+            StringUtil.copyPartialMatches(args[1], strings, completions);
+        }
+        return completions;
     }
 }

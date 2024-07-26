@@ -2,8 +2,10 @@ package com.articreep.fillinthewall.modifiers;
 
 import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.PlayingField;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.EntityType;
@@ -14,6 +16,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Transformation;
 import org.javatuples.Pair;
 import org.joml.AxisAngle4f;
@@ -36,7 +39,8 @@ public class Multiplace extends ModifierEvent implements Listener {
     public void activate() {
         super.activate();
         FillInTheWall.getInstance().getServer().getPluginManager().registerEvents(this, FillInTheWall.getInstance());
-        field.sendTitleToPlayers("Multiplace!", "Your blocks are 2x2 now!", 0, 40, 10);
+        field.sendTitleToPlayers(ChatColor.GOLD + "Multiplace!", "Your blocks are 2x2 now!", 0, 40, 10);
+        field.playSoundToPlayers(Sound.ITEM_MACE_SMASH_GROUND, 1);
     }
 
     @EventHandler (priority = EventPriority.HIGH)
@@ -134,5 +138,17 @@ public class Multiplace extends ModifierEvent implements Listener {
 
         HandlerList.unregisterAll(this);
         field.sendTitleToPlayers("", "Block placements are back to normal!", 0, 20, 10);
+        new BukkitRunnable() {
+            int i = 0;
+            @Override
+            public void run() {
+                if (i >= 4) {
+                    cancel();
+                    return;
+                }
+                field.playSoundToPlayers(Sound.BLOCK_HEAVY_CORE_PLACE, 1);
+                i++;
+            }
+        }.runTaskTimer(FillInTheWall.getInstance(), 0, 2);
     }
 }

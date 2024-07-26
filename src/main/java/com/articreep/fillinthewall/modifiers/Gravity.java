@@ -3,9 +3,8 @@ package com.articreep.fillinthewall.modifiers;
 import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.PlayingField;
 import com.articreep.fillinthewall.Wall;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import com.articreep.fillinthewall.utils.Utils;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.EntityType;
@@ -20,23 +19,27 @@ import java.util.*;
 
 public class Gravity extends ModifierEvent {
     Vector direction;
+    String directionName;
     final double acceleration = 9.8;
     Set<BlockDisplay> blockDisplays = new HashSet<>();
 
     public Gravity(PlayingField field, int ticks) {
         super(field, ticks);
-        List<Vector> possibleDirections = new ArrayList<>();
-        possibleDirections.add(new Vector(0, -1, 0));
-        possibleDirections.add(new Vector(0, 1, 0));
-        possibleDirections.add(field.getFieldDirection());
-        possibleDirections.add(field.getFieldDirection().multiply(-1));
-        direction = possibleDirections.get((int) (Math.random() * possibleDirections.size()));
+        HashMap<Vector, String> possibleDirections = new HashMap<>();
+        possibleDirections.put(new Vector(0, -1, 0), "down");
+        possibleDirections.put(new Vector(0, 1, 0), "up");
+        possibleDirections.put(field.getFieldDirection(), "right");
+        possibleDirections.put(field.getFieldDirection().multiply(-1), "left");
+        direction = Utils.randomSetElement(possibleDirections.keySet());
+        directionName = possibleDirections.get(direction);
     }
 
     @Override
     public void activate() {
         super.activate();
-        field.sendTitleToPlayers("Gravity!", "Blocks will fall in some direction!", 0, 40, 10);
+        field.playSoundToPlayers(Sound.BLOCK_BREWING_STAND_BREW, 2);
+        field.sendTitleToPlayers(ChatColor.DARK_PURPLE + "Gravity!", "Blocks fall "
+                + ChatColor.YELLOW + directionName + ChatColor.RESET + "!", 0, 40, 10);
     }
 
     @Override
@@ -120,6 +123,7 @@ public class Gravity extends ModifierEvent {
     @Override
     public void end() {
         super.end();
+        field.playSoundToPlayers(Sound.ENTITY_SPLASH_POTION_BREAK, 1);
         field.sendTitleToPlayers("", "Placed blocks are back to normal!", 0, 20, 10);
     }
 }

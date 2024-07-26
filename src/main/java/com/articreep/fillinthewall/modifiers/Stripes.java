@@ -6,6 +6,7 @@ import com.articreep.fillinthewall.PlayingFieldScorer;
 import com.articreep.fillinthewall.Wall;
 import com.articreep.fillinthewall.utils.Utils;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -30,7 +31,8 @@ public class Stripes extends ModifierEvent {
         for (Player player : field.getPlayers()) {
             player.getInventory().addItem(new ItemStack(Utils.getAlternateMaterial(field.getWallMaterial())));
         }
-        field.sendTitleToPlayers("Stripes!", "Match colors for bonus points!", 0, 40, 10);
+        field.playSoundToPlayers(Sound.ITEM_BOOK_PAGE_TURN, 1, 1);
+        field.sendTitleToPlayers(ChatColor.DARK_AQUA + "Stripes!", "Match colors for bonus points!", 0, 40, 10);
     }
 
     @Override
@@ -70,6 +72,7 @@ public class Stripes extends ModifierEvent {
         super.end();
         Wall wall = field.getQueue().getFrontmostWall();
         if (wall != null) wall.setStripes(false);
+        field.playSoundToPlayers(Sound.ENTITY_VILLAGER_WORK_LEATHERWORKER, 1, 1);
         field.sendTitleToPlayers("", "Stripes are gone!", 0, 20, 10);
     }
 
