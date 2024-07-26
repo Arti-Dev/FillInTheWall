@@ -39,6 +39,8 @@ public class Wall {
     private final int defaultTeleportDuration = 5;
     private int teleportDuration = defaultTeleportDuration;
     private boolean inverted = false;
+    private boolean pauseTicking = false;
+    private boolean doFlip = false;
     // todo hardness mechanic might be confusing in a vs match
     private int hardness = 0;
 
@@ -289,8 +291,9 @@ public class Wall {
     }
 
     /** Teleports the board and returns time remaining. */
-    public int tick(WallQueue queue) {
+    public int tick() {
         if (state != WallState.VISIBLE) return -1;
+        if (pauseTicking) return timeRemaining;
 
         if (tickCooldown == 0) {
             correct();
@@ -307,8 +310,9 @@ public class Wall {
         }
         tickCooldown--;
 
-
-        if (timeRemaining == 80) {
+        if ((int) (maxTime * 0.75) == timeRemaining && doFlip) {
+            flip();
+        } else if (timeRemaining == 60) {
             spin();
         }
 
@@ -718,5 +722,65 @@ public class Wall {
 
     public Material getAltMaterial() {
         return altMaterial;
+    }
+
+    /**
+     * Flips the entire wall horizontally in 20 ticks and adjusts holes accordingly.
+     */
+    public void flip() {
+        pauseTicking = true;
+        setTeleportDuration(1);
+
+        Map<BlockDisplay, Pair<Location, Vector>> vectorLocationPairs = new HashMap<>();
+        for (BlockDisplay display : blocks.keySet()) {
+            // Determine how far away we are from the "center vertical" line
+            double lengthFromCenter = blocks.get(display).getValue0() + 0.5 - length / 2.0;
+            Location center = display.getLocation().clone().add(horizontalDirection.clone().multiply(-lengthFromCenter));
+            Vector vector = display.getLocation().toVector().subtract(center.toVector());
+            vectorLocationPairs.put(display, Pair.with(center, vector));
+        }
+        new BukkitRunnable() {
+            int i = 0;
+
+            @Override
+            public void run() {
+                if (i >= 20) {
+                    flipHoles();
+                    setTeleportDuration(defaultTeleportDuration);
+                    pauseTicking = false;
+                    cancel();
+                    return;
+                }
+                for (BlockDisplay display : blocks.keySet()) {
+                    Pair<Location, Vector> pair = vectorLocationPairs.get(display);
+                    Location center = pair.getValue0();
+                    Vector vector = pair.getValue1();
+                    vector.rotateAroundY(Math.PI * (1 / 20.0));
+                    display.teleport(center.clone().add(vector));
+                }
+                i++;
+            }
+        }.runTaskTimer(FillInTheWall.getInstance(), 0, 1);
+    }
+
+    private void flipHoles() {
+        Set<Pair<Integer, Integer>> newHoles = new HashSet<>();
+        for (Pair<Integer, Integer> hole : holes) {
+            newHoles.add(Pair.with(length - hole.getValue0() - 1, hole.getValue1()));
+        }
+        holes.clear();
+        holes.addAll(newHoles);
+
+        Map<BlockDisplay, Pair<Integer, Integer>> newBlocks = new HashMap<>();
+        for (BlockDisplay display : blocks.keySet()) {
+            Pair<Integer, Integer> coords = blocks.get(display);
+            newBlocks.put(display, Pair.with(length - coords.getValue0() - 1, coords.getValue1()));
+        }
+        blocks.clear();
+        blocks.putAll(newBlocks);
+    }
+
+    public void setDoFlip(boolean doFlip) {
+        this.doFlip = doFlip;
     }
 }

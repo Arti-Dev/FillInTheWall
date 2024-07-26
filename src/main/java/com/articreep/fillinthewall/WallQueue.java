@@ -157,7 +157,7 @@ public class WallQueue {
         Iterator<Wall> it = activeWalls.iterator();
         while (it.hasNext()) {
             Wall wall = it.next();
-            int remaining = wall.tick(WallQueue.this);
+            int remaining = wall.tick();
             // If wall runs out of time -
             if (remaining <= 0 && wall.getWallState() == WallState.VISIBLE) {
                 wall.despawn();
@@ -351,5 +351,9 @@ public class WallQueue {
 
     public Wall getFrontmostWall() {
         return frontmostWall;
+    }
+
+    public List<Wall> getActiveWalls() {
+        return activeWalls;
     }
 }
