@@ -3,20 +3,32 @@ package com.articreep.fillinthewall.modifiers;
 import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.PlayingField;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.BlockDisplay;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Transformation;
 import org.javatuples.Pair;
+import org.joml.AxisAngle4f;
+import org.joml.Vector3f;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 // Just the O piece for now.
 public class Multiplace extends ModifierEvent implements Listener {
+    Map<Player, Set<BlockDisplay>> blockDisplays = new HashMap<>();
 
     public Multiplace(PlayingField field, int ticks) {
         super(field, ticks);
@@ -38,6 +50,7 @@ public class Multiplace extends ModifierEvent implements Listener {
 
             // In the case that the box ends up not being part of the original placement, remove it (rare)
             // for some reason setCancelled will break everything, so we have to do this instead
+            // todo this just breaks the entire thing and no blocks place
             if (!blockPlacements.contains(field.blockToCoordinates(event.getBlock()))) {
                 event.getBlock().setType(Material.AIR);
             }
@@ -46,6 +59,36 @@ public class Multiplace extends ModifierEvent implements Listener {
                 field.coordinatesToBlock(coords).setType(event.getBlock().getType());
             }
         }
+    }
+
+    // todo this needs a rewrite and a lot of bugfixing
+    @EventHandler
+    public void onPlayerMove(PlayerMoveEvent event) {
+        Player player = event.getPlayer();
+        Block block = event.getPlayer().getLastTwoTargetBlocks(null, 5).getFirst();
+        Material material = player.getInventory().getItemInMainHand().getType();
+        Set<Pair<Integer, Integer>> blockPlacements = calculateBlockPlacements(block);
+        if (!blockDisplays.containsKey(player)) {
+            blockDisplays.put(player, new HashSet<>());
+        }
+        Set<BlockDisplay> displays = blockDisplays.get(player);
+        displays.forEach(BlockDisplay::remove);
+        displays.clear();
+
+        if (material.isBlock()) {
+            for (Pair<Integer, Integer> coords : blockPlacements) {
+                Location location = field.coordinatesToBlock(coords).getLocation().add(0.5, 0.5, 0.5);
+                BlockDisplay display = (BlockDisplay) field.getWorld().spawnEntity(location, EntityType.BLOCK_DISPLAY);
+                display.setBlock(material.createBlockData());
+                float size = 0.5f;
+                display.setTransformation(new Transformation(
+                        new Vector3f(-size/2, -size/2, -size/2),
+                        new AxisAngle4f(0, 0, 0, 1), new Vector3f(size, size, size),
+                        new AxisAngle4f(0, 0, 0, 1)));
+                displays.add(display);
+            }
+        }
+
     }
 
     private Set<Pair<Integer, Integer>> calculateBlockPlacements(Block pivot) {
@@ -61,7 +104,6 @@ public class Multiplace extends ModifierEvent implements Listener {
         if (isNotOccupiedByOtherBlocks(blocksToPlace, pivot)) return blocksToPlace;
 
         // Tetris Super Rotation System style
-        Bukkit.getLogger().info("Trying to place blocks in different positions");
         for (int x = -1; x <= 1; x++) {
             for (int y = -1; y <= 1; y++) {
                 // Deep-copy set
@@ -84,7 +126,6 @@ public class Multiplace extends ModifierEvent implements Listener {
         for (Pair<Integer, Integer> coords : blockSet) {
             Block block = field.coordinatesToBlock(coords);
             if (field.coordinatesToBlock(coords).getType() != Material.AIR && !block.equals(pivot)) {
-                Bukkit.getLogger().info("Block at " + coords + " is occupied");
                 return false;
             }
         }
@@ -94,6 +135,11 @@ public class Multiplace extends ModifierEvent implements Listener {
     @Override
     public void end() {
         super.end();
+        for (Set<BlockDisplay> displays : blockDisplays.values()) {
+            displays.forEach(BlockDisplay::remove);
+        }
+        blockDisplays.clear();
+
         HandlerList.unregisterAll(this);
         field.sendTitleToPlayers("", "Block placements are back to normal!", 0, 20, 10);
     }
