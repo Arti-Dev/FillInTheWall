@@ -30,6 +30,9 @@ public abstract class ModifierEvent {
     public boolean fillFieldAfterSubmission = false;
     public boolean modifyWalls = false;
 
+    public boolean shelveEvent = false;
+    protected ModifierEvent shelvedEvent;
+
     protected double meterPercentRequired = 1;
     protected WallQueue queue;
     protected int ticksRemaining;
@@ -66,6 +69,10 @@ public abstract class ModifierEvent {
         active = true;
     }
 
+    public void setShelvedEvent(ModifierEvent event) {
+        shelvedEvent = event;
+    }
+
     public void end() {
         active = false;
         for (Player player : field.getPlayers()) {
@@ -79,8 +86,6 @@ public abstract class ModifierEvent {
                 }
             }
         }
-        if (field == null) return;
-        field.setEvent(null);
     }
 
     /**
@@ -158,5 +163,9 @@ public abstract class ModifierEvent {
                 inventory.addItem(itemToAdd);
             }
         }
+    }
+
+    public ModifierEvent getShelvedEvent() {
+        return shelvedEvent;
     }
 }

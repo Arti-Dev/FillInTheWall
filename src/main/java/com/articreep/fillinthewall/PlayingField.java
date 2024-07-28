@@ -799,18 +799,28 @@ public class PlayingField implements Listener {
         return false;
     }
 
-    public void setEvent(ModifierEvent event) {
-        this.event = event;
-    }
-
-    public void activateEvent() {
-        if (event == null) return;
-        this.event.activate();
+    public void setEvent(ModifierEvent newEvent) {
+        if (event != null && newEvent != null) {
+            if (newEvent.shelveEvent) {
+                Bukkit.getLogger().info("Shelving event " + event);
+                newEvent.setShelvedEvent(event);
+                event.end();
+            } else {
+                endEvent();
+            }
+        }
+        this.event = newEvent;
     }
 
     public void endEvent() {
         event.end();
-        event = null;
+        if (event.shelveEvent) {
+            // todo this line prevents infinite recursion - kind of scary
+            event = event.getShelvedEvent();
+            event.activate();
+        } else {
+            event = null;
+        }
         if (scorer.getSettings().hasAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP)) {
             if (scorer.getEventCount() >= (int) scorer.getSettings().getAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP)) {
                 stop();
