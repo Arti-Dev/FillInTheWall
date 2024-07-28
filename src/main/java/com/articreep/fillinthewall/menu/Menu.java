@@ -58,6 +58,10 @@ public class Menu implements Listener {
         if (gamemodeIndex >= Gamemode.values().length) {
             gamemodeIndex = 0;
         }
+        if (Gamemode.values()[gamemodeIndex].getDefaultSettings().hasAttribute(GamemodeAttribute.MULTIPLAYER)) {
+            nextGamemode();
+            return;
+        }
         setMenuGamemode(Gamemode.values()[gamemodeIndex]);
     }
 
