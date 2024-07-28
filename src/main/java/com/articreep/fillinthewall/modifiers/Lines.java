@@ -15,9 +15,9 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-public class LineMode extends ModifierEvent implements Listener {
+public class Lines extends ModifierEvent implements Listener {
 
-    public LineMode(PlayingField field, int ticks) {
+    public Lines(PlayingField field, int ticks) {
         super(field, ticks);
     }
 
@@ -25,7 +25,7 @@ public class LineMode extends ModifierEvent implements Listener {
     public void activate() {
         super.activate();
         FillInTheWall.getInstance().getServer().getPluginManager().registerEvents(this, FillInTheWall.getInstance());
-        field.sendTitleToPlayers(ChatColor.LIGHT_PURPLE + "Line Mode", "Placed blocks extend in a line!", 0, 40, 10);
+        field.sendTitleToPlayers(ChatColor.LIGHT_PURPLE + "Lines", "Placed blocks extend to the other side!", 0, 40, 10);
         field.playSoundToPlayers(Sound.ENTITY_SHEEP_AMBIENT, 1, 1);
     }
 
