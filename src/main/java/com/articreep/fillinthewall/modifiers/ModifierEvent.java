@@ -1,6 +1,9 @@
 package com.articreep.fillinthewall.modifiers;
 
 import com.articreep.fillinthewall.*;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
 import java.util.HashMap;
 
@@ -65,6 +68,17 @@ public abstract class ModifierEvent {
 
     public void end() {
         active = false;
+        for (Player player : field.getPlayers()) {
+            PlayerInventory inventory = player.getInventory();
+            ItemStack[] contents = inventory.getContents();
+            for (int i = 0; i < contents.length; i++) {
+                ItemStack item = contents[i];
+                if (item == null || !item.hasItemMeta()) continue;
+                if (item.getItemMeta().getPersistentDataContainer().has(PlayingField.variableKey)) {
+                    inventory.setItem(i, PlayingField.variableItem());
+                }
+            }
+        }
         if (field == null) return;
         field.setEvent(null);
     }
@@ -119,5 +133,30 @@ public abstract class ModifierEvent {
 
     public boolean isActive() {
         return active;
+    }
+
+    /**
+     * Adds a temporary item to the player's inventory.
+     * The item should have an entry in the persistent data container with the key PlayingField.variableKey
+     * @param itemToAdd item to add
+     */
+    protected void addTemporaryItemToPlayers(ItemStack itemToAdd) {
+        for (Player player : field.getPlayers()) {
+            PlayerInventory inventory = player.getInventory();
+            ItemStack[] contents = inventory.getContents();
+            boolean replaced = false;
+            for (int i = 0; i < contents.length; i++) {
+                ItemStack item = contents[i];
+                if (item == null || !item.hasItemMeta()) continue;
+                if (item.getItemMeta().getPersistentDataContainer().has(PlayingField.variableKey)) {
+                    replaced = true;
+                    inventory.setItem(i, itemToAdd);
+                }
+            }
+
+            if (!replaced) {
+                inventory.addItem(itemToAdd);
+            }
+        }
     }
 }

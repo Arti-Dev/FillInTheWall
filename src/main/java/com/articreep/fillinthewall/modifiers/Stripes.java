@@ -8,8 +8,9 @@ import com.articreep.fillinthewall.utils.Utils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.javatuples.Pair;
 
 import java.util.HashMap;
@@ -28,9 +29,7 @@ public class Stripes extends ModifierEvent {
         super.activate();
         Wall wall = field.getQueue().getFrontmostWall();
         if (wall != null) wall.setStripes(true);
-        for (Player player : field.getPlayers()) {
-            player.getInventory().addItem(new ItemStack(Utils.getAlternateMaterial(field.getWallMaterial())));
-        }
+        addTemporaryItemToPlayers(altWallMaterial());
         field.playSoundToPlayers(Sound.ITEM_BOOK_PAGE_TURN, 1, 1);
         field.sendTitleToPlayers(ChatColor.DARK_AQUA + "Stripes!", "Match colors for bonus points!", 0, 40, 10);
     }
@@ -79,5 +78,13 @@ public class Stripes extends ModifierEvent {
     @Override
     public void modifyWall(Wall wall) {
         wall.setStripes(true);
+    }
+
+    private ItemStack altWallMaterial() {
+        ItemStack item = new ItemStack(Utils.getAlternateMaterial(field.getWallMaterial()));
+        ItemMeta meta = item.getItemMeta();
+        meta.getPersistentDataContainer().set(PlayingField.variableKey, PersistentDataType.BOOLEAN, true);
+        item.setItemMeta(meta);
+        return item;
     }
 }

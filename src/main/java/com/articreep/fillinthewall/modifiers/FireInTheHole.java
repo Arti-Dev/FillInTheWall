@@ -9,14 +9,12 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.javatuples.Pair;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 public class FireInTheHole extends ModifierEvent {
@@ -33,10 +31,7 @@ public class FireInTheHole extends ModifierEvent {
         super.activate();
         field.sendTitleToPlayers(ChatColor.GREEN + "FIRE IN THE HOLE", "Fill holes with " +
                 ChatColor.RED + "fire" + ChatColor.RESET + " for bonus points!", 0, 40, 10);
-        for (Player player : field.getPlayers()) {
-            // todo maybe put this in a certain slot
-            player.getInventory().addItem(new ItemStack(Material.FLINT_AND_STEEL));
-        }
+        addTemporaryItemToPlayers(flintAndSteel());
         field.playSoundToPlayers(Sound.ENTITY_GHAST_SCREAM, 1, 1);
     }
 
@@ -119,5 +114,14 @@ public class FireInTheHole extends ModifierEvent {
         // todo remove flint and steel
         field.playSoundToPlayers(Sound.ENTITY_BLAZE_SHOOT, 1);
         field.sendTitleToPlayers("", "Fire no longer gives a point bonus!", 0, 20, 10);
+    }
+
+    private static ItemStack flintAndSteel() {
+        ItemStack item = new ItemStack(Material.FLINT_AND_STEEL);
+        ItemMeta meta = item.getItemMeta();
+        meta.getPersistentDataContainer().set(PlayingField.variableKey, PersistentDataType.BOOLEAN, true);
+        meta.setLore(Collections.singletonList(ChatColor.GRAY + "Temporary item"));
+        item.setItemMeta(meta);
+        return item;
     }
 }

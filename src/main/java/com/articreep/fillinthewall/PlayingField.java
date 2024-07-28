@@ -70,6 +70,7 @@ public class PlayingField implements Listener {
     private final Material defaultBorderMaterial = Material.GRAY_CONCRETE;
     private final Material playerMaterial;
     public static final NamespacedKey meterKey = new NamespacedKey(FillInTheWall.getInstance(), "METER_ITEM");
+    public static final NamespacedKey variableKey = new NamespacedKey(FillInTheWall.getInstance(), "VARIABLE_ITEM");
     private final WorldBoundingBox boundingBox;
     private final WorldBoundingBox effectBox;
     private String environment;
@@ -289,9 +290,10 @@ public class PlayingField implements Listener {
         // since this is a minigame
         player.getInventory().clear();
         player.getInventory().setItem(0, buildingItem(playerMaterial));
-        player.getInventory().setItem(1, stoneSupportItem());
+        player.getInventory().setItem(1, variableItem());
         player.getInventory().setItem(2, copperSupportItem());
-        player.getInventory().setItem(3, meterItem());
+        player.getInventory().setItem(3, stoneSupportItem());
+        player.getInventory().setItem(4, meterItem());
         // todo temporary
         if (scorer.getSettings().hasAttribute(GamemodeAttribute.DO_CLEARING_MODES)) {
             player.getInventory().setItem(4, new ItemStack(Material.FIREWORK_STAR));
@@ -1060,6 +1062,18 @@ public class PlayingField implements Listener {
         meta.getPersistentDataContainer().set(meterKey, PersistentDataType.BOOLEAN, true);
         item.setItemMeta(meta);
         return item;
+    }
+
+    public static ItemStack variableItem() {
+        ItemStack item = new ItemStack(Material.GRAY_DYE);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.WHITE + "Variable Item");
+        meta.setLore(Arrays.asList(ChatColor.GRAY + "This is replaced with special items during specific events!",
+                ChatColor.DARK_GRAY + "Feel free to move this anywhere in your inventory!"));
+        meta.getPersistentDataContainer().set(variableKey, PersistentDataType.BOOLEAN, true);
+        item.setItemMeta(meta);
+        return item;
+
     }
 
     public void sendMessageToPlayers(String message) {
