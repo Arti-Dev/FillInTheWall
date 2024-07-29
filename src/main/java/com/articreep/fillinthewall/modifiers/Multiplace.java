@@ -102,7 +102,7 @@ public class Multiplace extends ModifierEvent implements Listener {
         int[] y = {0, -1, -1};
 
         // Tetris Super Rotation System style
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 3; i++) {
             // Deep-copy set
             Set<Pair<Integer, Integer>> shiftedBlocksToPlace = new HashSet<>();
             for (Pair<Integer, Integer> coords : blocksToPlace) {
