@@ -123,10 +123,10 @@ public class PlayingFieldScorer {
         }
 
         // Garbage wall rules
-        if (settings.hasAttribute(GamemodeAttribute.DO_GARBAGE_WALLS)) {
+        if (settings.getBooleanAttribute(GamemodeAttribute.DO_GARBAGE_WALLS)) {
             if (percent >= Judgement.COOL.getPercent()) {
                 // Clearing modes
-                if (opponent != null && settings.hasAttribute(GamemodeAttribute.DO_GARBAGE_ATTACK)) {
+                if (opponent != null && settings.getBooleanAttribute(GamemodeAttribute.DO_GARBAGE_ATTACK)) {
                     attackOrDefend(wall, judgement);
                 } else {
                     // If clearing modes aren't enabled, just award garbage points regardless
@@ -247,7 +247,7 @@ public class PlayingFieldScorer {
     }
 
     public void onClearingModeChange(Player player) {
-        if (!settings.hasAttribute(GamemodeAttribute.DO_CLEARING_MODES)) return;
+        if (!settings.getBooleanAttribute(GamemodeAttribute.DO_CLEARING_MODES)) return;
 
         // Meter has to be at least 25% full to switch to defense
         double percent = meter / meterMax;
@@ -272,7 +272,7 @@ public class PlayingFieldScorer {
             return;
         }
 
-        if (!settings.hasAttribute(GamemodeAttribute.ABILITY_EVENT)) {
+        if (settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT).createEvent(field) == null) {
             player.sendMessage(ChatColor.RED + "No event to activate!");
             return;
         }
@@ -398,12 +398,12 @@ public class PlayingFieldScorer {
 
         // if a timefreeze modifier event is active and we're in a singleplayer game, pause the timer
         if (field.eventActive() && field.getEvent().timeFreeze
-                && settings.hasAttribute(GamemodeAttribute.SINGLEPLAYER)) return;
+                && settings.getBooleanAttribute(GamemodeAttribute.SINGLEPLAYER)) return;
         // if we're in a score attack game, decrement the time
-        if (settings.hasAttribute(GamemodeAttribute.TIME_LIMIT)) time--;
+        if (settings.getIntAttribute(GamemodeAttribute.TIME_LIMIT) > 0) time--;
         else time++;
 
-        if (settings.hasAttribute(GamemodeAttribute.TIME_LIMIT)) {
+        if (settings.getIntAttribute(GamemodeAttribute.TIME_LIMIT) > 0) {
             if ((int) settings.getAttribute(GamemodeAttribute.TIME_LIMIT) >= 120 * 20) {
                 if (time <= 0) {
                     field.sendMessageToPlayers(ChatColor.RED + "Time's up!");
@@ -528,12 +528,12 @@ public class PlayingFieldScorer {
         endScreen.addLine(gamemode.getTitle());
         endScreen.addLine("");
         endScreen.addLine(ChatColor.GREEN + "Final score: " + ChatColor.BOLD + score);
-        if (settings.hasAttribute(GamemodeAttribute.MULTIPLAYER)) {
+        if (settings.getBooleanAttribute(GamemodeAttribute.MULTIPLAYER)) {
             if (gamemode == Gamemode.MULTIPLAYER_SCORE_ATTACK) {
                 endScreen.addLine(ChatColor.WHITE + "Position: No. " + multiplayerGame.getRank(field));
             }
         }
-        if (!settings.hasAttribute(GamemodeAttribute.TIME_LIMIT)) {
+        if (settings.getIntAttribute(GamemodeAttribute.TIME_LIMIT) <= 0) {
             endScreen.addLine(ChatColor.AQUA + "Time: " + ChatColor.BOLD + getFormattedTime());
         }
         endScreen.addLine(ChatColor.GOLD + "Perfect Walls cleared: " + ChatColor.BOLD + perfectWallsCleared);
@@ -545,7 +545,6 @@ public class PlayingFieldScorer {
         this.gamemode = gamemode;
         this.settings = settings;
         for (GamemodeAttribute attribute : GamemodeAttribute.values()) {
-            if (!settings.hasAttribute(attribute)) continue;
             Object value = settings.getAttribute(attribute);
             
             // todo decide whether to cast here or use the methods that cast beforehand

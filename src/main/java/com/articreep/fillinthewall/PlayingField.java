@@ -299,7 +299,7 @@ public class PlayingField implements Listener {
         player.getInventory().setItem(3, stoneSupportItem());
         player.getInventory().setItem(4, meterItem());
         // todo temporary
-        if (scorer.getSettings().hasAttribute(GamemodeAttribute.DO_CLEARING_MODES)) {
+        if (scorer.getSettings().getBooleanAttribute(GamemodeAttribute.DO_CLEARING_MODES)) {
             player.getInventory().setItem(4, new ItemStack(Material.FIREWORK_STAR));
         }
 
@@ -830,7 +830,7 @@ public class PlayingField implements Listener {
         } else {
             event = null;
         }
-        if (scorer.getSettings().hasAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP)) {
+        if (scorer.getSettings().getIntAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP) > 0) {
             if (scorer.getEventCount() >= (int) scorer.getSettings().getAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP)) {
                 stop();
             }
@@ -923,7 +923,7 @@ public class PlayingField implements Listener {
                 case EVENTS -> {
                     ArrayList<Object> array = new ArrayList<>();
                     array.add(scorer.getEventCount());
-                    if (scorer.getSettings().hasAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP)) {
+                    if (scorer.getSettings().getIntAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP) > 0) {
                         array.add("/" + scorer.getSettings().getAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP));
                     } else {
                         array.add("");

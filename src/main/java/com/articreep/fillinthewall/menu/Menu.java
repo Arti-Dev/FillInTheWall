@@ -58,7 +58,7 @@ public class Menu implements Listener {
         if (gamemodeIndex >= Gamemode.values().length) {
             gamemodeIndex = 0;
         }
-        if (Gamemode.values()[gamemodeIndex].getDefaultSettings().hasAttribute(GamemodeAttribute.MULTIPLAYER)) {
+        if (Gamemode.values()[gamemodeIndex].getDefaultSettings().getBooleanAttribute(GamemodeAttribute.MULTIPLAYER)) {
             nextGamemode();
             return;
         }
@@ -79,7 +79,7 @@ public class Menu implements Listener {
             return;
         }
         Gamemode mode = Gamemode.values()[gamemodeIndex];
-        if (mode.getDefaultSettings().hasAttribute(GamemodeAttribute.MULTIPLAYER)) {
+        if (mode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.MULTIPLAYER)) {
             field.sendMessageToPlayers(ChatColor.RED + "You cannot start a multiplayer game through this menu!");
         } else {
             field.countdownStart(Gamemode.values()[gamemodeIndex]);

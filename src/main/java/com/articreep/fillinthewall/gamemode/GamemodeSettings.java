@@ -9,6 +9,12 @@ import java.util.HashMap;
 public class GamemodeSettings {
     private final HashMap<GamemodeAttribute, Object> settings = new HashMap<>();
 
+    public GamemodeSettings() {
+        for (GamemodeAttribute attribute : GamemodeAttribute.values()) {
+            setAttribute(attribute, attribute.getDefaultValue());
+        }
+    }
+
     public void setAttribute(GamemodeAttribute attribute, Object value) {
         // Try casting value
         try {
@@ -19,12 +25,8 @@ public class GamemodeSettings {
         settings.put(attribute, value);
     }
 
-    public boolean hasAttribute(GamemodeAttribute attribute) {
-        return settings.containsKey(attribute);
-    }
-
     public Object getAttribute(GamemodeAttribute attribute) {
-        if (!hasAttribute(attribute)) return attribute.getDefaultValue();
+        if (!settings.containsKey(attribute)) return attribute.getDefaultValue();
         return settings.get(attribute);
     }
 
