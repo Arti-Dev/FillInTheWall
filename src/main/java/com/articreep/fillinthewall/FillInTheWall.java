@@ -7,23 +7,40 @@ import com.articreep.fillinthewall.modifiers.*;
 import com.articreep.fillinthewall.multiplayer.Pregame;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.StringUtil;
+import org.bukkit.util.Transformation;
+import org.joml.AxisAngle4f;
+import org.joml.Vector3f;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-public final class FillInTheWall extends JavaPlugin implements CommandExecutor, TabCompleter {
+public final class FillInTheWall extends JavaPlugin implements CommandExecutor, TabCompleter, Listener {
     private static FillInTheWall instance = null;
     private FileConfiguration playingFieldConfig;
+    private Set<Entity> displays = new HashSet<>();
+    private NamespacedKey interactionKey = new NamespacedKey(this, "singleplayerPortal");
+    private Display singleplayerDisplay = null;
+    private Display multiplayerDisplay = null;
 
     @Override
     public void onEnable() {
@@ -35,6 +52,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
         getServer().getPluginManager().registerEvents(new TheVoid(), this);
         getServer().getPluginManager().registerEvents(registerPlayingField, this);
         getServer().getPluginManager().registerEvents(new Finals(), this);
+        getServer().getPluginManager().registerEvents(this, this);
         Bukkit.getLogger().info(ChatColor.BLUE + "FillInTheWall has been enabled!");
 
         loadPlayingFieldConfig();
@@ -46,6 +64,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                     2, 30);
             PlayingFieldManager.vsPregame = new Pregame(Bukkit.getWorld("versus"), Gamemode.VERSUS, 2, 15);
             PlayingFieldManager.parseConfig(getPlayingFieldConfig());
+            spawnPortals();
         }, 1);
 
     }
@@ -53,6 +72,77 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+        displays.forEach(Entity::remove);
+    }
+
+    private void spawnPortals() {
+        Location singleplayerLocation = getConfig().getLocation("singleplayer-portal.location");
+        Location multiplayerLocation = getConfig().getLocation("multiplayer-portal.location");
+        String singleplayerText = getConfig().getString("singleplayer-portal.text");
+        String multiplayerText = getConfig().getString("multiplayer-portal.text");
+
+        if (singleplayerLocation != null) {
+            ItemDisplay itemDisplay = (ItemDisplay) singleplayerLocation.getWorld().spawnEntity(
+                    singleplayerLocation, EntityType.ITEM_DISPLAY);
+            itemDisplay.setItemStack(new ItemStack(Material.GLOW_BERRIES));
+            float size = 3.0f;
+            itemDisplay.setTransformation(new Transformation(
+                    new Vector3f(0, 0, 0),
+                    new AxisAngle4f(0, 0, 0, 1), new Vector3f(size, size, size),
+                    new AxisAngle4f(0, 0, 0, 1)));
+            itemDisplay.setGlowing(true);
+            itemDisplay.setBillboard(Display.Billboard.VERTICAL);
+            TextDisplay textDisplay = (TextDisplay) singleplayerLocation.getWorld().spawnEntity(
+                    singleplayerLocation.clone().add(0, size/2, 0), EntityType.TEXT_DISPLAY);
+            textDisplay.setText(singleplayerText);
+            textDisplay.setBillboard(Display.Billboard.VERTICAL);
+            Interaction interaction = (Interaction) singleplayerLocation.getWorld().spawnEntity(
+                    singleplayerLocation.clone().add(0, -size/2, 0), EntityType.INTERACTION);
+            interaction.setInteractionHeight(size);
+            interaction.setInteractionWidth(size);
+            interaction.getPersistentDataContainer().set(interactionKey, PersistentDataType.STRING, "SINGLEPLAYER");
+            displays.add(itemDisplay);
+            displays.add(textDisplay);
+            displays.add(interaction);
+            singleplayerDisplay = itemDisplay;
+        }
+        if (multiplayerLocation != null) {
+            ItemDisplay itemDisplay = (ItemDisplay) multiplayerLocation.getWorld().spawnEntity(
+                    multiplayerLocation, EntityType.ITEM_DISPLAY);
+            itemDisplay.setItemStack(new ItemStack(Material.SOUL_CAMPFIRE));
+            float size = 3.0f;
+            itemDisplay.setTransformation(new Transformation(
+                    new Vector3f(0, 0, 0),
+                    new AxisAngle4f(0, 0, 0, 1), new Vector3f(size, size, size),
+                    new AxisAngle4f(0, 0, 0, 1)));
+            itemDisplay.setGlowing(true);
+            itemDisplay.setBillboard(Display.Billboard.VERTICAL);
+            TextDisplay textDisplay = (TextDisplay) multiplayerLocation.getWorld().spawnEntity(
+                    multiplayerLocation.clone().add(0, size/2, 0), EntityType.TEXT_DISPLAY);
+            textDisplay.setText(multiplayerText);
+            textDisplay.setBillboard(Display.Billboard.VERTICAL);
+            Interaction interaction = (Interaction) multiplayerLocation.getWorld().spawnEntity(
+                    multiplayerLocation.clone().add(0, -size/2, 0), EntityType.INTERACTION);
+            interaction.setInteractionHeight(size);
+            interaction.setInteractionWidth(size);
+            interaction.getPersistentDataContainer().set(interactionKey, PersistentDataType.STRING, "MULTIPLAYER");
+            displays.add(itemDisplay);
+            displays.add(textDisplay);
+            displays.add(interaction);
+            multiplayerDisplay = textDisplay;
+        }
+    }
+
+    @EventHandler
+    public void onPlayerClick(PlayerInteractEntityEvent event) {
+        Entity entity = event.getRightClicked();
+        if (!entity.getPersistentDataContainer().has(interactionKey, PersistentDataType.STRING)) return;
+        String string = entity.getPersistentDataContainer().getOrDefault(interactionKey, PersistentDataType.STRING, "");
+        if (string.equals("SINGLEPLAYER")) {
+            event.getPlayer().teleport(multiplayerDisplay.getLocation());
+        } else if (string.equals("MULTIPLAYER")) {
+            event.getPlayer().teleport(singleplayerDisplay.getLocation());
+        }
     }
 
     public static FillInTheWall getInstance() {
@@ -194,6 +284,11 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
 
     public void reloadConfig() {
         super.reloadConfig();
+        for (Entity display : displays) {
+            display.remove();
+        }
+        displays.clear();
+        spawnPortals();
         loadPlayingFieldConfig();
         PlayingFieldManager.removeAllGames();
         PlayingFieldManager.parseConfig(getPlayingFieldConfig());

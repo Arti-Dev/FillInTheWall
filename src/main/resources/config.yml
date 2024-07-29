@@ -1,0 +1,20 @@
+singleplayer-portal:
+  location:
+    ==: org.bukkit.Location
+    world: multi
+    x: 0.5
+    y: 103.5
+    z: -6.5
+    pitch: 0.0
+    yaw: 0.0
+  text: 'Right-click me to go to the singleplayer lobby'
+multiplayer-portal:
+  location:
+    ==: org.bukkit.Location
+    world: void
+    x: -14.5
+    y: 3.5
+    z: 2.0
+    pitch: 0.0
+    yaw: 0.0
+  text: 'Right-click me to go to the multiplayer lobby'
