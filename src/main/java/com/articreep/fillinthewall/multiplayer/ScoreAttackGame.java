@@ -35,7 +35,11 @@ public class ScoreAttackGame extends MultiplayerGame {
     @Override
     protected void startGame() {
         super.startGame();
-        time = (int) gamemode.getDefaultSettings().getAttribute(GamemodeAttribute.TIME_LIMIT);
+        if (stage == Stage.QUALIFICATIONS) {
+            time = settings.getIntAttribute(GamemodeAttribute.TIME_LIMIT);
+        } else if (stage == Stage.FINALS) {
+            time = settings.getIntAttribute(GamemodeAttribute.FINALS_TIME_LIMIT);
+        }
         sortTask = sortLoop();
     }
 

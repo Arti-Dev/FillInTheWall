@@ -6,6 +6,7 @@ import com.articreep.fillinthewall.modifiers.ModifierEvent;
 public enum GamemodeAttribute {
     // todo I'm not going to bother with enforcing types for now, but the types of these attributes are listed here
     TIME_LIMIT(Integer.class, 0),
+    FINALS_TIME_LIMIT(Integer.class, 20*120),
     DO_LEVELS(Boolean.class, false),
     WALL_TIME_DECREASE_AMOUNT(Integer.class, 20),
     CONSISTENT_HOLE_COUNT(Boolean.class, true),
