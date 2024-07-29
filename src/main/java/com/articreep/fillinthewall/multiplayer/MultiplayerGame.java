@@ -4,6 +4,7 @@ import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.PlayingField;
 import com.articreep.fillinthewall.PlayingFieldManager;
+import com.articreep.fillinthewall.gamemode.GamemodeSettings;
 import org.bukkit.Bukkit;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Sound;
@@ -19,12 +20,14 @@ public abstract class MultiplayerGame {
     protected int time;
     protected BukkitTask mainTask = null;
     protected Set<BukkitTask> otherTasks = new HashSet<>();
+    protected GamemodeSettings settings = new GamemodeSettings();
 
-    public MultiplayerGame(List<PlayingField> fields) {
+    public MultiplayerGame(List<PlayingField> fields, GamemodeSettings settings) {
         // todo add some kind of way to input setting changes
         if (fields.isEmpty()) {
             Bukkit.getLogger().severe("Tried to create multiplayer game with no playing fields");
         }
+        this.settings = settings;
         playingFields.addAll(fields);
         // Use the first field to make the generator
         PlayingField field = fields.getFirst();
@@ -102,7 +105,7 @@ public abstract class MultiplayerGame {
         }
         for (PlayingField field : playingFields) {
             try {
-                field.start(getGamemode());
+                field.start(getGamemode(), settings);
             } catch (IllegalStateException e) {
                 e.printStackTrace();
                 removePlayingfield(field);

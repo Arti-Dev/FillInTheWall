@@ -89,7 +89,8 @@ public abstract class ModifierEvent {
         SCALE(Scale.class),
         STRIPES(Stripes.class),
         TUTORIAL(Tutorial.class),
-        RANDOM(null);
+        RANDOM(null),
+        NONE(null);
 
         final Class<? extends ModifierEvent> clazz;
         Type(Class<? extends ModifierEvent> clazz) {

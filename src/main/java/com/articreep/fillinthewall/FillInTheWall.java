@@ -5,6 +5,7 @@ import com.articreep.fillinthewall.environments.TheVoid;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.modifiers.*;
 import com.articreep.fillinthewall.multiplayer.Pregame;
+import com.articreep.fillinthewall.multiplayer.SettingsMenu;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -46,13 +47,16 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
     public void onEnable() {
         instance = this;
         RegisterPlayingField registerPlayingField = new RegisterPlayingField();
+        SettingsMenu settingsMenu = new SettingsMenu();
         getCommand("fillinthewall").setExecutor(this);
         getCommand("registerplayingfield").setExecutor(registerPlayingField);
+        getCommand("settingsmenu").setExecutor(settingsMenu);
         getServer().getPluginManager().registerEvents(new PlayingFieldManager(), this);
         getServer().getPluginManager().registerEvents(new TheVoid(), this);
         getServer().getPluginManager().registerEvents(registerPlayingField, this);
         getServer().getPluginManager().registerEvents(new Finals(), this);
         getServer().getPluginManager().registerEvents(this, this);
+        getServer().getPluginManager().registerEvents(settingsMenu, this);
         Bukkit.getLogger().info(ChatColor.BLUE + "FillInTheWall has been enabled!");
 
         loadPlayingFieldConfig();

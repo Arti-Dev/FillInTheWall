@@ -128,6 +128,6 @@ public enum Gamemode {
     }
 
     public GamemodeSettings getDefaultSettings() {
-        return settings;
+        return settings.copy();
     }
 }

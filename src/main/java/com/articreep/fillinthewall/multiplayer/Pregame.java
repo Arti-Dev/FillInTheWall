@@ -6,6 +6,7 @@ import com.articreep.fillinthewall.PlayingField;
 import com.articreep.fillinthewall.PlayingFieldManager;
 import com.articreep.fillinthewall.display.ScoreboardEntry;
 import com.articreep.fillinthewall.display.ScoreboardEntryType;
+import com.articreep.fillinthewall.gamemode.GamemodeSettings;
 import com.articreep.fillinthewall.utils.Utils;
 import org.bukkit.Bukkit;
 import net.md_5.bungee.api.ChatColor;
@@ -31,6 +32,7 @@ public class Pregame implements Listener {
     private final int countdownMax;
     private BukkitTask task = null;
     private final Gamemode gamemode;
+    private GamemodeSettings settings;
 
     private Scoreboard scoreboard;
     private Objective objective;
@@ -41,6 +43,7 @@ public class Pregame implements Listener {
     public Pregame(World world, Gamemode gamemode, int minPlayers, int countdownMax) {
         this.world = world;
         this.gamemode = gamemode;
+        this.settings = gamemode.getDefaultSettings();
         this.minPlayers = minPlayers;
         countdown = -1;
         this.countdownMax = countdownMax;
@@ -110,7 +113,7 @@ public class Pregame implements Listener {
 
         if (gamemode == Gamemode.MULTIPLAYER_SCORE_ATTACK) {
             PlayingFieldManager.game = new ScoreAttackGame(readyToGoPlayingFields, PlayingFieldManager.finalStageBoards,
-                    Gamemode.MULTIPLAYER_SCORE_ATTACK.getDefaultSettings());
+                    settings);
             PlayingFieldManager.game.start();
         } else if (gamemode == Gamemode.VERSUS) {
             PlayingFieldManager.vsGame = new VersusGame(readyToGoPlayingFields);
@@ -283,5 +286,17 @@ public class Pregame implements Listener {
 
     public void clearAvailablePlayingFields() {
         availablePlayingFields.clear();
+    }
+
+    public World getWorld() {
+        return world;
+    }
+
+    public GamemodeSettings getSettings() {
+        return settings;
+    }
+
+    public Gamemode getGamemode() {
+        return gamemode;
     }
 }

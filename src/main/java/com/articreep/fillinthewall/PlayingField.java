@@ -197,7 +197,7 @@ public class PlayingField implements Listener {
     }
 
     // Running this method will create new scorer and queue objects
-    public void start(Gamemode mode) {
+    public void start(Gamemode mode, GamemodeSettings settings) {
         // Log fail if this is already running
         if (hasStarted()) {
             Bukkit.getLogger().severe("Tried to start game that's already been started");
@@ -211,8 +211,8 @@ public class PlayingField implements Listener {
         }
         FillInTheWall.getInstance().getServer().getPluginManager().registerEvents(this, FillInTheWall.getInstance());
         if (!resetRecently) reset();
-        scorer.setGamemode(mode);
-        setDisplaySlots(scorer.getSettings());
+        scorer.setGamemode(mode, settings);
+        setDisplaySlots(settings);
         removeMenu();
         removeEndScreen();
         spawnTextDisplays();
@@ -222,6 +222,10 @@ public class PlayingField implements Listener {
             setInfiniteReach(player);
         }
         task = tickLoop();
+    }
+
+    public void start(Gamemode gamemode) {
+        start(gamemode, gamemode.getDefaultSettings());
     }
 
     /**
@@ -333,6 +337,9 @@ public class PlayingField implements Listener {
         multiplayerMode = false;
         queue.clearAllWalls();
         queue.allowMultipleWalls(false);
+        for (Player player : getPlayers()) {
+            resetReach(player);
+        }
         if (event != null) {
             event.end();
             event = null;

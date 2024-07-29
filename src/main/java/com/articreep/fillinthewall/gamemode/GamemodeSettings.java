@@ -43,4 +43,13 @@ public class GamemodeSettings {
     public DisplayType getDisplayTypeAttribute(GamemodeAttribute attribute) {
         return (DisplayType) getAttribute(attribute);
     }
+
+
+    public GamemodeSettings copy() {
+        GamemodeSettings clone = new GamemodeSettings();
+        for (GamemodeAttribute attribute : settings.keySet()) {
+            clone.setAttribute(attribute, settings.get(attribute));
+        }
+        return clone;
+    }
 }

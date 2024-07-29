@@ -287,7 +287,7 @@ public class PlayingFieldScorer {
      * Attempts to activate the event associated with the current gamemode.
      */
     public ModifierEvent activateEvent(ModifierEvent.Type type, boolean resetMeter) {
-        if (type == null) {
+        if (type == null || type == ModifierEvent.Type.NONE) {
             return null;
         }
         ModifierEvent event = type.createEvent(field);
@@ -576,7 +576,8 @@ public class PlayingFieldScorer {
                 }
             }
         }
-        if (settings.getModifierEventTypeAttribute(GamemodeAttribute.SINGULAR_EVENT) != null) {
+        if (settings.getModifierEventTypeAttribute(GamemodeAttribute.SINGULAR_EVENT) != null
+                && settings.getModifierEventTypeAttribute(GamemodeAttribute.SINGULAR_EVENT) != ModifierEvent.Type.NONE) {
             activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.SINGULAR_EVENT)).setInfinite(true);
         } else if (gamemode == Gamemode.CUSTOM) {
             WallBundle bundle = WallBundle.getWallBundle("amogus");
@@ -610,7 +611,7 @@ public class PlayingFieldScorer {
         ChatColor color;
         String modifier = "";
         ModifierEvent.Type type = settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT);
-        if (type != null) modifier = type.getClazz().getSimpleName() + " ";
+        if (type != ModifierEvent.Type.NONE && type != null) modifier = type.getClazz().getSimpleName() + " ";
         if (percentFilled <= 0.3) {
             color = ChatColor.GRAY;
         } else if (percentFilled <= 0.7) {

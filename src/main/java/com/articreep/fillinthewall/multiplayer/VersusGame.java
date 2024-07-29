@@ -19,8 +19,9 @@ public class VersusGame extends MultiplayerGame {
     // Rankings work differently here
     private final List<Set<Player>> rankings = new ArrayList<>();
 
+    // todo this is missing the new custom settings fields
     public VersusGame(List<PlayingField> fields) {
-        super(fields);
+        super(fields, Gamemode.VERSUS.getDefaultSettings());
     }
 
     @Override

@@ -31,10 +31,10 @@ public enum GamemodeAttribute {
     MODIFIER_EVENT_CAP(Integer.class, -1),
     HIGHLIGHT_INCORRECT_BLOCKS(Boolean.class, false),
     INFINITE_BLOCK_REACH(Boolean.class, false),
-    ABILITY_EVENT(ModifierEvent.Type.class, null),
-    MULTI_EVENT_0(ModifierEvent.Type.class, null),
-    MULTI_EVENT_1(ModifierEvent.Type.class, null),
-    SINGULAR_EVENT(ModifierEvent.Type.class, null);
+    ABILITY_EVENT(ModifierEvent.Type.class, ModifierEvent.Type.NONE),
+    MULTI_EVENT_0(ModifierEvent.Type.class, ModifierEvent.Type.NONE),
+    MULTI_EVENT_1(ModifierEvent.Type.class, ModifierEvent.Type.NONE),
+    SINGULAR_EVENT(ModifierEvent.Type.class, ModifierEvent.Type.NONE);
 
     private final Class<?> type;
     private final Object defaultValue;

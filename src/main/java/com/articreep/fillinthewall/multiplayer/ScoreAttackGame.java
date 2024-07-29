@@ -20,10 +20,9 @@ public class ScoreAttackGame extends MultiplayerGame {
     private final ArrayList<PlayingField> finalStageBoards;
     private int eventTime0;
     private int eventTime1;
-    private GamemodeSettings settings;
 
     public ScoreAttackGame(List<PlayingField> fields, ArrayList<PlayingField> finalStageBoards, GamemodeSettings settings) {
-        super(fields);
+        super(fields, settings);
         this.finalStageBoards = finalStageBoards;
 
         Random random = new Random();

@@ -10,3 +10,6 @@ commands:
   registerplayingfield:
     description: Used to create a playing field and register it to config
     usage: /registerplayingfield
+  settingsmenu:
+    description: Used to alter settings for multiplayer games
+    usage: /settingsmenu
