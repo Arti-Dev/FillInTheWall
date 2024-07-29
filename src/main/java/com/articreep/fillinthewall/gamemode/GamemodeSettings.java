@@ -8,7 +8,6 @@ import java.util.HashMap;
 // Flexible class that allows overriding default settings
 public class GamemodeSettings {
     private final HashMap<GamemodeAttribute, Object> settings = new HashMap<>();
-    private Class<? extends ModifierEvent> eventClass = null;
 
     public void setAttribute(GamemodeAttribute attribute, Object value) {
         // Try casting value
@@ -43,13 +42,5 @@ public class GamemodeSettings {
 
     public DisplayType getDisplayTypeAttribute(GamemodeAttribute attribute) {
         return (DisplayType) getAttribute(attribute);
-    }
-
-    public void setEventClass(Class<? extends ModifierEvent> eventClass) {
-        this.eventClass = eventClass;
-    }
-
-    public Class<? extends ModifierEvent> getEventClass() {
-        return eventClass;
     }
 }

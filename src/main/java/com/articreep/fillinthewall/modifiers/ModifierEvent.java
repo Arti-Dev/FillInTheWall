@@ -106,6 +106,10 @@ public abstract class ModifierEvent {
             }
             return ModifierEvent.createEvent(clazz, field);
         }
+
+        public Class<? extends ModifierEvent> getClazz() {
+            return clazz;
+        }
     }
 
     public int getTicksRemaining() {

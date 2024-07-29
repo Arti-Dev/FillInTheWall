@@ -277,7 +277,7 @@ public class PlayingFieldScorer {
             return;
         }
         if (isMeterFilledEnough(meter / meterMax)) {
-            activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT));
+            activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT), true);
         } else {
             player.sendMessage(ChatColor.RED + "Your meter isn't full enough!");
         }
@@ -609,7 +609,8 @@ public class PlayingFieldScorer {
 
         ChatColor color;
         String modifier = "";
-        if (settings.getEventClass() != null) modifier = settings.getEventClass().getSimpleName() + " ";
+        ModifierEvent.Type type = settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT);
+        if (type != null) modifier = type.getClazz().getSimpleName() + " ";
         if (percentFilled <= 0.3) {
             color = ChatColor.GRAY;
         } else if (percentFilled <= 0.7) {
