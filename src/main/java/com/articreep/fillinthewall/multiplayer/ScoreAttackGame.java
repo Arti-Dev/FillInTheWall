@@ -56,7 +56,7 @@ public class ScoreAttackGame extends MultiplayerGame {
                     }
                 }
 
-                if (stage == Stage.QUALIFICATIONS) {
+                if (stage == Stage.QUALIFICATIONS && settings.getModifierEventTypeAttribute(GamemodeAttribute.SINGULAR_EVENT) == null) {
                     if (time == eventTime0) {
                         for (PlayingField field : playingFields) {
                             field.getScorer().activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.MULTI_EVENT_0));

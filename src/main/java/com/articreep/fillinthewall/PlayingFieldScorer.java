@@ -286,9 +286,9 @@ public class PlayingFieldScorer {
     /**
      * Attempts to activate the event associated with the current gamemode.
      */
-    public void activateEvent(ModifierEvent.Type type, boolean resetMeter) {
+    public ModifierEvent activateEvent(ModifierEvent.Type type, boolean resetMeter) {
         if (type == null) {
-            return;
+            return null;
         }
         ModifierEvent event = type.createEvent(field);
         // todo remove the need to run this the next tick
@@ -300,10 +300,11 @@ public class PlayingFieldScorer {
             setMeterItemGlint(isMeterFilledEnough(meter / meterMax));
             if (resetMeter) meter = 0;
         });
+        return event;
     }
 
-    public void activateEvent(ModifierEvent.Type type) {
-        activateEvent(type, false);
+    public ModifierEvent activateEvent(ModifierEvent.Type type) {
+        return activateEvent(type, false);
     }
 
     public void displayScoreTitle(Judgement judgement, int score, Map<BonusType, Integer> bonusMap) {
@@ -575,9 +576,8 @@ public class PlayingFieldScorer {
                 }
             }
         }
-        if (gamemode == Gamemode.TUTORIAL) {
-            // Immediately activate the tutorial event
-            activateEvent(ModifierEvent.Type.TUTORIAL);
+        if (settings.getModifierEventTypeAttribute(GamemodeAttribute.SINGULAR_EVENT) != null) {
+            activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.SINGULAR_EVENT)).setInfinite(true);
         } else if (gamemode == Gamemode.CUSTOM) {
             WallBundle bundle = WallBundle.getWallBundle("amogus");
             // todo hardcoded dimension check

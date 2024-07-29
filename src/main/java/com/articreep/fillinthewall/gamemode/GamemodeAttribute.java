@@ -32,7 +32,8 @@ public enum GamemodeAttribute {
     INFINITE_BLOCK_REACH(Boolean.class, false),
     ABILITY_EVENT(ModifierEvent.Type.class, null),
     MULTI_EVENT_0(ModifierEvent.Type.class, null),
-    MULTI_EVENT_1(ModifierEvent.Type.class, null);
+    MULTI_EVENT_1(ModifierEvent.Type.class, null),
+    SINGULAR_EVENT(ModifierEvent.Type.class, null);
 
     private final Class<?> type;
     private final Object defaultValue;

@@ -21,6 +21,7 @@ public class Inverted extends ModifierEvent {
     @Override
     public void activate() {
         field.getQueue().instantSend();
+        field.fillField(field.getPlayerMaterial());
         super.activate();
         field.playSoundToPlayers(Sound.BLOCK_BEACON_ACTIVATE, 2f);
         field.sendTitleToPlayers(ChatColor.BLACK + "Inverted!", "Left-click to win..?", 0, 40, 10);

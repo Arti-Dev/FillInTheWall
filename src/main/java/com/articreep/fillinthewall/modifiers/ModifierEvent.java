@@ -40,6 +40,7 @@ public abstract class ModifierEvent {
     protected double meterPercentRequired = 1;
     protected WallQueue queue;
     protected int ticksRemaining;
+    protected boolean infinite = false;
     protected PlayingField field;
 
     protected final int DEFAULT_TICKS = 20*20;
@@ -117,7 +118,7 @@ public abstract class ModifierEvent {
     }
 
     public void tick() {
-        ticksRemaining--;
+        if (!infinite) ticksRemaining--;
     }
 
     /** If returns null, the default action bar will be used. */
@@ -235,5 +236,9 @@ public abstract class ModifierEvent {
 
     public void setTicksRemaining(int ticksRemaining) {
         this.ticksRemaining = ticksRemaining;
+    }
+
+    public void setInfinite(boolean infinite) {
+        this.infinite = infinite;
     }
 }

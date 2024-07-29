@@ -13,7 +13,8 @@ public enum Gamemode {
     MULTIPLAYER_SCORE_ATTACK(ChatColor.AQUA + "Multiplayer Score Attack", ChatColor.GRAY + "Hypixel-style game"),
     MARATHON(ChatColor.GRAY + "Marathon", ChatColor.GRAY + "Survive as long as you can!"),
     VERSUS(ChatColor.BLUE + "2-player Versus", ChatColor.GRAY + "Experimental versus system with garbage walls"),
-    CUSTOM(ChatColor.GREEN + "Custom Walls", ChatColor.GRAY + "Load a custom wall pack");
+    CUSTOM(ChatColor.GREEN + "Custom Walls", ChatColor.GRAY + "Load a custom wall pack"),
+    INVERTED(ChatColor.BLACK + "Inverted", ChatColor.GRAY + "Left click to win");
 
     static {
         INFINITE.addAttribute(GamemodeAttribute.CONSISTENT_HOLE_COUNT, false);
@@ -72,6 +73,8 @@ public enum Gamemode {
         TUTORIAL.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         TUTORIAL.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         TUTORIAL.addAttribute(GamemodeAttribute.ABILITY_EVENT, ModifierEvent.Type.TUTORIAL);
+        TUTORIAL.addAttribute(GamemodeAttribute.HIGHLIGHT_INCORRECT_BLOCKS, true);
+        TUTORIAL.addAttribute(GamemodeAttribute.SINGULAR_EVENT, ModifierEvent.Type.TUTORIAL);
 
         MARATHON.addAttribute(GamemodeAttribute.DO_LEVELS, true);
         MARATHON.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
@@ -97,6 +100,8 @@ public enum Gamemode {
         VERSUS.addAttribute(GamemodeAttribute.DO_CLEARING_MODES, true);
 
         CUSTOM.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
+
+        INVERTED.addAttribute(GamemodeAttribute.SINGULAR_EVENT, ModifierEvent.Type.INVERTED);
 
 
     }
