@@ -19,7 +19,7 @@ public class Freeze extends ModifierEvent {
     public void activate() {
         super.activate();
         // Reduce time based on percent filled
-        ticksRemaining = (int) (100 * field.getScorer().getMeterPercentFilled());
+        ticksRemaining = (int) (200 * field.getScorer().getMeterPercentFilled());
         for (Player player : field.getPlayers()) {
             player.sendTitle(ChatColor.AQUA + "FREEZE!", "Walls and gimmicks are temporarily frozen!", 0, 40, 10);
             player.playSound(player, Sound.ENTITY_PLAYER_HURT_FREEZE, 0.5F, 1);
