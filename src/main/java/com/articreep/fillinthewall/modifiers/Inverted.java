@@ -10,8 +10,8 @@ import org.javatuples.Pair;
 import java.util.Map;
 
 public class Inverted extends ModifierEvent {
-    public Inverted(PlayingField field, int ticks) {
-        super(field, ticks);
+    public Inverted(PlayingField field) {
+        super(field);
         fillFieldAfterSubmission = true;
         modifyWalls = true;
         overrideScoreCalculation = true;

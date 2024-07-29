@@ -6,10 +6,7 @@ import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.gamemode.GamemodeSettings;
 import com.articreep.fillinthewall.menu.EndScreen;
-import com.articreep.fillinthewall.modifiers.Freeze;
-import com.articreep.fillinthewall.modifiers.ModifierEvent;
-import com.articreep.fillinthewall.modifiers.Rush;
-import com.articreep.fillinthewall.modifiers.Tutorial;
+import com.articreep.fillinthewall.modifiers.*;
 import com.articreep.fillinthewall.multiplayer.MultiplayerGame;
 import com.articreep.fillinthewall.multiplayer.ScoreAttackGame;
 import com.articreep.fillinthewall.utils.Utils;
@@ -122,7 +119,7 @@ public class PlayingFieldScorer {
             setLevel(level + 1);
             field.sendTitleToPlayers("", ChatColor.GREEN + "Level up!", 0, 10, 5);
         } else if (meter >= meterMax && ((boolean) settings.getAttribute(GamemodeAttribute.AUTOMATIC_METER))) {
-            activateEvent(field.getPlayers().iterator().next());
+            activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT));
         }
 
         // Garbage wall rules
@@ -270,42 +267,43 @@ public class PlayingFieldScorer {
     }
 
     public void onMeterActivate(Player player) {
-        if (field.eventActive()) {
-            // Make an exception for the tutorial event
-            if (field.getEvent() instanceof Tutorial tutorial) {
-                tutorial.onMeterActivate(player);
-                return;
-            }
-            player.sendMessage(ChatColor.RED + "An event is already active!");
+        if (field.getEvent() instanceof Tutorial tutorial) {
+            tutorial.onMeterActivate(player);
+            return;
+        }
+
+        if (!settings.hasAttribute(GamemodeAttribute.ABILITY_EVENT)) {
+            player.sendMessage(ChatColor.RED + "No event to activate!");
+            return;
+        }
+        if (isMeterFilledEnough(meter / meterMax)) {
+            activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT));
         } else {
-            activateEvent(player);
+            player.sendMessage(ChatColor.RED + "Your meter isn't full enough!");
         }
     }
 
     /**
      * Attempts to activate the event associated with the current gamemode.
-     * @param player Player to send messages to if something goes wrong
      */
-    public void activateEvent(Player player) {
-        if (settings.getEventClass() == null) {
-            player.sendMessage(ChatColor.RED + "No event to activate!");
+    public void activateEvent(ModifierEvent.Type type, boolean resetMeter) {
+        if (type == null) {
             return;
         }
-        double percent = meter / meterMax;
-
-        if (isMeterFilledEnough(percent)) {
-            ModifierEvent event = createEvent(percent);
-            // todo remove the need to run this the next tick
-            Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), event::activate);
-            meter = 0;
+        ModifierEvent event = type.createEvent(field);
+        // todo remove the need to run this the next tick
+        Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> {
+            event.activate();
             eventCount++;
-        } else {
-            player.sendMessage(ChatColor.RED + "Your meter isn't full enough!");
-            return;
-        }
 
-        // Update meter item
-        setMeterItemGlint(isMeterFilledEnough(meter / meterMax));
+            // Update meter item
+            setMeterItemGlint(isMeterFilledEnough(meter / meterMax));
+            if (resetMeter) meter = 0;
+        });
+    }
+
+    public void activateEvent(ModifierEvent.Type type) {
+        activateEvent(type, false);
     }
 
     public void displayScoreTitle(Judgement judgement, int score, Map<BonusType, Integer> bonusMap) {
@@ -317,27 +315,16 @@ public class PlayingFieldScorer {
 
     // todo these two methods could be replaced with some reflection
     public boolean isMeterFilledEnough(double percent) {
-        if (settings.getEventClass() == Rush.class && percent >= Rush.singletonInstance.getMeterPercentRequired()) {
-            return true;
-        } else if (settings.getEventClass() == Freeze.class && percent >= Freeze.singletonInstance.getMeterPercentRequired()) {
-            return true;
-        } else if (settings.getEventClass() == Tutorial.class) {
-            return true;
+        ModifierEvent.Type type = settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT);
+        if (type != ModifierEvent.Type.FREEZE && type != ModifierEvent.Type.RUSH && type != ModifierEvent.Type.TUTORIAL) {
+            return percent >= 1;
+        } else {
+            if (type == ModifierEvent.Type.RUSH && percent >= ModifierEvent.createEvent(Rush.class, null).getMeterPercentRequired()) {
+                return true;
+            } else if (type == ModifierEvent.Type.FREEZE && percent >= ModifierEvent.createEvent(Freeze.class, null).getMeterPercentRequired()) {
+                return true;
+            } else return type == ModifierEvent.Type.TUTORIAL;
         }
-        return false;
-    }
-
-    // This only serves to store the redundant logic
-    public ModifierEvent createEvent(double percent) {
-        if (settings.getEventClass() == Rush.class) {
-            return new Rush(field);
-
-        } else if (settings.getEventClass() == Freeze.class) {
-            return new Freeze(field, (int) (20 * 10 * percent));
-        } else if (settings.getEventClass() == Tutorial.class) {
-            return new Tutorial(field, 20);
-        }
-        return null;
     }
 
     public void playJudgementSound(Judgement judgement) {
@@ -590,7 +577,7 @@ public class PlayingFieldScorer {
         }
         if (gamemode == Gamemode.TUTORIAL) {
             // Immediately activate the tutorial event
-            activateEvent(field.getPlayers().iterator().next());
+            activateEvent(ModifierEvent.Type.TUTORIAL);
         } else if (gamemode == Gamemode.CUSTOM) {
             WallBundle bundle = WallBundle.getWallBundle("amogus");
             // todo hardcoded dimension check
@@ -749,5 +736,9 @@ public class PlayingFieldScorer {
 
     public int getPerfectWallChain() {
         return perfectWallChain;
+    }
+
+    public double getMeterPercentFilled() {
+        return meter / meterMax;
     }
 }

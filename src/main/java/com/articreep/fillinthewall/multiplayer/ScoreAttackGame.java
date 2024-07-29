@@ -3,6 +3,7 @@ package com.articreep.fillinthewall.multiplayer;
 import com.articreep.fillinthewall.*;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
+import com.articreep.fillinthewall.gamemode.GamemodeSettings;
 import com.articreep.fillinthewall.utils.Utils;
 import org.bukkit.Bukkit;
 import net.md_5.bungee.api.ChatColor;
@@ -17,10 +18,18 @@ public class ScoreAttackGame extends MultiplayerGame {
     private BukkitTask sortTask;
     private Stage stage = Stage.QUALIFICATIONS;
     private final ArrayList<PlayingField> finalStageBoards;
+    private int eventTime0;
+    private int eventTime1;
+    private GamemodeSettings settings;
 
-    public ScoreAttackGame(List<PlayingField> fields, ArrayList<PlayingField> finalStageBoards) {
+    public ScoreAttackGame(List<PlayingField> fields, ArrayList<PlayingField> finalStageBoards, GamemodeSettings settings) {
         super(fields);
         this.finalStageBoards = finalStageBoards;
+
+        Random random = new Random();
+        eventTime0 = random.nextInt(20 * 80, 20 * 100);
+        eventTime1 = random.nextInt(20 * 20, 20 * 60);
+        this.settings = settings;
     }
 
     @Override
@@ -44,6 +53,18 @@ public class ScoreAttackGame extends MultiplayerGame {
                     if (field.hasStarted()) {
                         field.getScorer().setTime(time);
                         field.getScorer().tick();
+                    }
+                }
+
+                if (stage == Stage.QUALIFICATIONS) {
+                    if (time == eventTime0) {
+                        for (PlayingField field : playingFields) {
+                            field.getScorer().activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.MULTI_EVENT_0));
+                        }
+                    } else if (time == eventTime1) {
+                        for (PlayingField field : playingFields) {
+                            field.getScorer().activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.MULTI_EVENT_1));
+                        }
                     }
                 }
 

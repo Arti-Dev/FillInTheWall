@@ -17,8 +17,8 @@ import org.bukkit.util.Vector;
 
 public class Lines extends ModifierEvent implements Listener {
 
-    public Lines(PlayingField field, int ticks) {
-        super(field, ticks);
+    public Lines(PlayingField field) {
+        super(field);
     }
 
     @Override

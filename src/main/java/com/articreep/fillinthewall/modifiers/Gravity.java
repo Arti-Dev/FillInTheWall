@@ -23,8 +23,8 @@ public class Gravity extends ModifierEvent {
     final double acceleration = 9.8;
     Set<BlockDisplay> blockDisplays = new HashSet<>();
 
-    public Gravity(PlayingField field, int ticks) {
-        super(field, ticks);
+    public Gravity(PlayingField field) {
+        super(field);
         HashMap<Vector, String> possibleDirections = new HashMap<>();
         possibleDirections.put(new Vector(0, -1, 0), "down");
         possibleDirections.put(new Vector(0, 1, 0), "up");

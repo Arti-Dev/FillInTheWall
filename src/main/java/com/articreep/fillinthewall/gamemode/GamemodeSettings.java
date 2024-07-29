@@ -37,6 +37,10 @@ public class GamemodeSettings {
         return (boolean) getAttribute(attribute);
     }
 
+    public ModifierEvent.Type getModifierEventTypeAttribute(GamemodeAttribute attribute) {
+        return (ModifierEvent.Type) getAttribute(attribute);
+    }
+
     public DisplayType getDisplayTypeAttribute(GamemodeAttribute attribute) {
         return (DisplayType) getAttribute(attribute);
     }

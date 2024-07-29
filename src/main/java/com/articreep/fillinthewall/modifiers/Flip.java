@@ -4,8 +4,8 @@ import com.articreep.fillinthewall.PlayingField;
 import com.articreep.fillinthewall.Wall;
 
 public class Flip extends ModifierEvent {
-    public Flip(PlayingField field, int ticks) {
-        super(field, ticks);
+    public Flip(PlayingField field) {
+        super(field);
         modifyWalls = true;
     }
 

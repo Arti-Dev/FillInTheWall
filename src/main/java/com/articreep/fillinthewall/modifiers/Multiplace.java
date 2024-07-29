@@ -31,8 +31,8 @@ import java.util.Set;
 public class Multiplace extends ModifierEvent implements Listener {
     Map<Player, Set<BlockDisplay>> blockDisplays = new HashMap<>();
 
-    public Multiplace(PlayingField field, int ticks) {
-        super(field, ticks);
+    public Multiplace(PlayingField field) {
+        super(field);
     }
 
     @Override

@@ -1,9 +1,7 @@
 package com.articreep.fillinthewall.gamemode;
 
 import com.articreep.fillinthewall.display.DisplayType;
-import com.articreep.fillinthewall.modifiers.Freeze;
-import com.articreep.fillinthewall.modifiers.Rush;
-import com.articreep.fillinthewall.modifiers.Tutorial;
+import com.articreep.fillinthewall.modifiers.*;
 import net.md_5.bungee.api.ChatColor;
 
 public enum Gamemode {
@@ -29,7 +27,7 @@ public enum Gamemode {
         INFINITE.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         INFINITE.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         INFINITE.addAttribute(GamemodeAttribute.AUTOMATIC_METER, true);
-        INFINITE.settings.setEventClass(Rush.class);
+        INFINITE.addAttribute(GamemodeAttribute.ABILITY_EVENT, ModifierEvent.Type.RUSH);
 
         SCORE_ATTACK.addAttribute(GamemodeAttribute.TIME_LIMIT, 20*120);
         SCORE_ATTACK.addAttribute(GamemodeAttribute.DO_LEVELS, true);
@@ -51,7 +49,7 @@ public enum Gamemode {
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.AUTOMATIC_METER, true);
-        RUSH_SCORE_ATTACK.settings.setEventClass(Rush.class);
+        RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.ABILITY_EVENT, ModifierEvent.Type.RUSH);
 
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.TIME_LIMIT, 20*120);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.RANDOM_HOLE_COUNT, 3);
@@ -63,7 +61,9 @@ public enum Gamemode {
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.SPEED);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.MULTIPLAYER, true);
-        MULTIPLAYER_SCORE_ATTACK.settings.setEventClass(Freeze.class);
+        MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.ABILITY_EVENT, ModifierEvent.Type.FREEZE);
+        MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.MULTI_EVENT_0, ModifierEvent.Type.RANDOM);
+        MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.MULTI_EVENT_1, ModifierEvent.Type.RANDOM);
 
         TUTORIAL.addAttribute(GamemodeAttribute.STARTING_WALL_ACTIVE_TIME, 20*30);
         TUTORIAL.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
@@ -71,7 +71,7 @@ public enum Gamemode {
         TUTORIAL.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.NONE);
         TUTORIAL.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         TUTORIAL.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
-        TUTORIAL.settings.setEventClass(Tutorial.class);
+        TUTORIAL.addAttribute(GamemodeAttribute.ABILITY_EVENT, ModifierEvent.Type.TUTORIAL);
 
         MARATHON.addAttribute(GamemodeAttribute.DO_LEVELS, true);
         MARATHON.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);

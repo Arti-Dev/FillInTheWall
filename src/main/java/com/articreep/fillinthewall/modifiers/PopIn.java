@@ -23,8 +23,8 @@ import java.util.Set;
 public class PopIn extends ModifierEvent {
     private final int MAX_BLOCK_COUNT = 5;
     private final Set<BlockDisplay> blockDisplays = new HashSet<>();
-    public PopIn(PlayingField field, int ticks) {
-        super(field, ticks);
+    public PopIn(PlayingField field) {
+        super(field);
     }
 
     /*

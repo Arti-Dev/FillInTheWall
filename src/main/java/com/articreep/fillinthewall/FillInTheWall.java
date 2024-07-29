@@ -154,23 +154,24 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                     int ticks = Integer.parseInt(args[2]);
 
                     ModifierEvent event;
-                    if (args[1].equalsIgnoreCase("popin")) event = new PopIn(field, ticks);
-                    else if (args[1].equalsIgnoreCase("freeze")) event = new Freeze(field, ticks);
+                    if (args[1].equalsIgnoreCase("popin")) event = new PopIn(field);
+                    else if (args[1].equalsIgnoreCase("freeze")) event = new Freeze(field);
                     else if (args[1].equalsIgnoreCase("rush")) event = new Rush(field);
-                    else if (args[1].equalsIgnoreCase("scale")) event = new Scale(field, ticks);
-                    else if (args[1].equalsIgnoreCase("line")) event = new LineMode(field, ticks);
-                    else if (args[1].equalsIgnoreCase("inverted")) event = new Inverted(field, ticks);
-                    else if (args[1].equalsIgnoreCase("fireinthehole")) event = new FireInTheHole(field, ticks);
-                    else if (args[1].equalsIgnoreCase("stripes")) event = new Stripes(field, ticks);
-                    else if (args[1].equalsIgnoreCase("gravity")) event = new Gravity(field, ticks);
-                    else if (args[1].equalsIgnoreCase("playerinthewall")) event = new PlayerInTheWall(field, ticks);
-                    else if (args[1].equalsIgnoreCase("multiplace")) event = new Multiplace(field, ticks);
-                    else if (args[1].equalsIgnoreCase("flip")) event = new Flip(field, ticks);
+                    else if (args[1].equalsIgnoreCase("scale")) event = new Scale(field);
+                    else if (args[1].equalsIgnoreCase("line")) event = new Lines(field);
+                    else if (args[1].equalsIgnoreCase("inverted")) event = new Inverted(field);
+                    else if (args[1].equalsIgnoreCase("fireinthehole")) event = new FireInTheHole(field);
+                    else if (args[1].equalsIgnoreCase("stripes")) event = new Stripes(field);
+                    else if (args[1].equalsIgnoreCase("gravity")) event = new Gravity(field);
+                    else if (args[1].equalsIgnoreCase("playerinthewall")) event = new PlayerInTheWall(field);
+                    else if (args[1].equalsIgnoreCase("multiplace")) event = new Multiplace(field);
+                    else if (args[1].equalsIgnoreCase("flip")) event = new Flip(field);
                     else {
                         sender.sendMessage(ChatColor.RED + "Unknown modifier");
                         return true;
                     }
 
+                    event.setTicksRemaining(ticks);
                     event.activate();
                 } else {
                     sender.sendMessage("/hitw modifier <mod> <ticks>");

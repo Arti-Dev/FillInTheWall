@@ -817,7 +817,9 @@ public class PlayingField implements Listener {
         if (event.shelveEvent) {
             // todo this line prevents infinite recursion - kind of scary
             event = event.getShelvedEvent();
-            event.activate();
+            if (event != null) {
+                event.activate();
+            }
         } else {
             event = null;
         }

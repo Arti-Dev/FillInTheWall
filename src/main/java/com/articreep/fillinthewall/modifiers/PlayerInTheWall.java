@@ -19,8 +19,8 @@ import java.util.Set;
  * Not compatible with the Scale event
  */
 public class PlayerInTheWall extends ModifierEvent {
-    public PlayerInTheWall(PlayingField field, int ticks) {
-        super(field, ticks);
+    public PlayerInTheWall(PlayingField field) {
+        super(field);
         modifyWalls = true;
         overrideScoreCalculation = true;
         overrideBonusCalculation = true;

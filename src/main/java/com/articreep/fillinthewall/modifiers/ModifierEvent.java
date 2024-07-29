@@ -5,7 +5,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /** Represents an event that affects the playing field and/or queue. */
 public abstract class ModifierEvent {
@@ -38,16 +42,70 @@ public abstract class ModifierEvent {
     protected int ticksRemaining;
     protected PlayingField field;
 
+    protected final int DEFAULT_TICKS = 20*20;
+
     protected boolean active = false;
 
 
-    protected ModifierEvent(PlayingField field, int ticks) {
+    protected ModifierEvent(PlayingField field) {
         if (field == null) return;
         this.field = field;
         this.queue = field.getQueue();
         clearDelay = field.getClearDelay();
 
-        this.ticksRemaining = ticks;
+        this.ticksRemaining = DEFAULT_TICKS;
+    }
+
+    public static ModifierEvent createEvent(Class<? extends ModifierEvent> clazz, PlayingField field) {
+        if (clazz == null) return null;
+        Constructor<? extends ModifierEvent> constructor;
+        try {
+            constructor = clazz.getConstructor(PlayingField.class);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+            return null;
+        }
+        try {
+            return constructor.newInstance(field);
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    // Register all modifier events here
+    public enum Type {
+        FIREINTHEHOLE(FireInTheHole.class),
+        FLIP(Flip.class),
+        FREEZE(Freeze.class),
+        GRAVITY(Gravity.class),
+        INVERTED(Inverted.class),
+        LINES(Lines.class),
+        MULTIPLACE(Multiplace.class),
+        PLAYERINTHEWALL(PlayerInTheWall.class),
+        POPIN(PopIn.class),
+        RUSH(Rush.class),
+        SCALE(Scale.class),
+        STRIPES(Stripes.class),
+        TUTORIAL(Tutorial.class),
+        RANDOM(null);
+
+        final Class<? extends ModifierEvent> clazz;
+        Type(Class<? extends ModifierEvent> clazz) {
+            this.clazz = clazz;
+        }
+
+        public ModifierEvent createEvent(PlayingField field) {
+            if (this == RANDOM) {
+                ArrayList<Type> types = new ArrayList<>(List.of(values()));
+                types.remove(RANDOM);
+                types.remove(TUTORIAL);
+                types.remove(FREEZE);
+                Type type = types.get((int) (Math.random() * types.size()));
+                return type.createEvent(field);
+            }
+            return ModifierEvent.createEvent(clazz, field);
+        }
     }
 
     public int getTicksRemaining() {
@@ -70,7 +128,9 @@ public abstract class ModifierEvent {
     }
 
     public void setShelvedEvent(ModifierEvent event) {
-        shelvedEvent = event;
+        // Prevent "infinite shelving"
+        if (createEvent(event.getClass(), field).shelveEvent) shelvedEvent = null;
+        else shelvedEvent = event;
     }
 
     public void end() {
@@ -167,5 +227,9 @@ public abstract class ModifierEvent {
 
     public ModifierEvent getShelvedEvent() {
         return shelvedEvent;
+    }
+
+    public void setTicksRemaining(int ticksRemaining) {
+        this.ticksRemaining = ticksRemaining;
     }
 }

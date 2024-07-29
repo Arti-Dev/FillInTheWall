@@ -17,15 +17,12 @@ public class Rush extends ModifierEvent {
     The differences from consecutive boards are minuscule (1-2 clicks) but do increase the further you get
      */
 
-    /** Should only be used to obtain information about this event */
-    public static final Rush singletonInstance = new Rush(null);
-
     private boolean firstWallCleared = false;
     private Wall nextWall;
     private int wallSpeed = 200;
     private int boardsCleared = 0;
     public Rush(PlayingField field) {
-        super(field, 600);
+        super(field);
         clearDelay = 5;
         overrideCompleteScoring = true;
         overrideGeneration = true;
@@ -94,6 +91,8 @@ public class Rush extends ModifierEvent {
     @Override
     public void activate() {
         super.activate();
+        // Override whatever custom time we have
+        setTicksRemaining(600);
         for (Player player : field.getPlayers()) {
             player.sendTitle(ChatColor.RED + "RUSH!", ChatColor.RED + "Clear as many walls as you can!", 0, 40, 10);
             player.playSound(player, Sound.ENTITY_ENDER_DRAGON_GROWL, 0.5F, 1);

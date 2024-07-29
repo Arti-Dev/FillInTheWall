@@ -34,8 +34,8 @@ public class Tutorial extends ModifierEvent implements Listener {
     double fakeMeter = 0;
     int fakeMeterMax = 2;
 
-    public Tutorial(PlayingField field, int ticks) {
-        super(field, ticks);
+    public Tutorial(PlayingField field) {
+        super(field);
         overrideGeneration = true;
         allowMultipleWalls = true;
     }
@@ -276,6 +276,7 @@ public class Tutorial extends ModifierEvent implements Listener {
         playSlide(slideToPlay, false, "");
     }
 
+    // This runs BEFORE the wall is submitted.
     @Override
     public void onWallScore(Wall wall) {
         double percent = field.getScorer().calculatePercent(wall, field);
@@ -296,7 +297,9 @@ public class Tutorial extends ModifierEvent implements Listener {
             if (percent >= 0.5) fakeMeter += percent;
             else fakeMeter -= 1;
             if (fakeMeter >= fakeMeterMax) {
-                field.sendTitleToPlayers(ChatColor.GREEN + "Press your drop key to activate the Meter", "or hold the firework in your hotbar and click", 10, 60, 10);
+                Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> {
+                    field.sendTitleToPlayers(ChatColor.GREEN + "Press your drop key to activate the Meter", "or hold the firework in your hotbar and click", 10, 60, 10);
+                });
                 fakeMeter = fakeMeterMax;
             }
             if (fakeMeter < 0) fakeMeter = 0;

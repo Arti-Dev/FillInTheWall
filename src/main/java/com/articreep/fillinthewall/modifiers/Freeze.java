@@ -6,11 +6,9 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
 public class Freeze extends ModifierEvent {
-    /** Should only be used to obtain information about this event */
-    public static final Freeze singletonInstance = new Freeze(null, 0);
 
-    public Freeze(PlayingField field, int ticks) {
-        super(field, ticks);
+    public Freeze(PlayingField field) {
+        super(field);
         wallFreeze = true;
         timeFreeze = true;
         meterPercentRequired = 0.5;
@@ -20,6 +18,8 @@ public class Freeze extends ModifierEvent {
     @Override
     public void activate() {
         super.activate();
+        // Reduce time based on percent filled
+        ticksRemaining = (int) (100 * field.getScorer().getMeterPercentFilled());
         for (Player player : field.getPlayers()) {
             player.sendTitle(ChatColor.AQUA + "FREEZE!", "Walls and gimmicks are temporarily frozen!", 0, 40, 10);
             player.playSound(player, Sound.ENTITY_PLAYER_HURT_FREEZE, 0.5F, 1);
@@ -41,7 +41,7 @@ public class Freeze extends ModifierEvent {
     public void tick() {
         super.tick();
         for (Player player : field.getPlayers()) {
-            player.setFreezeTicks(ticksRemaining);
+            player.setFreezeTicks(Math.max(ticksRemaining, 0));
             // todo ground movement speed is impeded for the time being - should fix that
             // todo add particle effects to the walls to show that they're frozen
         }

@@ -20,8 +20,8 @@ public class Scale extends ModifierEvent implements Listener {
     private final Map<Player, Double> playerScales = new HashMap<>();
     private final Map<Player, Double> playerReachDistances = new HashMap<>();
 
-    public Scale(PlayingField field, int ticks) {
-        super(field, ticks);
+    public Scale(PlayingField field) {
+        super(field);
     }
 
     @Override

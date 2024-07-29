@@ -1,6 +1,7 @@
 package com.articreep.fillinthewall.gamemode;
 
 import com.articreep.fillinthewall.display.DisplayType;
+import com.articreep.fillinthewall.modifiers.ModifierEvent;
 
 public enum GamemodeAttribute {
     // todo I'm not going to bother with enforcing types for now, but the types of these attributes are listed here
@@ -28,7 +29,10 @@ public enum GamemodeAttribute {
      */
     MODIFIER_EVENT_CAP(Integer.class, -1),
     HIGHLIGHT_INCORRECT_BLOCKS(Boolean.class, false),
-    INFINITE_BLOCK_REACH(Boolean.class, false);
+    INFINITE_BLOCK_REACH(Boolean.class, false),
+    ABILITY_EVENT(ModifierEvent.Type.class, null),
+    MULTI_EVENT_0(ModifierEvent.Type.class, null),
+    MULTI_EVENT_1(ModifierEvent.Type.class, null);
 
     private final Class<?> type;
     private final Object defaultValue;
