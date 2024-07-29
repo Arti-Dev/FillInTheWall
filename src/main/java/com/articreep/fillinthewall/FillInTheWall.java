@@ -63,6 +63,14 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
         return playingFieldConfig;
     }
 
+    public void savePlayingFieldConfig() {
+        try {
+            playingFieldConfig.save(new File(getDataFolder(), "playingfields.yml"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length >= 1) {

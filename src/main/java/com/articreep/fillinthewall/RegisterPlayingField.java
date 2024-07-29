@@ -235,11 +235,11 @@ public class RegisterPlayingField implements CommandExecutor, Listener {
         }
 
         private void writeToConfig() {
-            FileConfiguration config = FillInTheWall.getInstance().getConfig();
+            FileConfiguration config = FillInTheWall.getInstance().getPlayingFieldConfig();
             for (Map.Entry<String, Object> entry : data.entrySet()) {
                 config.set(key + "." + entry.getKey(), entry.getValue());
             }
-            FillInTheWall.getInstance().saveConfig();
+            FillInTheWall.getInstance().savePlayingFieldConfig();
             FillInTheWall.getInstance().reloadConfig();
         }
 
