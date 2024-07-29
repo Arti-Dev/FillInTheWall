@@ -4,6 +4,7 @@ import com.articreep.fillinthewall.*;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.gamemode.GamemodeSettings;
+import com.articreep.fillinthewall.modifiers.ModifierEvent;
 import com.articreep.fillinthewall.utils.Utils;
 import org.bukkit.Bukkit;
 import net.md_5.bungee.api.ChatColor;
@@ -59,7 +60,8 @@ public class ScoreAttackGame extends MultiplayerGame {
                     }
                 }
 
-                if (stage == Stage.QUALIFICATIONS && settings.getModifierEventTypeAttribute(GamemodeAttribute.SINGULAR_EVENT) == null) {
+                if (stage == Stage.QUALIFICATIONS && settings.getModifierEventTypeAttribute(GamemodeAttribute.SINGULAR_EVENT)
+                        == ModifierEvent.Type.NONE) {
                     if (time == eventTime0) {
                         for (PlayingField field : playingFields) {
                             field.getScorer().activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.MULTI_EVENT_0));

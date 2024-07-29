@@ -4,6 +4,7 @@ import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.PlayingField;
 import com.articreep.fillinthewall.PlayingFieldManager;
+import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.gamemode.GamemodeSettings;
 import org.bukkit.Bukkit;
 import net.md_5.bungee.api.ChatColor;
@@ -20,7 +21,7 @@ public abstract class MultiplayerGame {
     protected int time;
     protected BukkitTask mainTask = null;
     protected Set<BukkitTask> otherTasks = new HashSet<>();
-    protected GamemodeSettings settings = new GamemodeSettings();
+    protected GamemodeSettings settings;
 
     public MultiplayerGame(List<PlayingField> fields, GamemodeSettings settings) {
         // todo add some kind of way to input setting changes
@@ -31,10 +32,12 @@ public abstract class MultiplayerGame {
         playingFields.addAll(fields);
         // Use the first field to make the generator
         PlayingField field = fields.getFirst();
-        generator = new WallGenerator(field.getLength(), field.getHeight(), 3, 0, 160);
+        generator = new WallGenerator(field.getLength(), field.getHeight(), settings.getIntAttribute(GamemodeAttribute.RANDOM_HOLE_COUNT),
+                settings.getIntAttribute(GamemodeAttribute.CONNECTED_HOLE_COUNT),
+                settings.getIntAttribute(GamemodeAttribute.STARTING_WALL_ACTIVE_TIME));
         generator.setRandomizeFurther(false);
         generator.setWallHolesMax(8);
-        generator.setWallTimeDecrease(10);
+        generator.setWallTimeDecrease(settings.getIntAttribute(GamemodeAttribute.WALL_TIME_DECREASE_AMOUNT));
         generator.setWallTimeDecreaseInterval(2);
         generator.setWallHolesIncreaseInterval(2);
     }
