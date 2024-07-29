@@ -119,7 +119,7 @@ public class PlayingFieldScorer {
             setLevel(level + 1);
             field.sendTitleToPlayers("", ChatColor.GREEN + "Level up!", 0, 10, 5);
         } else if (meter >= meterMax && ((boolean) settings.getAttribute(GamemodeAttribute.AUTOMATIC_METER))) {
-            activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT));
+            activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT), true);
         }
 
         // Garbage wall rules
