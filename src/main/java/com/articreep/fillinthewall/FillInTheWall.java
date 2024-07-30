@@ -6,6 +6,8 @@ import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.modifiers.*;
 import com.articreep.fillinthewall.multiplayer.Pregame;
 import com.articreep.fillinthewall.multiplayer.SettingsMenu;
+import com.mysql.cj.jdbc.MysqlConnectionPoolDataSource;
+import com.mysql.cj.jdbc.MysqlDataSource;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -30,6 +32,9 @@ import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
 import java.io.File;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -42,6 +47,8 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
     private NamespacedKey interactionKey = new NamespacedKey(this, "singleplayerPortal");
     private Display singleplayerDisplay = null;
     private Display multiplayerDisplay = null;
+
+    private final static MysqlDataSource dataSource = new MysqlConnectionPoolDataSource();
 
     @Override
     public void onEnable() {
@@ -57,10 +64,11 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
         getServer().getPluginManager().registerEvents(new Finals(), this);
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(settingsMenu, this);
-        Bukkit.getLogger().info(ChatColor.BLUE + "FillInTheWall has been enabled!");
 
         loadPlayingFieldConfig();
         saveDefaultConfig();
+
+        if (!loadSQL()) return;
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
             // todo temporary
@@ -70,6 +78,8 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
             PlayingFieldManager.parseConfig(getPlayingFieldConfig());
             spawnPortals();
         }, 1);
+
+        Bukkit.getLogger().info(ChatColor.BLUE + "FillInTheWall has been enabled!");
 
     }
 
@@ -169,7 +179,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length >= 1) {
             if (args[0].equalsIgnoreCase("reload")) {
-                reloadConfig();
+                reload();
                 sender.sendMessage(ChatColor.GREEN + "Config reloaded!");
                 return true;
             } else if (args[0].equalsIgnoreCase("abort")) {
@@ -286,12 +296,13 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
         return true;
     }
 
-    public void reloadConfig() {
+    public void reload() {
         super.reloadConfig();
         for (Entity display : displays) {
             display.remove();
         }
         displays.clear();
+        if (!loadSQL()) return;
         spawnPortals();
         loadPlayingFieldConfig();
         PlayingFieldManager.removeAllGames();
@@ -330,5 +341,45 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
             StringUtil.copyPartialMatches(args[1], strings, completions);
         }
         return completions;
+    }
+
+    private boolean loadSQL() {
+        FileConfiguration config = getConfig();
+        dataSource.setServerName(config.getString("database.host"));
+        dataSource.setPortNumber(config.getInt("database.port"));
+        dataSource.setDatabaseName(config.getString("database.database"));
+        dataSource.setUser(config.getString("database.user"));
+        dataSource.setPassword(config.getString("database.password"));
+
+
+        // Test the connection, if it fails do not load the plugin
+        try {
+            Connection conn = dataSource.getConnection();
+            if (!conn.isValid(1)) {
+                throw new SQLException("Could not establish database connection.");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            getServer().getPluginManager().disablePlugin(this);
+            return false;
+        }
+
+        String sql = "CREATE TABLE IF NOT EXISTS scores(" +
+                "uuid CHAR(36) NOT NULL," +
+                "SCORE_ATTACK INT DEFAULT 0 NOT NULL," +
+                "RUSH_SCORE_ATTACK INT DEFAULT 0 NOT NULL," +
+                "MARATHON INT DEFAULT 0 NOT NULL," +
+                "PRIMARY KEY (uuid));";
+        try (Connection conn = dataSource.getConnection()) {
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return true;
+    }
+
+    public static Connection getSQLConnection() throws SQLException {
+        return dataSource.getConnection();
     }
 }
