@@ -65,24 +65,12 @@ public class ScoreDatabase {
 
     public static LinkedHashMap<UUID, Integer> getTopScores(Gamemode gamemode) throws SQLException {
         try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
-                "SELECT uuid, " + gamemode.toString() + " FROM scores ORDER BY ? DESC LIMIT 10"
+                "SELECT uuid, " + gamemode.toString() + " FROM scores ORDER BY " + gamemode.toString() + " DESC LIMIT 10"
         )) {
-            stmt.setString(1, gamemode.toString());
             ResultSet result = stmt.executeQuery();
-            Map<UUID, Integer> topScores = new HashMap<>();
-            while (result.next()) {
-                topScores.put(UUID.fromString(result.getString("uuid")), result.getInt(gamemode.toString()));
-            }
-            // For some reason, the result ordering isn't ordered. So we have to order it ourselves.
-            ArrayList<UUID> uuids = new ArrayList<>(topScores.keySet());
-            uuids.sort((o1, o2) -> {
-                int score1 = topScores.get(o1);
-                int score2 = topScores.get(o2);
-                return Integer.compare(score2, score1);
-            });
             LinkedHashMap<UUID, Integer> topScoresOrdered = new LinkedHashMap<>();
-            for (UUID uuid : uuids) {
-                topScoresOrdered.put(uuid, topScores.get(uuid));
+            while (result.next()) {
+                topScoresOrdered.put(UUID.fromString(result.getString("uuid")), result.getInt(gamemode.toString()));
             }
             return topScoresOrdered;
         } catch (SQLException e) {
