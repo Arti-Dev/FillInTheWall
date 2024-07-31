@@ -154,7 +154,7 @@ public class PlayingField implements Listener {
         if (players.isEmpty()) return;
         if (hasMenu()) removeMenu();
         if (hasEndScreen()) removeEndScreen();
-        menu = new Menu(getCenter(), this);
+        menu = new Menu(getCenter(true, false).add(0, 1, 0), this);
         menu.display();
     }
 

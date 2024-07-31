@@ -16,15 +16,29 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 
+import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+
 public class Menu implements Listener {
     private final Location location;
     private TextDisplay select;
     private final PlayingField field;
+    private final Map<Gamemode, Integer> personalBests = new HashMap<>();
     private int gamemodeIndex = 0;
 
     public Menu(Location location, PlayingField field) {
         this.location = location;
         this.field = field;
+        if (field.getPlayers().size() == 1) {
+            for (Gamemode mode : ScoreDatabase.getSupportedGamemodes()) {
+                try {
+                    personalBests.put(mode, ScoreDatabase.getRecord(field.getPlayers().iterator().next().getUniqueId(), mode));
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
     public void display() {
@@ -66,10 +80,15 @@ public class Menu implements Listener {
     }
 
     private void setMenuGamemode(Gamemode mode) {
-        select.setText("Select a gamemode\n" +
-                mode.getTitle() + "\n" +
+        String string = "Select a gamemode\n" +
+                mode.getTitle() + "\n" + mode.getDescription() + "\n";
+        if (personalBests.containsKey(mode)) {
+            string += ChatColor.GOLD + "Personal best: " + ChatColor.BOLD + personalBests.get(mode) + "\n";
+        }
+        string += "\n" +
                 ChatColor.RESET + "Left click to change gamemode\n" +
-                "Press [F] or your offhand key to confirm");
+                "Press [F] or your offhand key to confirm";
+        select.setText(string);
     }
 
     public void confirmAndDespawn() {
