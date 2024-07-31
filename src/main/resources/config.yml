@@ -19,6 +19,32 @@ multiplayer-portal:
     yaw: -90.0
   text: 'Right-click me to go to the multiplayer lobby'
 
+leaderboards:
+  score-attack:
+    ==: org.bukkit.Location
+    world: void
+    x: 13.5
+    y: 1.5
+    z: 0.5
+    pitch: 0.0
+    yaw: -270.0
+  rush-score-attack:
+    ==: org.bukkit.Location
+    world: void
+    x: 13.5
+    y: 1.5
+    z: -5.5
+    pitch: 0.0
+    yaw: -270.0
+  marathon:
+    ==: org.bukkit.Location
+    world: void
+    x: 13.5
+    y: 1.5
+    z: 6.5
+    pitch: 0.0
+    yaw: -270.0
+
 database:
     host: localhost
     port: 3306

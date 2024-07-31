@@ -26,6 +26,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.StringUtil;
 import org.bukkit.util.Transformation;
 import org.joml.AxisAngle4f;
@@ -35,10 +36,7 @@ import java.io.File;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public final class FillInTheWall extends JavaPlugin implements CommandExecutor, TabCompleter, Listener {
     private static FillInTheWall instance = null;
@@ -47,6 +45,9 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
     private NamespacedKey interactionKey = new NamespacedKey(this, "singleplayerPortal");
     private Display singleplayerDisplay = null;
     private Display multiplayerDisplay = null;
+
+    private Map<TextDisplay, Gamemode> leaderboards = new HashMap<>();
+    private BukkitTask leaderboardUpdateTask = null;
 
     private final static MysqlDataSource dataSource = new MysqlConnectionPoolDataSource();
 
@@ -77,6 +78,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
             PlayingFieldManager.vsPregame = new Pregame(Bukkit.getWorld("versus"), Gamemode.VERSUS, 2, 15);
             PlayingFieldManager.parseConfig(getPlayingFieldConfig());
             spawnPortals();
+            spawnLeaderboards();
         }, 1);
 
         Bukkit.getLogger().info(ChatColor.BLUE + "FillInTheWall has been enabled!");
@@ -87,6 +89,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
     public void onDisable() {
         // Plugin shutdown logic
         displays.forEach(Entity::remove);
+        removeLeaderboards();
     }
 
     private void spawnPortals() {
@@ -304,6 +307,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
         displays.clear();
         if (!loadSQL()) return;
         spawnPortals();
+        spawnLeaderboards();
         loadPlayingFieldConfig();
         PlayingFieldManager.removeAllGames();
         PlayingFieldManager.parseConfig(getPlayingFieldConfig());
@@ -381,5 +385,77 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
 
     public static Connection getSQLConnection() throws SQLException {
         return dataSource.getConnection();
+    }
+
+    public void spawnLeaderboards() {
+        removeLeaderboards();
+        FileConfiguration config = getConfig();
+
+        Location scoreAttackLocation = config.getLocation("leaderboards.score-attack");
+        Location rushScoreAttackLocation = config.getLocation("leaderboards.rush-score-attack");
+        Location marathonLocation = config.getLocation("leaderboards.marathon");
+
+        if (scoreAttackLocation != null) {
+            TextDisplay scoreAttackDisplay = (TextDisplay) scoreAttackLocation.getWorld().spawnEntity(
+                    scoreAttackLocation, EntityType.TEXT_DISPLAY);
+            scoreAttackDisplay.setText("Score Attack Leaderboard");
+            scoreAttackDisplay.setBillboard(Display.Billboard.VERTICAL);
+            leaderboards.put(scoreAttackDisplay, Gamemode.SCORE_ATTACK);
+        }
+        if (rushScoreAttackLocation != null) {
+            TextDisplay rushScoreAttackDisplay = (TextDisplay) rushScoreAttackLocation.getWorld().spawnEntity(
+                    rushScoreAttackLocation, EntityType.TEXT_DISPLAY);
+            rushScoreAttackDisplay.setText("Rush Score Attack Leaderboard");
+            rushScoreAttackDisplay.setBillboard(Display.Billboard.VERTICAL);
+            leaderboards.put(rushScoreAttackDisplay, Gamemode.RUSH_SCORE_ATTACK);
+        }
+        if (marathonLocation != null) {
+            TextDisplay marathonDisplay = (TextDisplay) marathonLocation.getWorld().spawnEntity(
+                    marathonLocation, EntityType.TEXT_DISPLAY);
+            marathonDisplay.setText("Marathon Leaderboard");
+            marathonDisplay.setBillboard(Display.Billboard.VERTICAL);
+            leaderboards.put(marathonDisplay, Gamemode.MARATHON);
+        }
+
+        updateLeaderboards();
+    }
+
+    private void removeLeaderboards() {
+        for (TextDisplay display : leaderboards.keySet()) {
+            display.remove();
+        }
+        leaderboards.clear();
+    }
+
+    private void updateLeaderboards() {
+        if (leaderboardUpdateTask != null) {
+            leaderboardUpdateTask.cancel();
+        }
+        leaderboardUpdateTask = Bukkit.getScheduler().runTaskTimer(this, () -> {
+            for (Map.Entry<TextDisplay, Gamemode> entry : leaderboards.entrySet()) {
+                TextDisplay display = entry.getKey();
+                Gamemode gamemode = entry.getValue();
+                StringBuilder stringBuilder = new StringBuilder(gamemode.getTitle());
+                stringBuilder.append("\n").append(ChatColor.GRAY).append("Top Scores\n");
+                try {
+                    LinkedHashMap<UUID, Integer> topScores = ScoreDatabase.getTopScores(gamemode);
+                    int i = 1;
+                    for (Map.Entry<UUID, Integer> score : topScores.entrySet()) {
+                        stringBuilder.append("\n")
+                                .append(ChatColor.YELLOW)
+                                .append("#").append(i).append(" ")
+                                .append(Bukkit.getOfflinePlayer(score.getKey()).getName())
+                                .append(": ").append(score.getValue());
+                        i++;
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    stringBuilder.append("\n").append(ChatColor.RED).append("Error loading scores");
+                } finally {
+                    stringBuilder.append("\n\n").append(ChatColor.GRAY).append("Updates every 30 seconds");
+                    display.setText(stringBuilder.toString());
+                }
+            }
+        }, 0, 20 * 30);
     }
 }

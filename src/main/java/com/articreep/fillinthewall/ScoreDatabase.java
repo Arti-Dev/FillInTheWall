@@ -6,10 +6,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class ScoreDatabase {
     private static final HashSet<Gamemode> supportedGamemodes = new HashSet<>();
@@ -66,17 +63,28 @@ public class ScoreDatabase {
         }
     }
 
-    public static Map<UUID, Integer> getTopScores(Gamemode gamemode) throws SQLException {
+    public static LinkedHashMap<UUID, Integer> getTopScores(Gamemode gamemode) throws SQLException {
         try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "SELECT uuid, " + gamemode.toString() + " FROM scores ORDER BY ? DESC LIMIT 10"
         )) {
             stmt.setString(1, gamemode.toString());
             ResultSet result = stmt.executeQuery();
-            Map<UUID, Integer> topScores = new LinkedHashMap<>();
+            Map<UUID, Integer> topScores = new HashMap<>();
             while (result.next()) {
                 topScores.put(UUID.fromString(result.getString("uuid")), result.getInt(gamemode.toString()));
             }
-            return topScores;
+            // For some reason, the result ordering isn't ordered. So we have to order it ourselves.
+            ArrayList<UUID> uuids = new ArrayList<>(topScores.keySet());
+            uuids.sort((o1, o2) -> {
+                int score1 = topScores.get(o1);
+                int score2 = topScores.get(o2);
+                return Integer.compare(score2, score1);
+            });
+            LinkedHashMap<UUID, Integer> topScoresOrdered = new LinkedHashMap<>();
+            for (UUID uuid : uuids) {
+                topScoresOrdered.put(uuid, topScores.get(uuid));
+            }
+            return topScoresOrdered;
         } catch (SQLException e) {
             e.printStackTrace();
             throw new SQLException("Error while getting top scores from database!");
