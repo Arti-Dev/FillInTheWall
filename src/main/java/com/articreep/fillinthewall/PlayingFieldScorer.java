@@ -30,6 +30,8 @@ public class PlayingFieldScorer {
     private double meter = 0;
     private int perfectWallsCleared = 0;
     private int perfectWallChain = 0;
+    private int wallsClearedWithMeterFull = 0;
+    private boolean hasUsedMeter = false;
     private double blocksPlaced = 0;
     // time in ticks (this is displayed on the text display)
     private int time = 0;
@@ -121,6 +123,7 @@ public class PlayingFieldScorer {
         } else if (meter >= meterMax && ((boolean) settings.getAttribute(GamemodeAttribute.AUTOMATIC_METER))) {
             ModifierEvent newEvent = activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT), true);
             newEvent.allowMeterAccumulation = false;
+            hasUsedMeter = true;
         }
 
         // Garbage wall rules
@@ -171,7 +174,20 @@ public class PlayingFieldScorer {
     private void awardMeterPoints(double percent) {
         if (percent >= Judgement.COOL.getPercent()) {
             meter += percent;
-            if (meter > meterMax) meter = meterMax;
+            if (meter > meterMax) {
+                meter = meterMax;
+
+                wallsClearedWithMeterFull++;
+                ModifierEvent.Type abilityEvent = settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT);
+                if (abilityEvent != ModifierEvent.Type.NONE && !hasUsedMeter && wallsClearedWithMeterFull >= 3) {
+                    if (abilityEvent == ModifierEvent.Type.FREEZE) {
+                        field.setTipDisplay(ChatColor.GRAY + "Tip: " + ChatColor.YELLOW + "Press your drop key to " +
+                                ChatColor.AQUA + " freeze " + ChatColor.YELLOW + "all active walls!");
+                    } else {
+                        field.setTipDisplay(ChatColor.GRAY + "Tip: " + ChatColor.YELLOW + "Press your drop key to activate a special ability!");
+                    }
+                }
+            }
         } else if (!field.eventActive() && clearingMode) {
             // You cannot lose progress if levels are enabled
             if (!doLevels) {
