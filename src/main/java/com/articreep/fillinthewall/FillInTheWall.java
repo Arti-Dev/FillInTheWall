@@ -45,6 +45,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
     private NamespacedKey interactionKey = new NamespacedKey(this, "singleplayerPortal");
     private Display singleplayerDisplay = null;
     private Display multiplayerDisplay = null;
+    private Location multiplayerSpawn = null;
 
     private Map<TextDisplay, Gamemode> leaderboards = new HashMap<>();
     private BukkitTask leaderboardUpdateTask = null;
@@ -79,6 +80,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
             PlayingFieldManager.parseConfig(getPlayingFieldConfig());
             spawnPortals();
             spawnLeaderboards();
+            multiplayerSpawn = getConfig().getLocation("multiplayer-spawn");
         }, 1);
 
         Bukkit.getLogger().info(ChatColor.BLUE + "FillInTheWall has been enabled!");
@@ -308,6 +310,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
         if (!loadSQL()) return;
         spawnPortals();
         spawnLeaderboards();
+        multiplayerSpawn = getConfig().getLocation("multiplayer-spawn");
         loadPlayingFieldConfig();
         PlayingFieldManager.removeAllGames();
         PlayingFieldManager.parseConfig(getPlayingFieldConfig());
@@ -457,5 +460,9 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                 }
             }
         }, 0, 20 * 30);
+    }
+
+    public Location getMultiplayerSpawn() {
+        return multiplayerSpawn.clone();
     }
 }

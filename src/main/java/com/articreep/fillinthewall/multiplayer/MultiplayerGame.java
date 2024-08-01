@@ -9,6 +9,7 @@ import com.articreep.fillinthewall.gamemode.GamemodeSettings;
 import org.bukkit.Bukkit;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Sound;
+import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -136,15 +137,21 @@ public abstract class MultiplayerGame {
         rankPlayingFields();
         broadcastResults();
 
+        Set<Player> playersToTeleport = new HashSet<>();
         for (PlayingField field : playingFields) {
             field.getQueue().resetGenerator();
             field.setMultiplayerMode(false);
             field.getScorer().setMultiplayerGame(null);
+            playersToTeleport.addAll(field.getPlayers());
         }
 
         if (markAsEnded) {
-            // todo temporary
             PlayingFieldManager.game = null;
+            Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> {
+                for (Player player : playersToTeleport) {
+                    player.teleport(FillInTheWall.getInstance().getMultiplayerSpawn());
+                }
+            }, 20*10);
         }
     }
 
