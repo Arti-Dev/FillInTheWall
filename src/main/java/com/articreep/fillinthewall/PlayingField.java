@@ -105,6 +105,8 @@ public class PlayingField implements Listener {
 
     private final HashMap<Block, BlockDisplay> incorrectBlockHighlights = new HashMap<>();
 
+    private Sound currentlyPlayingTrack = null;
+
     // Multiplayer settings
     /** Whether to prevent new players from joining and current players from leaving, AND prevent players from starting their own games
      * Used for multiplayer games */
@@ -245,6 +247,7 @@ public class PlayingField implements Listener {
             setCreative(player);
             setInfiniteReach(player);
             if (scorer.getScoreboard() != null) player.setScoreboard(scorer.getScoreboard());
+            if (currentlyPlayingTrack != null)  player.playSound(player, currentlyPlayingTrack, 0.5f, 1);
         }
 
         // Register with the playing field manager
@@ -277,6 +280,7 @@ public class PlayingField implements Listener {
         }
         previousGamemodes.remove(player);
         resetReach(player);
+        if (currentlyPlayingTrack != null) player.stopSound(currentlyPlayingTrack);
 
         // Remove from playing field manager
         PlayingFieldManager.activePlayingFields.remove(player);
@@ -335,6 +339,7 @@ public class PlayingField implements Listener {
         }
         if (!tipDisplays.isEmpty()) clearTipDisplays();
         multiplayerMode = false;
+        stopMusic();
         queue.clearAllWalls();
         queue.allowMultipleWalls(false);
         for (Player player : getPlayers()) {
@@ -1223,5 +1228,21 @@ public class PlayingField implements Listener {
 
     public boolean isClearDelayActive() {
         return clearDelayActive;
+    }
+
+    public void playMusic(Sound sound) {
+        stopMusic();
+        currentlyPlayingTrack = sound;
+        for (Player player : players) {
+            player.playSound(player, currentlyPlayingTrack, 0.5f, 1);
+        }
+    }
+
+    public void stopMusic() {
+        if (currentlyPlayingTrack == null) return;
+        for (Player player : players) {
+            player.stopSound(currentlyPlayingTrack);
+        }
+        currentlyPlayingTrack = null;
     }
 }

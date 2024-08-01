@@ -9,6 +9,7 @@ import com.articreep.fillinthewall.utils.Utils;
 import org.bukkit.Bukkit;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.GameMode;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -22,6 +23,10 @@ public class ScoreAttackGame extends MultiplayerGame {
     private final ArrayList<PlayingField> finalStageBoards;
     private int eventTime0;
     private int eventTime1;
+    private final Sound[] possibleQualificationsMusic = {Sound.MUSIC_DISC_BLOCKS, Sound.MUSIC_DISC_CHIRP, Sound.MUSIC_DISC_FAR,
+    Sound.MUSIC_DISC_MELLOHI, Sound.MUSIC_DISC_STAL, Sound.MUSIC_DISC_WAIT};
+    private final Sound[] possibleFinalsMusic = {Sound.MUSIC_DISC_OTHERSIDE, Sound.MUSIC_DISC_CREATOR, Sound.MUSIC_DISC_PRECIPICE};
+    private Sound currentlyPlayingTrack = null;
 
     public ScoreAttackGame(List<PlayingField> fields, ArrayList<PlayingField> finalStageBoards, GamemodeSettings settings) {
         super(fields, settings);
@@ -38,7 +43,15 @@ public class ScoreAttackGame extends MultiplayerGame {
         super.startGame();
         if (stage == Stage.QUALIFICATIONS) {
             time = settings.getIntAttribute(GamemodeAttribute.TIME_LIMIT);
+            Sound music = possibleQualificationsMusic[(int) (Math.random() * possibleQualificationsMusic.length)];
+            for (PlayingField field : playingFields) {
+                field.playMusic(music);
+            }
         } else if (stage == Stage.FINALS) {
+            Sound music = possibleFinalsMusic[(int) (Math.random() * possibleFinalsMusic.length)];
+            for (PlayingField field : playingFields) {
+                field.playMusic(music);
+            }
             time = settings.getIntAttribute(GamemodeAttribute.FINALS_TIME_LIMIT);
         }
         sortTask = sortLoop();
