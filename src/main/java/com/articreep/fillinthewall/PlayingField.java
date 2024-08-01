@@ -375,19 +375,13 @@ public class PlayingField implements Listener {
 
         if (confirmOnCooldown) return;
         queue.instantSend();
-        ticksSinceOffhandSubmit = 0;
         hasSubmittedUsingOffhand = true;
-        PlayerInventory inventory = event.getPlayer().getInventory();
-        ItemStack mainHandItem = inventory.getItemInMainHand();
-        inventory.setItemInMainHand(confirmItem());
-        // todo in theory a player could switch around the confirm item's location before the original item is given back to them.
-        // should fix, but for now.. too bad!
-        int heldSlot = inventory.getHeldItemSlot();
         confirmOnCooldown = true;
+        int pauseTime = this.clearDelay;
+        if (eventActive()) pauseTime = this.event.clearDelay;
         Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> {
-            inventory.setItem(heldSlot, mainHandItem);
             confirmOnCooldown = false;
-        }, 10);
+        }, pauseTime);
     }
 
     @EventHandler
@@ -1030,14 +1024,6 @@ public class PlayingField implements Listener {
 
     public Location getCenter() {
         return getCenter(true, true);
-    }
-
-    public static ItemStack confirmItem() {
-        ItemStack item = new ItemStack(Material.GREEN_CONCRETE);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "CONFIRM");
-        item.setItemMeta(meta);
-        return item;
     }
 
     public static ItemStack buildingItem(Material material) {
