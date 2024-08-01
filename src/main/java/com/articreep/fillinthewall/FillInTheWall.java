@@ -92,6 +92,14 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
         // Plugin shutdown logic
         displays.forEach(Entity::remove);
         removeLeaderboards();
+
+        for (PlayingField field : PlayingFieldManager.playingFieldLocations.values()) {
+            if (field.hasStarted()) field.stop(false, false);
+            else {
+                field.removeMenu();
+                field.removeEndScreen();
+            }
+        }
     }
 
     private void spawnPortals() {

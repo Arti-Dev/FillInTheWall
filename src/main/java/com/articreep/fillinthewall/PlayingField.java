@@ -319,7 +319,7 @@ public class PlayingField implements Listener {
         }
     }
 
-    public void stop(boolean submitFinalWall) {
+    public void stop(boolean submitFinalWall, boolean showEndScreen) {
         if (!hasStarted()) {
             Bukkit.getLogger().severe("Tried to stop game that's already been stopped");
             return;
@@ -346,8 +346,10 @@ public class PlayingField implements Listener {
         }
         scorer.removeScoreboard();
         scorer.announceFinalScore();
-        endScreen = scorer.createEndScreen();
-        endScreen.display();
+        if (showEndScreen) {
+            endScreen = scorer.createEndScreen();
+            endScreen.display();
+        }
 
         resetRecently = false;
 
@@ -355,7 +357,7 @@ public class PlayingField implements Listener {
     }
 
     public void stop() {
-        stop(true);
+        stop(true, true);
     }
 
     // Listeners

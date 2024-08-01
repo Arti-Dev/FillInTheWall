@@ -67,7 +67,7 @@ public class WallQueue {
 
         // If we cannot spawn a new active wall, end the game
         if (effectiveLength <= 0) {
-            field.stop(false);
+            field.stop(false, true);
         } else {
             animateNextWall();
         }
