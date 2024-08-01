@@ -9,10 +9,7 @@ import com.articreep.fillinthewall.multiplayer.SettingsMenu;
 import com.mysql.cj.jdbc.MysqlConnectionPoolDataSource;
 import com.mysql.cj.jdbc.MysqlDataSource;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
+import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -46,6 +43,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
     private Display singleplayerDisplay = null;
     private Display multiplayerDisplay = null;
     private Location multiplayerSpawn = null;
+    private Location spectatorFinalsSpawn = null;
 
     private Map<TextDisplay, Gamemode> leaderboards = new HashMap<>();
     private BukkitTask leaderboardUpdateTask = null;
@@ -81,6 +79,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
             spawnPortals();
             spawnLeaderboards();
             multiplayerSpawn = getConfig().getLocation("multiplayer-spawn");
+            spectatorFinalsSpawn = getConfig().getLocation("spectator-finals-spawn");
         }, 1);
 
         Bukkit.getLogger().info(ChatColor.BLUE + "FillInTheWall has been enabled!");
@@ -303,6 +302,9 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                     sender.sendMessage("/hitw modifier <mod> <ticks>");
                 }
 
+            } else if (args[0].equalsIgnoreCase("spawn") && sender instanceof Player player) {
+                player.teleport(FillInTheWall.getInstance().getMultiplayerSpawn());
+                player.setGameMode(GameMode.ADVENTURE);
             } else {
                 return false;
             }
@@ -320,6 +322,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
         spawnPortals();
         spawnLeaderboards();
         multiplayerSpawn = getConfig().getLocation("multiplayer-spawn");
+        spectatorFinalsSpawn = getConfig().getLocation("spectator-finals-spawn");
         loadPlayingFieldConfig();
         PlayingFieldManager.removeAllGames();
         PlayingFieldManager.parseConfig(getPlayingFieldConfig());
@@ -473,5 +476,9 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
 
     public Location getMultiplayerSpawn() {
         return multiplayerSpawn.clone();
+    }
+
+    public Location getSpectatorFinalsSpawn() {
+        return spectatorFinalsSpawn.clone();
     }
 }

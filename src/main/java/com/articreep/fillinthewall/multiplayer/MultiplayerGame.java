@@ -6,8 +6,11 @@ import com.articreep.fillinthewall.PlayingField;
 import com.articreep.fillinthewall.PlayingFieldManager;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.gamemode.GamemodeSettings;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -23,6 +26,7 @@ public abstract class MultiplayerGame {
     protected BukkitTask mainTask = null;
     protected Set<BukkitTask> otherTasks = new HashSet<>();
     protected GamemodeSettings settings;
+    protected Set<Player> spectators;
 
     public MultiplayerGame(List<PlayingField> fields, GamemodeSettings settings) {
         // todo add some kind of way to input setting changes
@@ -116,6 +120,7 @@ public abstract class MultiplayerGame {
             }
         }
         generator.addNewWallToQueues();
+        otherTasks.add(spectatorTask());
         mainTask = tickLoop();
     }
 
@@ -138,6 +143,7 @@ public abstract class MultiplayerGame {
         broadcastResults();
 
         Set<Player> playersToTeleport = new HashSet<>();
+        playersToTeleport.addAll(spectators);
         for (PlayingField field : playingFields) {
             field.getQueue().resetGenerator();
             field.setMultiplayerMode(false);
@@ -150,6 +156,7 @@ public abstract class MultiplayerGame {
             Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> {
                 for (Player player : playersToTeleport) {
                     player.teleport(FillInTheWall.getInstance().getMultiplayerSpawn());
+                    player.setGameMode(GameMode.ADVENTURE);
                 }
             }, 20*10);
         }
@@ -203,6 +210,22 @@ public abstract class MultiplayerGame {
             int pointsOfNextRank = rankings.get(position-2).getScorer().getScore();
             return pointsOfNextRank - field.getScorer().getScore();
         }
+    }
+
+    protected BukkitTask spectatorTask() {
+        return new BukkitRunnable() {
+
+            @Override
+            public void run() {
+                Iterator<Player> it = spectators.iterator();
+                while (it.hasNext()) {
+                    Player player = it.next();
+                    if (player.getGameMode() != GameMode.SPECTATOR) it.remove();
+                    else player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
+                            new TextComponent(ChatColor.YELLOW + "To stop spectating, run /fitw spawn"));
+                }
+            }
+        }.runTaskTimer(FillInTheWall.getInstance(), 0, 20);
     }
 
 }

@@ -8,6 +8,7 @@ import com.articreep.fillinthewall.modifiers.ModifierEvent;
 import com.articreep.fillinthewall.utils.Utils;
 import org.bukkit.Bukkit;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -97,12 +98,17 @@ public class ScoreAttackGame extends MultiplayerGame {
     private void transitionToFinals() {
         if (stage == Stage.QUALIFICATIONS && !finalStageBoards.isEmpty()) {
             ArrayList<Set<Player>> qualifyingPlayers = new ArrayList<>();
+            ArrayList<Set<Player>> eliminatedPlayers = new ArrayList<>();
 
             rankPlayingFields();
 
-            // record top four players and put them in the finals
-            for (int i = 0; i < Math.min(finalStageBoards.size(), rankings.size()); i++) {
-                qualifyingPlayers.add(new HashSet<>(rankings.get(i).getPlayers()));
+            // record top players and put them in the finals
+            for (int i = 0; i < rankings.size(); i++) {
+                if (i < finalStageBoards.size()) {
+                    qualifyingPlayers.add(new HashSet<>(rankings.get(i).getPlayers()));
+                } else {
+                    eliminatedPlayers.add(new HashSet<>(rankings.get(i).getPlayers()));
+                }
             }
 
             stop(false);
@@ -137,6 +143,13 @@ public class ScoreAttackGame extends MultiplayerGame {
                         for (Player player : field.getPlayers()) {
                             player.teleport(field.getSpawnLocation());
                             player.sendTitle(ChatColor.YELLOW + "Welcome to the Finals!", "Bigger board, bigger competition!", 10, 60, 20);
+                        }
+                    }
+                    for (Set<Player> set : eliminatedPlayers) {
+                        for (Player player : set) {
+                            player.setGameMode(GameMode.SPECTATOR);
+                            spectators.add(player);
+                            player.teleport(FillInTheWall.getInstance().getSpectatorFinalsSpawn());
                         }
                     }
                 }
