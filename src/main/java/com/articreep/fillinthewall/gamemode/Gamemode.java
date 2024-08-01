@@ -6,15 +6,17 @@ import net.md_5.bungee.api.ChatColor;
 
 public enum Gamemode {
 
-    INFINITE(ChatColor.LIGHT_PURPLE + "Infinite", ChatColor.GRAY + "Step off the playing field to stop playing."),
     TUTORIAL("Tutorial", ChatColor.GRAY + "Learn how to play!"),
+    INFINITE(ChatColor.LIGHT_PURPLE + "Infinite", ChatColor.GRAY + "Step off the playing field to stop playing."),
     SCORE_ATTACK(ChatColor.GOLD + "Score Attack", ChatColor.GRAY + "Score as much as you can in 2 minutes!"),
     RUSH_SCORE_ATTACK(ChatColor.RED + "Rush Score Attack", ChatColor.GRAY + "Use Rush Attacks to score as much as you can!"),
     MULTIPLAYER_SCORE_ATTACK(ChatColor.AQUA + "Multiplayer Score Attack", ChatColor.GRAY + "Hypixel-style game"),
     MARATHON(ChatColor.GRAY + "Marathon", ChatColor.GRAY + "Survive as long as you can!"),
     VERSUS(ChatColor.BLUE + "2-player Versus", ChatColor.GRAY + "Experimental versus system with garbage walls"),
     CUSTOM(ChatColor.GREEN + "Custom Walls", ChatColor.GRAY + "Load a custom wall pack"),
-    INVERTED(ChatColor.BLACK + "Inverted", ChatColor.GRAY + "Left click to win");
+    INVERTED(ChatColor.BLACK + "Inverted", ChatColor.GRAY + "Left click to win"),
+    ARSON(ChatColor.RED + "Arson", ChatColor.GRAY + "Score points using a Flint and Steel!"),
+    STRIPES(ChatColor.YELLOW + "Stripes", ChatColor.GRAY + "Match colors for bonus points!");
 
     static {
         INFINITE.addAttribute(GamemodeAttribute.CONSISTENT_HOLE_COUNT, false);
@@ -103,7 +105,14 @@ public enum Gamemode {
 
         CUSTOM.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
 
+        INVERTED.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         INVERTED.addAttribute(GamemodeAttribute.SINGULAR_EVENT, ModifierEvent.Type.INVERTED);
+
+        ARSON.addAttribute(GamemodeAttribute.SINGULAR_EVENT, ModifierEvent.Type.FIREINTHEHOLE);
+        ARSON.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
+
+        STRIPES.addAttribute(GamemodeAttribute.SINGULAR_EVENT, ModifierEvent.Type.STRIPES);
+        STRIPES.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
 
 
     }
