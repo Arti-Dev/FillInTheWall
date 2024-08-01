@@ -110,7 +110,7 @@ public class PlayingFieldScorer {
         playJudgementSound(judgement);
 
         // Add/subtract to bonus
-        if (!field.eventActive() && clearingMode) {
+        if ((!field.eventActive() || field.getEvent().allowMeterAccumulation) && clearingMode) {
             awardMeterPoints(percent);
         }
 
@@ -119,7 +119,8 @@ public class PlayingFieldScorer {
             setLevel(level + 1);
             field.sendTitleToPlayers("", ChatColor.GREEN + "Level up!", 0, 10, 5);
         } else if (meter >= meterMax && ((boolean) settings.getAttribute(GamemodeAttribute.AUTOMATIC_METER))) {
-            activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT), true);
+            ModifierEvent newEvent = activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT), true);
+            newEvent.allowMeterAccumulation = false;
         }
 
         // Garbage wall rules

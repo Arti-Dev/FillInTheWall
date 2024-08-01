@@ -33,6 +33,7 @@ public abstract class ModifierEvent {
     public boolean wallFreeze = false;
     public boolean fillFieldAfterSubmission = false;
     public boolean modifyWalls = false;
+    public boolean allowMeterAccumulation = true;
 
     public boolean shelveEvent = false;
     protected ModifierEvent shelvedEvent;

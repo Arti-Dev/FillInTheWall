@@ -27,6 +27,7 @@ public class Rush extends ModifierEvent {
         overrideCompleteScoring = true;
         overrideGeneration = true;
         allowMultipleWalls = true;
+        allowMeterAccumulation = false;
 
         if (field == null) return;
         nextWall = new Wall(field.getLength(), field.getHeight());
