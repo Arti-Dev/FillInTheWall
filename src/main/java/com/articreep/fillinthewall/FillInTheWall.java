@@ -266,6 +266,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                             field.getQueue().clearAllWalls();
                             walls.forEach(field.getQueue()::addWall);
                             sender.sendMessage(ChatColor.GREEN + "Imported " + walls.size() + " walls");
+                            field.getScorer().setHasImportedCustomWalls(true);
                         }
                     } else {
                         sender.sendMessage(ChatColor.RED + "You can only use this command in custom mode");

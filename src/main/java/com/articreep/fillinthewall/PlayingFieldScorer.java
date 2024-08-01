@@ -32,6 +32,7 @@ public class PlayingFieldScorer {
     private int perfectWallChain = 0;
     private int wallsClearedWithMeterFull = 0;
     private boolean hasUsedMeter = false;
+    private boolean hasImportedCustomWalls = false;
     private double blocksPlaced = 0;
     // time in ticks (this is displayed on the text display)
     private int time = 0;
@@ -445,6 +446,10 @@ public class PlayingFieldScorer {
             }
         }
 
+        if (gamemode == Gamemode.CUSTOM && !hasImportedCustomWalls) {
+            field.setTipDisplay(ChatColor.YELLOW + "You can import custom walls with /fitw custom <name>");
+        }
+
         // Scoreboard updating
         if (absoluteTimeElapsed % 10 == 0) {
             updateScoreboard();
@@ -774,5 +779,9 @@ public class PlayingFieldScorer {
 
     public double getMeterPercentFilled() {
         return meter / meterMax;
+    }
+
+    public void setHasImportedCustomWalls(boolean bool) {
+        hasImportedCustomWalls = bool;
     }
 }
