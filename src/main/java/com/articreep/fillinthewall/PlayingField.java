@@ -503,6 +503,7 @@ public class PlayingField implements Listener {
         }
         incorrectBlockHighlights.clear();
         if (!scorer.getSettings().getBooleanAttribute(GamemodeAttribute.HIGHLIGHT_INCORRECT_BLOCKS)) return;
+        if (clearDelayActive) return;
 
 
         for (Pair<Integer, Integer> coordinates : getPlayingFieldBlocks(false).keySet()) {
