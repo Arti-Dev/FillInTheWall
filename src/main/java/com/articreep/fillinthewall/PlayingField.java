@@ -34,6 +34,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -1245,5 +1246,26 @@ public class PlayingField implements Listener {
             player.stopSound(currentlyPlayingTrack);
         }
         currentlyPlayingTrack = null;
+    }
+
+    public void fireworks() {
+        new BukkitRunnable() {
+            int i = 0;
+            @Override
+            public void run() {
+                for (Player player : players) {
+                    Firework firework = (Firework) player.getWorld().spawnEntity(player.getLocation(), EntityType.FIREWORK_ROCKET);
+                    firework.setMaxLife(10);
+                    FireworkMeta meta = firework.getFireworkMeta();
+                    FireworkEffect effect = FireworkEffect.builder()
+                            .withColor(wallMaterial.createBlockData().getMapColor())
+                            .withFade(playerMaterial.createBlockData().getMapColor()).build();
+                    meta.addEffect(effect);
+                    firework.setFireworkMeta(meta);
+                }
+                i++;
+                if (i >= 4) cancel();
+            }
+        }.runTaskTimer(FillInTheWall.getInstance(), 0, 20);
     }
 }

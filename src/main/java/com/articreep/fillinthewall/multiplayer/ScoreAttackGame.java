@@ -106,6 +106,9 @@ public class ScoreAttackGame extends MultiplayerGame {
         if (sortTask != null) {
             sortTask.cancel();
         }
+        if (markAsEnded) {
+            PlayingFieldManager.pregame.startCountdown();
+        }
     }
 
     private void transitionToFinals() {
@@ -204,6 +207,7 @@ public class ScoreAttackGame extends MultiplayerGame {
         Bukkit.broadcastMessage(ChatColor.AQUA + "Fill In The Wall - " + stage.toString());
         Bukkit.broadcastMessage("");
         for (int i = 0; i < rankings.size(); i++) {
+            if (i == 0) rankings.get(i).fireworks();
             Bukkit.broadcastMessage("#" + (i+1) + " - " + ChatColor.GREEN + Utils.playersToString(rankings.get(i).getPlayers()) + " with " + rankings.get(i).getScorer().getScore() + " points");
         }
         Bukkit.broadcastMessage("");
