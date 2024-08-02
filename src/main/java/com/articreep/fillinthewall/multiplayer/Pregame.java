@@ -113,7 +113,7 @@ public class Pregame implements Listener {
 
         if (gamemode == Gamemode.MULTIPLAYER_SCORE_ATTACK) {
             PlayingFieldManager.game = new ScoreAttackGame(readyToGoPlayingFields, PlayingFieldManager.finalStageBoards,
-                    settings);
+                    settings.copy());
             PlayingFieldManager.game.start();
         } else if (gamemode == Gamemode.VERSUS) {
             PlayingFieldManager.vsGame = new VersusGame(readyToGoPlayingFields);
