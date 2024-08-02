@@ -343,21 +343,26 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
         ArrayList<String> strings = new ArrayList<>();
         if (args.length == 1) {
             strings.add("modifier");
+            strings.add("custom");
             StringUtil.copyPartialMatches(args[0], strings, completions);
         } else if (args.length == 2) {
-            strings.add("popin");
-            strings.add("freeze");
-            strings.add("rush");
-            strings.add("scale");
-            strings.add("line");
-            strings.add("inverted");
-            strings.add("fireinthehole");
-            strings.add("stripes");
-            strings.add("gravity");
-            strings.add("playerinthewall");
-            strings.add("multiplace");
-            strings.add("flip");
-            StringUtil.copyPartialMatches(args[1], strings, completions);
+            if (args[0].equalsIgnoreCase("modifier")) {
+                strings.add("popin");
+                strings.add("freeze");
+                strings.add("rush");
+                strings.add("scale");
+                strings.add("line");
+                strings.add("inverted");
+                strings.add("fireinthehole");
+                strings.add("stripes");
+                strings.add("gravity");
+                strings.add("playerinthewall");
+                strings.add("multiplace");
+                strings.add("flip");
+                StringUtil.copyPartialMatches(args[1], strings, completions);
+            } else if (args[0].equalsIgnoreCase("custom")) {
+                StringUtil.copyPartialMatches(args[1], WallBundle.getAvailableWallBundles(), completions);
+            }
         }
         return completions;
     }

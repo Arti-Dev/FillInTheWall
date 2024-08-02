@@ -7,6 +7,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 public class WallBundle {
     private final ArrayList<Wall> walls = new ArrayList<>();
@@ -68,6 +69,21 @@ public class WallBundle {
         File dataFolder = FillInTheWall.getInstance().getDataFolder();
         File customWalls = new File(dataFolder, "custom/" + name + ".yml");
         return WallBundle.importFromYAML(customWalls);
+    }
+
+    public static List<String> getAvailableWallBundles() {
+        ArrayList<String> list = new ArrayList<>();
+        File dataFolder = FillInTheWall.getInstance().getDataFolder();
+        File customWallFolder = new File(dataFolder, "custom");
+        File[] files = customWallFolder.listFiles();
+        if (files == null) {
+            Bukkit.getLogger().severe("Failed to load custom wall folder");
+            return list;
+        }
+        for (File file : files) {
+            list.add(file.getName());
+        }
+        return list;
     }
 
     public int size() {
