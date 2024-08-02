@@ -24,7 +24,7 @@ public class ScoreAttackGame extends MultiplayerGame {
     private int eventTime0;
     private int eventTime1;
     private final Sound[] possibleQualificationsMusic = {Sound.MUSIC_DISC_BLOCKS, Sound.MUSIC_DISC_CHIRP, Sound.MUSIC_DISC_FAR,
-    Sound.MUSIC_DISC_MELLOHI, Sound.MUSIC_DISC_STAL, Sound.MUSIC_DISC_WAIT};
+    Sound.MUSIC_DISC_STAL, Sound.MUSIC_DISC_WAIT};
     private final Sound[] possibleFinalsMusic = {Sound.MUSIC_DISC_OTHERSIDE, Sound.MUSIC_DISC_CREATOR, Sound.MUSIC_DISC_PRECIPICE};
     private Sound currentlyPlayingTrack = null;
 
@@ -163,6 +163,7 @@ public class ScoreAttackGame extends MultiplayerGame {
                             player.setGameMode(GameMode.SPECTATOR);
                             spectators.add(player);
                             player.teleport(FillInTheWall.getInstance().getSpectatorFinalsSpawn());
+                            player.sendTitle(ChatColor.YELLOW + "Welcome to the Finals!", "Bigger board, bigger competition!", 10, 60, 20);
                         }
                     }
                 }

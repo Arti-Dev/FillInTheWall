@@ -216,7 +216,6 @@ public class Tutorial extends ModifierEvent implements Listener {
             Block regularBlock = field.coordinatesToBlock(new Pair<>(field.getLength()-2, 1));
             field.sendTitleToPlayers("",  ChatColor.YELLOW + "but it breaks right before the wall is submitted!", 10, 40, 10);
             regularBlock.setType(field.getPlayerMaterial());
-            field.getWorld().playSound(crackedBlock.getLocation(), Sound.BLOCK_COPPER_GRATE_BREAK, 1, 1);
             field.getWorld().playSound(regularBlock.getLocation(), Sound.BLOCK_GLASS_PLACE, 1, 1);
             Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> {
                 field.getQueue().instantSend();

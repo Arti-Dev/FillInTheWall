@@ -124,7 +124,6 @@ public class PlayingFieldScorer {
         } else if (meter >= meterMax && ((boolean) settings.getAttribute(GamemodeAttribute.AUTOMATIC_METER))) {
             ModifierEvent newEvent = activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT), true);
             newEvent.allowMeterAccumulation = false;
-            hasUsedMeter = true;
         }
 
         // Garbage wall rules
@@ -147,6 +146,11 @@ public class PlayingFieldScorer {
 
         // Update meter item
         setMeterItemGlint(isMeterFilledEnough(meter / meterMax));
+
+        // Custom walls tip display
+        if (gamemode == Gamemode.CUSTOM && !hasImportedCustomWalls) {
+            field.setTipDisplay(ChatColor.YELLOW + "You can import custom walls with /fitw custom <name>");
+        }
 
         return judgement;
     }
@@ -180,9 +184,9 @@ public class PlayingFieldScorer {
 
                 wallsClearedWithMeterFull++;
                 ModifierEvent.Type abilityEvent = settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT);
-                if (abilityEvent != ModifierEvent.Type.NONE && !hasUsedMeter && wallsClearedWithMeterFull >= 3) {
+                if (abilityEvent != ModifierEvent.Type.NONE && !hasUsedMeter && wallsClearedWithMeterFull >= 4) {
                     if (abilityEvent == ModifierEvent.Type.FREEZE) {
-                        field.setTipDisplay(ChatColor.GRAY + "Tip: " + ChatColor.YELLOW + "Press your drop key to " +
+                        field.setTipDisplay(ChatColor.GRAY + "Tip: " + ChatColor.YELLOW + "Press your drop key to" +
                                 ChatColor.AQUA + " freeze " + ChatColor.YELLOW + "all active walls!");
                     } else {
                         field.setTipDisplay(ChatColor.GRAY + "Tip: " + ChatColor.YELLOW + "Press your drop key to activate a special ability!");
@@ -295,7 +299,9 @@ public class PlayingFieldScorer {
             return;
         }
         if (isMeterFilledEnough(meter / meterMax)) {
-            activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT), true);
+            ModifierEvent newEvent = activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT), true);
+            newEvent.allowMeterAccumulation = false;
+            hasUsedMeter = true;
         } else {
             player.sendMessage(ChatColor.RED + "Your meter isn't full enough!");
         }
@@ -444,10 +450,6 @@ public class PlayingFieldScorer {
                     field.sendTitleToPlayers("", ChatColor.RED + String.valueOf(time / 20), 0, 20, 5);
                 }
             }
-        }
-
-        if (gamemode == Gamemode.CUSTOM && !hasImportedCustomWalls) {
-            field.setTipDisplay(ChatColor.YELLOW + "You can import custom walls with /fitw custom <name>");
         }
 
         // Scoreboard updating

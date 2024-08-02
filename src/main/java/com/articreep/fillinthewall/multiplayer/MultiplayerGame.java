@@ -26,7 +26,7 @@ public abstract class MultiplayerGame {
     protected BukkitTask mainTask = null;
     protected Set<BukkitTask> otherTasks = new HashSet<>();
     protected GamemodeSettings settings;
-    protected Set<Player> spectators;
+    protected Set<Player> spectators = new HashSet<>();
 
     public MultiplayerGame(List<PlayingField> fields, GamemodeSettings settings) {
         // todo add some kind of way to input setting changes
@@ -156,7 +156,10 @@ public abstract class MultiplayerGame {
             Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> {
                 for (Player player : playersToTeleport) {
                     player.teleport(FillInTheWall.getInstance().getMultiplayerSpawn());
-                    player.setGameMode(GameMode.ADVENTURE);
+                    if (spectators.contains(player)) {
+                        // todo may want to instead store the previous gamemode instead..?
+                        player.setGameMode(GameMode.ADVENTURE);
+                    }
                 }
             }, 20*10);
         }

@@ -22,18 +22,18 @@ multiplayer-spawn:
   ==: org.bukkit.Location
   world: multi
   x: 0.5
-  y: 110.5
-  z: -6.5
+  y: 102.5
+  z: 0.5
   pitch: 0.0
   yaw: 0.0
 spectator-finals-spawn:
   ==: org.bukkit.Location
   world: multi
-  x: 0.5
-  y: 120.5
-  z: -6.5
+  x: 62.5
+  y: 112.5
+  z: -88.5
   pitch: 0.0
-  yaw: 0.0
+  yaw: -135.0
 
 leaderboards:
   score-attack:
