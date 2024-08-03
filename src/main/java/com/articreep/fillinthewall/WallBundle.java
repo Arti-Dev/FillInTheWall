@@ -1,5 +1,6 @@
 package com.articreep.fillinthewall;
 
+import org.apache.commons.io.FilenameUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -81,7 +82,7 @@ public class WallBundle {
             return list;
         }
         for (File file : files) {
-            list.add(file.getName());
+            list.add(FilenameUtils.removeExtension(file.getName()));
         }
         return list;
     }

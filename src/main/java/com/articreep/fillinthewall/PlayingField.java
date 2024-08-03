@@ -1251,11 +1251,13 @@ public class PlayingField implements Listener {
     public void fireworks() {
         new BukkitRunnable() {
             int i = 0;
+            // Players might leave the field immediately so copy them to a new set
+            final Set<Player> playersToCelebrate = new HashSet<>(players);
             @Override
             public void run() {
-                for (Player player : players) {
+                for (Player player : playersToCelebrate) {
                     Firework firework = (Firework) player.getWorld().spawnEntity(player.getLocation(), EntityType.FIREWORK_ROCKET);
-                    firework.setMaxLife(10);
+                    firework.setMaxLife(20);
                     FireworkMeta meta = firework.getFireworkMeta();
                     FireworkEffect effect = FireworkEffect.builder()
                             .withColor(wallMaterial.createBlockData().getMapColor())
