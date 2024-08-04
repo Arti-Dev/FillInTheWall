@@ -451,11 +451,17 @@ public class Wall {
         return Utils.randomSetElement(holes);
     }
 
-    public void insertRandomNewHole(int count) {
+    public void insertRandomNewHole(int count, int filter) {
         if (holes.size() >= length * height) return;
+        boolean even = (length % 2 == 0);
         Set<Pair<Integer, Integer>> possibleCoordinates = new HashSet<>();
         for (int x = 0; x < length; x++) {
             for (int y = 0; y < height; y++) {
+                if (filter > 0 && x <= length / 2) continue;
+                if (filter < 0) {
+                    if (even && x > length / 2) continue;
+                    if (x >= length / 2) continue;
+                }
                 possibleCoordinates.add(Pair.with(x, y));
             }
         }
@@ -479,14 +485,24 @@ public class Wall {
      * Returns randomly generated coordinates directly near an existing hole that isn't already a hole.
      * Returns null if generation failed (wall is all holes)
      * @param diagonalsOK Whether diagonals are okay to return
+     * @param filter -1 to only consider holes on the left, 1 for holes on the right, 0 for all holes
      * @return The coordinates near a randomly selected existing hole
      */
-    public Pair<Integer, Integer> randomCoordinatesConnected(boolean diagonalsOK) {
+    public Pair<Integer, Integer> randomCoordinatesConnected(boolean diagonalsOK, int filter) {
         if (holes.size() >= length * height) return null;
         Random random = new Random();
         // Dump all existing holes into an arraylist, and shuffle
         List<Pair<Integer, Integer>> holeList = new ArrayList<>();
         holeList.addAll(holes);
+
+        // todo review this
+        boolean even = (length % 2 == 0);
+        if (filter > 0) {
+            holeList.removeIf((hole) -> hole.getValue0() <= length / 2);
+        } else if (filter < 0) {
+            if (even) holeList.removeIf((hole) -> hole.getValue0() > length / 2);
+            else holeList.removeIf((hole) -> hole.getValue0() >= length / 2);
+        }
         Collections.shuffle(holeList);
 
 
@@ -516,7 +532,15 @@ public class Wall {
     }
 
     public Pair<Integer, Integer> randomCoordinatesConnected() {
-        return randomCoordinatesConnected(true);
+        return randomCoordinatesConnected(true, 0);
+    }
+
+    public Pair<Integer, Integer> randomCoordinatesConnectedLeft() {
+        return randomCoordinatesConnected(true, -1);
+    }
+
+    public Pair<Integer, Integer> randomCoordinatesConnectedRight() {
+        return randomCoordinatesConnected(true, 1);
     }
 
     /**
@@ -530,7 +554,7 @@ public class Wall {
      *                         parameter as an upper bound.
      */
     public void generateHoles(int randomCount, int clusterCount, boolean randomizeFurther) {
-        insertRandomNewHole(randomCount);
+        insertRandomNewHole(randomCount, 0);
 
         if (randomizeFurther) {
             Random rng = new Random();
@@ -544,6 +568,32 @@ public class Wall {
                 break;
             }
         }
+    }
+
+    public void generateCoopHoles(int count) {
+        // Generate up to five holes on the left and right sides
+        // If there are more, spawn them in randomly
+        int holesPerSide;
+        int extra;
+        if (count > 10) {
+            holesPerSide = 5;
+            extra = count - 10;
+        } else {
+            holesPerSide = count / 2;
+            extra = count % 2;
+        }
+
+        insertRandomNewHole(1, -1);
+        for (int i = 0; i < holesPerSide-1; i++) {
+            insertHole(randomCoordinatesConnectedLeft());
+        }
+
+        insertRandomNewHole(1, 1);
+        for (int i = 0; i < holesPerSide-1; i++) {
+            insertHole(randomCoordinatesConnectedRight());
+        }
+
+        insertRandomNewHole(extra, 0);
     }
 
     public void setMaterial(Material material) {

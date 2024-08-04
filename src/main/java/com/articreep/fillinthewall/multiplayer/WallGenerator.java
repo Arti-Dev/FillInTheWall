@@ -28,6 +28,7 @@ public class WallGenerator {
     private int connectedHoleCount;
     private boolean randomizeFurther = true;
     private int wallActiveTime;
+    private boolean coop;
 
     // Stats
     private int wallsSpawned = 0;
@@ -45,7 +46,8 @@ public class WallGenerator {
      */
     public void addNewWallToQueues() {
         Wall wall = new Wall(wallLength, wallHeight);
-        wall.generateHoles(randomHoleCount, connectedHoleCount, randomizeFurther);
+        if (coop) wall.generateCoopHoles(randomHoleCount + connectedHoleCount);
+        else wall.generateHoles(randomHoleCount, connectedHoleCount, randomizeFurther);
         wall.setTimeRemaining(wallActiveTime);
         if (queues.isEmpty()) {
             Bukkit.getLogger().warning("No queues to add walls to..?");
@@ -115,6 +117,10 @@ public class WallGenerator {
 
     public void setWallHolesIncreaseInterval(int wallHolesIncreaseInterval) {
         this.wallHolesIncreaseInterval = wallHolesIncreaseInterval;
+    }
+
+    public void setCoop(boolean bool) {
+        coop = bool;
     }
 
     public int getWallActiveTime() {

@@ -26,7 +26,6 @@ public class ScoreAttackGame extends MultiplayerGame {
     private final Sound[] possibleQualificationsMusic = {Sound.MUSIC_DISC_BLOCKS, Sound.MUSIC_DISC_CHIRP, Sound.MUSIC_DISC_FAR,
     Sound.MUSIC_DISC_STAL, Sound.MUSIC_DISC_WAIT};
     private final Sound[] possibleFinalsMusic = {Sound.MUSIC_DISC_PRECIPICE};
-    private Sound currentlyPlayingTrack = null;
 
     public ScoreAttackGame(List<PlayingField> fields, ArrayList<PlayingField> finalStageBoards, GamemodeSettings settings) {
         super(fields, settings);

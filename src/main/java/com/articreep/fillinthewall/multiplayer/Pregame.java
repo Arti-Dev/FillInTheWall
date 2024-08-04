@@ -6,6 +6,7 @@ import com.articreep.fillinthewall.PlayingField;
 import com.articreep.fillinthewall.PlayingFieldManager;
 import com.articreep.fillinthewall.display.ScoreboardEntry;
 import com.articreep.fillinthewall.display.ScoreboardEntryType;
+import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.gamemode.GamemodeSettings;
 import com.articreep.fillinthewall.utils.Utils;
 import org.bukkit.Bukkit;
@@ -102,8 +103,10 @@ public class Pregame implements Listener {
             }
         }
 
+        int playersPerField = 1;
+        if (settings.getBooleanAttribute(GamemodeAttribute.COOP)) playersPerField = 2;
         List<PlayingField> readyToGoPlayingFields =
-                assignPlayersToPlayingFields(new ArrayList<>(world.getPlayers()), availablePlayingFields);
+                assignPlayersToPlayingFields(new ArrayList<>(world.getPlayers()), availablePlayingFields, playersPerField);
 
         for (PlayingField field : readyToGoPlayingFields) {
             for (Player player : field.getPlayers()) {
@@ -125,6 +128,7 @@ public class Pregame implements Listener {
     public static List<PlayingField> assignPlayerSetsToPlayingFields(List<Set<Player>> players, List<PlayingField> availablePlayingFields) {
         List<PlayingField> readyToGoPlayingFields = new ArrayList<>();
 
+        Collections.shuffle(players);
         Iterator<Set<Player>> playerSetIterator = players.iterator();
         Set<Player> currentPlayerSet = playerSetIterator.next();
         Iterator<PlayingField> fieldIterator = availablePlayingFields.iterator();
@@ -189,12 +193,17 @@ public class Pregame implements Listener {
         return readyToGoPlayingFields;
     }
 
-    public static List<PlayingField> assignPlayersToPlayingFields(List<Player> players, List<PlayingField> availablePlayingFields) {
+    public static List<PlayingField> assignPlayersToPlayingFields(List<Player> players, List<PlayingField> availablePlayingFields, int playersPerField) {
+        if (playersPerField < 1) {
+            throw new IllegalArgumentException("Can't have less than 1 player per playing field!");
+        }
         List<Set<Player>> playerSets = new ArrayList<>();
-        for (Player player : players) {
-            // Create singleton sets (have to be mutable though)
+        Collections.shuffle(players);
+        for (int i = 0; i < players.size(); i += playersPerField) {
             Set<Player> playerSet = new HashSet<>();
-            playerSet.add(player);
+            for (int j = 0; j < playersPerField && i+j < players.size(); j++) {
+                playerSet.add(players.get(i+j));
+            }
             playerSets.add(playerSet);
         }
         return assignPlayerSetsToPlayingFields(playerSets, availablePlayingFields);

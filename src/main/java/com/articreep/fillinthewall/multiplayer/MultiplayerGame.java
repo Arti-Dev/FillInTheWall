@@ -30,7 +30,6 @@ public abstract class MultiplayerGame {
     protected Set<Player> spectators = new HashSet<>();
 
     public MultiplayerGame(List<PlayingField> fields, GamemodeSettings settings) {
-        // todo add some kind of way to input setting changes
         if (fields.isEmpty()) {
             Bukkit.getLogger().severe("Tried to create multiplayer game with no playing fields");
         }
@@ -46,6 +45,10 @@ public abstract class MultiplayerGame {
         generator.setWallTimeDecrease(settings.getIntAttribute(GamemodeAttribute.WALL_TIME_DECREASE_AMOUNT));
         generator.setWallTimeDecreaseInterval(2);
         generator.setWallHolesIncreaseInterval(2);
+        if (settings.getBooleanAttribute(GamemodeAttribute.COOP)) {
+            generator.setCoop(true);
+            generator.setWallHolesMax(16);
+        }
     }
 
     public void start() {
