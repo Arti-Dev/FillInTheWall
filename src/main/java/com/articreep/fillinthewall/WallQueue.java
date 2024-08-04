@@ -27,6 +27,7 @@ public class WallQueue {
      * Walls that are spawned but are invisible.
      */
     private final List<Wall> hiddenWalls = new LinkedList<>();
+    private final List<Wall> priorityHiddenWalls = new LinkedList<>();
     private Wall animatingWall = null;
     private final List<Wall> activeWalls = new ArrayList<>();
     private final Deque<Wall> hardenedWalls = new ArrayDeque<>();
@@ -58,6 +59,14 @@ public class WallQueue {
         }
     }
 
+    public void addPriorityWall(Wall wall) {
+        priorityHiddenWalls.add(wall);
+        if (wall.getTimeRemaining() == -1) {
+            // default wall speed
+            wall.setTimeRemaining(defaultWallActiveTime);
+        }
+    }
+
     public void spawnNextWall() {
         if (animatingWall != null) return;
         if (!field.getScorer().getGarbageQueue().isEmpty()) {
@@ -83,7 +92,7 @@ public class WallQueue {
     }
 
     public void animateNextWall() {
-        if (hiddenWalls.isEmpty()) return;
+        if (hiddenWalls.isEmpty() && priorityHiddenWalls.isEmpty()) return;
 
         if (!hardenedWalls.isEmpty() && hardenedWalls.peek().getHardness() <= 0) {
             field.playSoundToPlayers(Sound.ENTITY_GOAT_HORN_BREAK, 0.5f, 0.5f);
@@ -92,7 +101,11 @@ public class WallQueue {
             int baseTime = generator.getWallActiveTime();
             animatingWall.setTimeRemaining(calculateWallActiveTime(baseTime));
         } else {
-            animatingWall = hiddenWalls.removeFirst();
+            if (!priorityHiddenWalls.isEmpty()) {
+                animatingWall = priorityHiddenWalls.removeFirst();
+            } else {
+                animatingWall = hiddenWalls.removeFirst();
+            }
             if (field.eventActive() && field.getEvent().modifyWalls) {
                 field.getEvent().modifyWall(animatingWall);
             }
@@ -220,6 +233,7 @@ public class WallQueue {
         }
         hiddenWalls.clear();
         hardenedWalls.clear();
+        priorityHiddenWalls.clear();
     }
 
     public void setWallActiveTime(int wallActiveTime) {
@@ -244,6 +258,10 @@ public class WallQueue {
 
     public void clearHiddenWalls() {
         hiddenWalls.clear();
+    }
+
+    public void clearPriorityHiddenWalls() {
+        priorityHiddenWalls.clear();
     }
 
     /**
