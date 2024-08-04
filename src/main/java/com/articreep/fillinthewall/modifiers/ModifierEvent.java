@@ -243,4 +243,6 @@ public abstract class ModifierEvent {
     public void setInfinite(boolean infinite) {
         this.infinite = infinite;
     }
+
+    public abstract ModifierEvent copy(PlayingField newPlayingField);
 }

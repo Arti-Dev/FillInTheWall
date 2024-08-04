@@ -144,4 +144,8 @@ public class PlayerInTheWall extends ModifierEvent {
 
         // if we reach here, the wall has no holes... that's a troll moment
     }
+
+    public PlayerInTheWall copy(PlayingField newPlayingField) {
+        return new PlayerInTheWall(newPlayingField);
+    }
 }

@@ -66,4 +66,9 @@ public class Lines extends ModifierEvent implements Listener {
         }
     }
 
+    public Lines copy(PlayingField newPlayingField) {
+        Lines copy = new Lines(newPlayingField);
+        return copy;
+    }
+
 }

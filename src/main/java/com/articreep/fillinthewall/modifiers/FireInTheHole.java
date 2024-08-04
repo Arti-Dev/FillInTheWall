@@ -124,4 +124,8 @@ public class FireInTheHole extends ModifierEvent {
         item.setItemMeta(meta);
         return item;
     }
+
+    public FireInTheHole copy(PlayingField newPlayingField) {
+        return new FireInTheHole(newPlayingField);
+    }
 }

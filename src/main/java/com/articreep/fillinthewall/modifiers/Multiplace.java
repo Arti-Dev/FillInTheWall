@@ -151,4 +151,9 @@ public class Multiplace extends ModifierEvent implements Listener {
             }
         }.runTaskTimer(FillInTheWall.getInstance(), 0, 2);
     }
+
+    public Multiplace copy(PlayingField newPlayingField) {
+        Multiplace copy = new Multiplace(newPlayingField);
+        return copy;
+    }
 }

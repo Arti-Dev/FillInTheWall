@@ -315,7 +315,14 @@ public class PlayingFieldScorer {
             return null;
         }
         ModifierEvent event = type.createEvent(field);
-        // todo remove the need to run this the next tick
+        return activateEvent(event, resetMeter);
+    }
+
+    public ModifierEvent activateEvent(ModifierEvent.Type type) {
+        return activateEvent(type, false);
+    }
+
+    public ModifierEvent activateEvent(ModifierEvent event, boolean resetMeter) {
         Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> {
             event.activate();
             eventCount++;
@@ -327,8 +334,8 @@ public class PlayingFieldScorer {
         return event;
     }
 
-    public ModifierEvent activateEvent(ModifierEvent.Type type) {
-        return activateEvent(type, false);
+    public ModifierEvent activateEvent(ModifierEvent event) {
+        return activateEvent(event, false);
     }
 
     public void displayScoreTitle(Judgement judgement, int score, Map<BonusType, Integer> bonusMap) {
@@ -615,7 +622,8 @@ public class PlayingFieldScorer {
                 }
             }
         }
-        if (settings.getModifierEventTypeAttribute(GamemodeAttribute.SINGULAR_EVENT) != null
+        if (!settings.getBooleanAttribute(GamemodeAttribute.MULTIPLAYER) &&
+                settings.getModifierEventTypeAttribute(GamemodeAttribute.SINGULAR_EVENT) != null
                 && settings.getModifierEventTypeAttribute(GamemodeAttribute.SINGULAR_EVENT) != ModifierEvent.Type.NONE) {
             activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.SINGULAR_EVENT)).setInfinite(true);
         } else if (gamemode == Gamemode.CUSTOM) {

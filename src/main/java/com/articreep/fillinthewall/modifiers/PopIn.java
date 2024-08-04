@@ -142,4 +142,8 @@ public class PopIn extends ModifierEvent {
             }
         }.runTaskTimer(FillInTheWall.getInstance(), 0, 1);
     }
+
+    public PopIn copy(PlayingField newPlayingField) {
+        return new PopIn(newPlayingField);
+    }
 }

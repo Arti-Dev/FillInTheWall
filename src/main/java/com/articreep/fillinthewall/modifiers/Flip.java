@@ -30,4 +30,8 @@ public class Flip extends ModifierEvent {
             wall.setDoFlip(false);
         }
     }
+
+    public Flip copy(PlayingField newPlayingField) {
+        return new Flip(newPlayingField);
+    }
 }

@@ -52,4 +52,8 @@ public class Freeze extends ModifierEvent {
         return ChatColor.AQUA + "" + ChatColor.BOLD + "Frozen for " + ticksRemaining/20 + " seconds";
     }
 
+    public Freeze copy(PlayingField newPlayingField) {
+        return new Freeze(newPlayingField);
+    }
+
 }

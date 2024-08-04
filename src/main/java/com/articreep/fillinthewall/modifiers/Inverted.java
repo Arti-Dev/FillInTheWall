@@ -61,4 +61,8 @@ public class Inverted extends ModifierEvent {
     public void modifyWall(Wall wall) {
         wall.invert();
     }
+
+    public Inverted copy(PlayingField newPlayingField) {
+        return new Inverted(newPlayingField);
+    }
 }

@@ -6,6 +6,7 @@ import com.articreep.fillinthewall.PlayingField;
 import com.articreep.fillinthewall.PlayingFieldManager;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.gamemode.GamemodeSettings;
+import com.articreep.fillinthewall.modifiers.ModifierEvent;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
@@ -119,6 +120,10 @@ public abstract class MultiplayerGame {
                 removePlayingfield(field);
             }
         }
+
+        if (settings.getModifierEventTypeAttribute(GamemodeAttribute.SINGULAR_EVENT) != ModifierEvent.Type.NONE) {
+            deployEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.SINGULAR_EVENT));
+        }
         generator.addNewWallToQueues();
         otherTasks.add(spectatorTask());
         mainTask = tickLoop();
@@ -229,6 +234,14 @@ public abstract class MultiplayerGame {
                 }
             }
         }.runTaskTimer(FillInTheWall.getInstance(), 0, 20);
+    }
+
+    protected void deployEvent(ModifierEvent.Type type) {
+        PlayingField pilot = playingFields.iterator().next();
+        ModifierEvent event = type.createEvent(pilot);
+        for (PlayingField field : playingFields) {
+            field.getScorer().activateEvent(event.copy(field));
+        }
     }
 
 }

@@ -19,23 +19,26 @@ import java.util.Random;
 public class Scale extends ModifierEvent implements Listener {
     private final Map<Player, Double> playerScales = new HashMap<>();
     private final Map<Player, Double> playerReachDistances = new HashMap<>();
+    private double scale;
 
     public Scale(PlayingField field) {
         super(field);
+        Random random = new Random();
+        if (random.nextBoolean()) {
+            scale = random.nextDouble(0.0625, 1);
+        } else {
+            scale = random.nextDouble(1, 5);
+        }
     }
 
     @Override
     public void activate() {
         super.activate();
         FillInTheWall.getInstance().getServer().getPluginManager().registerEvents(this, FillInTheWall.getInstance());
-        Random random = new Random();
-        double scale;
         ChatColor color;
-        if (random.nextBoolean()) {
-            scale = random.nextDouble(0.0625, 1);
+        if (scale < 1) {
             color = ChatColor.RED;
         } else {
-            scale = random.nextDouble(1, 5);
             color = ChatColor.BLUE;
         }
         final double DEFAULT_BLOCK_INTERACTION_RANGE = 4.5;
@@ -113,5 +116,12 @@ public class Scale extends ModifierEvent implements Listener {
             }
         }.runTaskTimer(FillInTheWall.getInstance(), 0, 1);
         field.sendTitleToPlayers("", "Your player model has been reset!", 0, 20, 10);
+    }
+
+    @Override
+    public Scale copy(PlayingField newPlayingField) {
+        Scale copy = new Scale(newPlayingField);
+        copy.scale = scale;
+        return copy;
     }
 }

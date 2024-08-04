@@ -87,4 +87,8 @@ public class Stripes extends ModifierEvent {
         item.setItemMeta(meta);
         return item;
     }
+
+    public Stripes copy(PlayingField newPlayingField) {
+        return new Stripes(newPlayingField);
+    }
 }

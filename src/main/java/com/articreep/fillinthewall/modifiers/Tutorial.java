@@ -346,4 +346,8 @@ public class Tutorial extends ModifierEvent implements Listener {
         }
         return color + "Freeze Meter: " + String.format("%.2f", fakeMeter) + "/" + fakeMeterMax;
     }
+
+    public Tutorial copy(PlayingField newPlayingField) {
+        return new Tutorial(newPlayingField);
+    }
 }

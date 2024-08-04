@@ -126,4 +126,11 @@ public class Gravity extends ModifierEvent {
         field.playSoundToPlayers(Sound.ENTITY_SPLASH_POTION_BREAK, 1);
         field.sendTitleToPlayers("", "Placed blocks are back to normal!", 0, 20, 10);
     }
+
+    public Gravity copy(PlayingField newPlayingField) {
+        Gravity copy = new Gravity(newPlayingField);
+        copy.direction = direction.clone();
+        copy.directionName = directionName;
+        return copy;
+    }
 }

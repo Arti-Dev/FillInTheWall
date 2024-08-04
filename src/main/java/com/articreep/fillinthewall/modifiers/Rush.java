@@ -165,4 +165,8 @@ public class Rush extends ModifierEvent {
         firstWallCleared = b;
     }
 
+    public Rush copy(PlayingField newPlayingField) {
+        return new Rush(newPlayingField);
+    }
+
 }
