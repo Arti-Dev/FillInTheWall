@@ -274,24 +274,23 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                     sender.sendMessage("Wrong syntax... I won't tell you how though! >:)");
                 }
             } else if (args[0].equalsIgnoreCase("modifier")) {
-                if (args.length == 3 && sender instanceof Player player && PlayingFieldManager.isInGame(player)) {
+                if (args.length == 4) {
+                    Player player = Bukkit.getPlayer(args[1]);
+                    if (player == null) {
+                        sender.sendMessage("/hitw modifier <player> <mod> <ticks>");
+                        return true;
+                    }
                     PlayingField field = PlayingFieldManager.activePlayingFields.get(player);
-                    int ticks = Integer.parseInt(args[2]);
+                    if (field == null) {
+                        sender.sendMessage("This player isn't in a game!");
+                        return true;
+                    }
+                    int ticks = Integer.parseInt(args[3]);
 
                     ModifierEvent event;
-                    if (args[1].equalsIgnoreCase("popin")) event = new PopIn(field);
-                    else if (args[1].equalsIgnoreCase("freeze")) event = new Freeze(field);
-                    else if (args[1].equalsIgnoreCase("rush")) event = new Rush(field);
-                    else if (args[1].equalsIgnoreCase("scale")) event = new Scale(field);
-                    else if (args[1].equalsIgnoreCase("line")) event = new Lines(field);
-                    else if (args[1].equalsIgnoreCase("inverted")) event = new Inverted(field);
-                    else if (args[1].equalsIgnoreCase("fireinthehole")) event = new FireInTheHole(field);
-                    else if (args[1].equalsIgnoreCase("stripes")) event = new Stripes(field);
-                    else if (args[1].equalsIgnoreCase("gravity")) event = new Gravity(field);
-                    else if (args[1].equalsIgnoreCase("playerinthewall")) event = new PlayerInTheWall(field);
-                    else if (args[1].equalsIgnoreCase("multiplace")) event = new Multiplace(field);
-                    else if (args[1].equalsIgnoreCase("flip")) event = new Flip(field);
-                    else {
+                    try {
+                        event = ModifierEvent.Type.valueOf(args[2].toUpperCase()).createEvent(field);
+                    } catch (IllegalArgumentException e) {
                         sender.sendMessage(ChatColor.RED + "Unknown modifier");
                         return true;
                     }
@@ -299,12 +298,78 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                     event.setTicksRemaining(ticks);
                     event.activate();
                 } else {
-                    sender.sendMessage("/hitw modifier <mod> <ticks>");
+                    sender.sendMessage("/hitw modifier <player> <mod> <ticks>");
                 }
 
             } else if (args[0].equalsIgnoreCase("spawn") && sender instanceof Player player) {
                 player.teleport(FillInTheWall.getInstance().getMultiplayerSpawn());
                 player.setGameMode(GameMode.ADVENTURE);
+            } else if (args[0].equalsIgnoreCase("garbage")) {
+                if (args.length == 3) {
+                    Player player = Bukkit.getPlayer(args[1]);
+                    if (player == null) {
+                        sender.sendMessage("/hitw garbage <player> <amount>");
+                        return true;
+                    }
+                    PlayingField field = PlayingFieldManager.activePlayingFields.get(player);
+                    if (field == null) {
+                        sender.sendMessage("This player isn't in a game!");
+                        return true;
+                    }
+
+                    int amount = Integer.parseInt(args[3]);
+
+                    for (int i = 0; i < amount; i++) {
+                        field.getQueue().hardenWall(new Wall(field.getLength(), field.getHeight()), 1);
+                    }
+
+                    sender.sendMessage("Sent " + amount + " garbage walls to " + player.getName());
+                    return true;
+                } else {
+                    sender.sendMessage("/hitw garbage <player> <amount>");
+                    return true;
+                }
+            } else if (args[0].equalsIgnoreCase("bundle")) {
+                if (args.length == 3) {
+                    Player player = Bukkit.getPlayer(args[1]);
+                    if (player == null) {
+                        sender.sendMessage("/hitw bundle <player> <bundlename>");
+                        return true;
+                    }
+                    PlayingField field = PlayingFieldManager.activePlayingFields.get(player);
+                    if (field == null) {
+                        sender.sendMessage("This player isn't in a game!");
+                        return true;
+                    }
+
+                    WallBundle bundle = WallBundle.getWallBundle(args[2]);
+                    if (bundle.size() == 0) {
+                        sender.sendMessage(ChatColor.RED + "Something went wrong loading custom walls!");
+                    } else {
+                        List<Wall> walls = bundle.getWalls();
+                        field.getQueue().clearAllWalls();
+                        walls.forEach(field.getQueue()::addPriorityWall);
+                        sender.sendMessage(ChatColor.GREEN + "Imported " + walls.size() + " walls");
+                    }
+                } else {
+                    sender.sendMessage("/hitw bundle <player> <bundlename>");
+                    return true;
+                }
+            } else if (args[0].equalsIgnoreCase("tip")) {
+                if (args.length == 3) {
+                    Player player = Bukkit.getPlayer(args[1]);
+                    if (player == null) {
+                        sender.sendMessage("/hitw tip <player> <string>");
+                        return true;
+                    }
+                    PlayingField field = PlayingFieldManager.activePlayingFields.get(player);
+                    if (field == null) {
+                        sender.sendMessage("This player isn't in a game!");
+                        return true;
+                    }
+
+                    field.setTipDisplay(args[2]);
+                }
             } else {
                 return false;
             }
