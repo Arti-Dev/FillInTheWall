@@ -32,7 +32,7 @@ public class Rush extends ModifierEvent {
         if (field == null) return;
         nextWall = new Wall(field.getLength(), field.getHeight());
         nextWall.setMaterial(randomMaterial());
-        nextWall.insertHoles(nextWall.randomCoordinates());
+        nextWall.insertHole(nextWall.randomCoordinates());
     }
 
     public void deploy() {

@@ -2,6 +2,8 @@ package com.articreep.fillinthewall.modifiers;
 
 import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.PlayingField;
+import com.articreep.fillinthewall.Wall;
+import com.articreep.fillinthewall.WallBundle;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -14,11 +16,17 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+import org.javatuples.Pair;
+
+import java.util.ArrayList;
+import java.util.Random;
 
 public class Lines extends ModifierEvent implements Listener {
+    WallBundle priorityWallBundle;
 
     public Lines(PlayingField field) {
         super(field);
+        priorityWallBundle = generatePriorityWallBundle();
     }
 
     @Override
@@ -27,6 +35,7 @@ public class Lines extends ModifierEvent implements Listener {
         FillInTheWall.getInstance().getServer().getPluginManager().registerEvents(this, FillInTheWall.getInstance());
         field.sendTitleToPlayers(ChatColor.LIGHT_PURPLE + "Lines", "Placed blocks extend to the other side!", 0, 40, 10);
         field.playSoundToPlayers(Sound.ENTITY_SHEEP_AMBIENT, 1, 1);
+        priorityWallBundle.getWalls().forEach(field.getQueue()::addWall);
     }
 
     @Override
@@ -68,7 +77,40 @@ public class Lines extends ModifierEvent implements Listener {
 
     public Lines copy(PlayingField newPlayingField) {
         Lines copy = new Lines(newPlayingField);
+        copy.priorityWallBundle = priorityWallBundle;
         return copy;
+    }
+
+    public WallBundle generatePriorityWallBundle() {
+        Random random = new Random();
+        WallBundle bundle = new WallBundle();
+        for (int i = 0; i < 3; i++) {
+            // Choose a x and y coordinate
+            // Generate holes along these lines
+            // Remove up to 2 holes
+
+            Wall wall = new Wall(field.getLength(), field.getHeight());
+            ArrayList<Pair<Integer, Integer>> holes = new ArrayList<>();
+            int x = random.nextInt(0, field.getLength());
+            int y = random.nextInt(0, field.getHeight());
+
+            for (int j = 0; j < field.getHeight(); j++) {
+                holes.add(Pair.with(x, j));
+            }
+
+            for (int k = 0; k < field.getLength(); k++) {
+                holes.add(Pair.with(k, y));
+            }
+
+            for (int l = 0; l < Math.random() * 2; l++) {
+                holes.remove((int) (Math.random() * holes.size()));
+            }
+
+            wall.insertHoles(holes);
+            bundle.addWall(wall);
+        }
+
+        return bundle;
     }
 
 }

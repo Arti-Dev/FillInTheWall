@@ -405,6 +405,13 @@ public class Wall {
         }
     }
 
+    public void insertHoles(List<Pair<Integer, Integer>> holes) {
+        for (Pair<Integer, Integer> hole : holes) {
+            if (hole == null || this.holes.contains(hole)) continue;
+            insertHole(hole);
+        }
+    }
+
     public void invert() {
         HashSet<Pair<Integer, Integer>> newHoles = new HashSet<>();
         for (int x = 0; x < length; x++) {

@@ -2,6 +2,8 @@ package com.articreep.fillinthewall.modifiers;
 
 import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.PlayingField;
+import com.articreep.fillinthewall.Wall;
+import com.articreep.fillinthewall.WallBundle;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -22,17 +24,16 @@ import org.javatuples.Pair;
 import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 // Just the O piece for now.
 public class Multiplace extends ModifierEvent implements Listener {
     Map<Player, Set<BlockDisplay>> blockDisplays = new HashMap<>();
+    WallBundle priorityWallBundle;
 
     public Multiplace(PlayingField field) {
         super(field);
+        priorityWallBundle = generatePriorityWallBundle();
     }
 
     @Override
@@ -41,6 +42,7 @@ public class Multiplace extends ModifierEvent implements Listener {
         FillInTheWall.getInstance().getServer().getPluginManager().registerEvents(this, FillInTheWall.getInstance());
         field.sendTitleToPlayers(ChatColor.GOLD + "Multiplace!", "Your blocks are 2x2 now!", 0, 40, 10);
         field.playSoundToPlayers(Sound.ITEM_MACE_SMASH_GROUND, 1);
+        priorityWallBundle.getWalls().forEach(field.getQueue()::addWall);
     }
 
     @EventHandler (priority = EventPriority.HIGH)
@@ -154,6 +156,37 @@ public class Multiplace extends ModifierEvent implements Listener {
 
     public Multiplace copy(PlayingField newPlayingField) {
         Multiplace copy = new Multiplace(newPlayingField);
+        copy.priorityWallBundle = priorityWallBundle;
         return copy;
+    }
+
+    public WallBundle generatePriorityWallBundle() {
+        WallBundle bundle = new WallBundle();
+        Random random = new Random();
+        // A simpler algorithm without wall kicking
+        for (int i = 0; i < 3; i++) {
+            // Choose a random hole
+            // Expand it to a 2x2 hole
+            // 50/50 chance to remove one of the holes at random
+            // Insert into wall
+
+            Wall wall = new Wall(field.getLength(), field.getHeight());
+            for (int j = 0; j < 3; j++) {
+                ArrayList<Pair<Integer, Integer>> holes = new ArrayList<>();
+                Pair<Integer, Integer> randomCoords = wall.randomCoordinates();
+                holes.add(randomCoords);
+                holes.add(Pair.with(randomCoords.getValue0() + 1, randomCoords.getValue1()));
+                holes.add(Pair.with(randomCoords.getValue0(), randomCoords.getValue1() + 1));
+                holes.add(Pair.with(randomCoords.getValue0() + 1, randomCoords.getValue1() + 1));
+
+                if (random.nextBoolean()) {
+                    holes.remove((int) (Math.random() * holes.size()));
+                }
+
+                wall.insertHoles(holes);
+            }
+            bundle.addWall(wall);
+        }
+        return bundle;
     }
 }

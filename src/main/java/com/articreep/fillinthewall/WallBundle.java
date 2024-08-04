@@ -66,6 +66,10 @@ public class WallBundle {
         return list;
     }
 
+    public void addWall(Wall wall) {
+        walls.add(wall.copy());
+    }
+
     public static WallBundle getWallBundle(String name) {
         File dataFolder = FillInTheWall.getInstance().getDataFolder();
         File customWalls = new File(dataFolder, "custom/" + name + ".yml");
