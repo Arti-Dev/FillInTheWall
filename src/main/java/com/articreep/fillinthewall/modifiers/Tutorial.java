@@ -193,7 +193,7 @@ public class Tutorial extends ModifierEvent implements Listener {
             wall.setTimeRemaining(300);
             field.getQueue().addWall(wall);
 
-            enderman.setCarriedBlock(Material.COPPER_GRATE.createBlockData());
+            enderman.setCarriedBlock(Material.WAXED_COPPER_GRATE.createBlockData());
             lookAtPlayerGoal.setEnabled(true);
             Location location = field.getReferencePoint()
                     .add(field.getFieldDirection().multiply(field.getLength()-1))
@@ -204,7 +204,7 @@ public class Tutorial extends ModifierEvent implements Listener {
         } else if (slideToPlay == 8) {
             Block block = field.coordinatesToBlock(new Pair<>(field.getLength()-2, 0));
             field.sendTitleToPlayers("", ChatColor.YELLOW + "It behaves as any other solid block...", 10, 40, 10);
-            block.setType(Material.COPPER_GRATE);
+            block.setType(Material.WAXED_COPPER_GRATE);
             // imitate block place effect
             Random random = new Random();
             field.getWorld().playSound(block.getLocation(), Sound.BLOCK_COPPER_GRATE_PLACE, 1, 1);
