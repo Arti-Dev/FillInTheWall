@@ -640,8 +640,10 @@ public class PlayingField implements Listener {
             }
         }, pauseTime);
 
-        if (scorer.getPerfectWallsCleared() >= scorer.getSettings().getIntAttribute(GamemodeAttribute.PERFECT_WALL_CAP)) {
-            stop();
+        if (scorer.getSettings().getIntAttribute(GamemodeAttribute.PERFECT_WALL_CAP) > 0) {
+            if (scorer.getPerfectWallsCleared() >= scorer.getSettings().getIntAttribute(GamemodeAttribute.PERFECT_WALL_CAP)) {
+                stop(false, true);
+            }
         }
     }
 

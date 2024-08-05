@@ -3,6 +3,7 @@ package com.articreep.fillinthewall.menu;
 import com.articreep.fillinthewall.*;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
+import com.articreep.fillinthewall.utils.Utils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -83,7 +84,12 @@ public class Menu implements Listener {
         String string = "Select a gamemode\n" +
                 mode.getTitle() + "\n" + mode.getDescription() + "\n";
         if (personalBests.containsKey(mode)) {
-            string += ChatColor.GOLD + "Personal best: " + ChatColor.BOLD + personalBests.get(mode) + "\n";
+            if (mode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.SCORE_BY_TIME)) {
+                string += ChatColor.AQUA + "Personal best: " + ChatColor.BOLD +
+                        Utils.getFormattedTime(personalBests.get(mode)) + "\n";
+            } else {
+                string += ChatColor.GOLD + "Personal best: " + ChatColor.BOLD + personalBests.get(mode) + "\n";
+            }
         }
         string += "\n" +
                 ChatColor.RESET + "Left click to change gamemode\n" +

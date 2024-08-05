@@ -361,7 +361,7 @@ public class PlayingFieldScorer {
 
     public void playJudgementSound(Judgement judgement) {
         for (Player player : field.getPlayers()) {
-            player.playSound(player.getLocation(), judgement.getSound(), 1, 1);
+            player.playSound(player.getLocation(), judgement.getSound(), 0.7f, 1);
         }
     }
 
@@ -565,6 +565,9 @@ public class PlayingFieldScorer {
                 players.add(field.getPlayers().iterator().next());
             }
             if (scoreByTime) {
+                // Check that clear conditions have been met
+                if (perfectWallsCleared < gamemode.getDefaultSettings().getIntAttribute(GamemodeAttribute.PERFECT_WALL_CAP)) return;
+                if (eventCount < gamemode.getDefaultSettings().getIntAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP)) return;
                 for (Player player : players) {
                     try {
                         int record = ScoreDatabase.getRecord(player.getUniqueId(), gamemode);
