@@ -1,6 +1,7 @@
 package com.articreep.fillinthewall.multiplayer;
 
 import com.articreep.fillinthewall.Wall;
+import com.articreep.fillinthewall.WallBundle;
 import com.articreep.fillinthewall.WallQueue;
 import org.bukkit.Bukkit;
 
@@ -12,6 +13,8 @@ import java.util.Set;
  */
 public class WallGenerator {
     private final Set<WallQueue> queues = new HashSet<>();
+
+    int wallCount = 0;
 
     // Settings
     private final int wallLength;
@@ -29,6 +32,7 @@ public class WallGenerator {
     private boolean randomizeFurther = true;
     private int wallActiveTime;
     private boolean coop;
+    private WallBundle customWallBundle = null;
 
     // Stats
     private int wallsSpawned = 0;
@@ -52,6 +56,11 @@ public class WallGenerator {
         if (queues.isEmpty()) {
             Bukkit.getLogger().warning("No queues to add walls to..?");
         } else {
+            wallCount++;
+            if (wallCount % 3 == 0 && customWallBundle != null) {
+                Wall customWall = customWallBundle.getRandomWall();
+                if (customWall != null) wall = customWall;
+            }
             for (WallQueue queue : queues) {
                 queue.addWall(wall.copy());
             }
@@ -129,5 +138,9 @@ public class WallGenerator {
 
     public static WallGenerator defaultGenerator(int length, int height) {
        return new WallGenerator(length, height, 2, 4, 160);
+    }
+
+    public void setCustomWallBundle(WallBundle customWallBundle) {
+        this.customWallBundle = customWallBundle;
     }
 }

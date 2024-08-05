@@ -66,6 +66,11 @@ public class WallBundle {
         return list;
     }
 
+    public Wall getRandomWall() {
+        if (walls.isEmpty()) return null;
+        return walls.get((int) (Math.random() * walls.size())).copy();
+    }
+
     public void addWall(Wall wall) {
         walls.add(wall.copy());
     }

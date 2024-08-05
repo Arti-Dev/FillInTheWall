@@ -26,6 +26,7 @@ public class ScoreAttackGame extends MultiplayerGame {
     private final Sound[] possibleQualificationsMusic = {Sound.MUSIC_DISC_BLOCKS, Sound.MUSIC_DISC_CHIRP, Sound.MUSIC_DISC_FAR,
     Sound.MUSIC_DISC_STAL, Sound.MUSIC_DISC_WAIT};
     private final Sound[] possibleFinalsMusic = {Sound.MUSIC_DISC_PRECIPICE};
+    private final WallBundle customWallBundle = WallBundle.getWallBundle("finals");
 
     public ScoreAttackGame(List<PlayingField> fields, ArrayList<PlayingField> finalStageBoards, GamemodeSettings settings) {
         super(fields, settings);
@@ -136,6 +137,7 @@ public class ScoreAttackGame extends MultiplayerGame {
             generator = new WallGenerator(example.getLength(), example.getHeight(),
                     5, 10, 200);
             generator.setRandomizeFurther(false);
+            generator.setCustomWallBundle(customWallBundle);
             if (settings.getBooleanAttribute(GamemodeAttribute.COOP)) {
                 generator.setCoop(true);
             }
