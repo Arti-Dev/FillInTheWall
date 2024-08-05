@@ -639,6 +639,10 @@ public class PlayingField implements Listener {
                 }
             }
         }, pauseTime);
+
+        if (scorer.getPerfectWallsCleared() >= scorer.getSettings().getIntAttribute(GamemodeAttribute.PERFECT_WALL_CAP)) {
+            stop();
+        }
     }
 
     // Block-related methods
@@ -907,7 +911,16 @@ public class PlayingField implements Listener {
                 case SCORE -> data = scorer.getScore();
                 case ACCURACY -> data = "null";
                 case SPEED -> data = scorer.getFormattedBlocksPerSecond();
-                case PERFECT_WALLS -> data = scorer.getPerfectWallsCleared();
+                case PERFECT_WALLS -> {
+                    ArrayList<Object> array = new ArrayList<>();
+                    array.add(scorer.getPerfectWallsCleared());
+                    if (scorer.getSettings().getIntAttribute(GamemodeAttribute.PERFECT_WALL_CAP) > 0) {
+                        array.add("/" + scorer.getSettings().getAttribute(GamemodeAttribute.PERFECT_WALL_CAP));
+                    } else {
+                        array.add("");
+                    }
+                    data = array;
+                }
                 case TIME -> data = scorer.getFormattedTime();
                 case LEVEL -> data = scorer.getLevel();
                 case POSITION -> {

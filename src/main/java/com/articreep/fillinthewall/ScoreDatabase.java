@@ -15,6 +15,7 @@ public class ScoreDatabase {
         supportedGamemodes.add(Gamemode.SCORE_ATTACK);
         supportedGamemodes.add(Gamemode.RUSH_SCORE_ATTACK);
         supportedGamemodes.add(Gamemode.MARATHON);
+        supportedGamemodes.add(Gamemode.SPRINT);
     }
 
     private static void addPlayer(UUID uuid) throws SQLException {
@@ -76,6 +77,22 @@ public class ScoreDatabase {
         } catch (SQLException e) {
             e.printStackTrace();
             throw new SQLException("Error while getting top scores from database!");
+        }
+    }
+
+    public static LinkedHashMap<UUID, Integer> getTopTimes(Gamemode gamemode) throws SQLException {
+        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "SELECT uuid, " + gamemode.toString() + " FROM scores ORDER BY " + gamemode.toString() + " ASC LIMIT 10"
+        )) {
+            ResultSet result = stmt.executeQuery();
+            LinkedHashMap<UUID, Integer> topScoresOrdered = new LinkedHashMap<>();
+            while (result.next()) {
+                topScoresOrdered.put(UUID.fromString(result.getString("uuid")), result.getInt(gamemode.toString()));
+            }
+            return topScoresOrdered;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error while getting top times from database!");
         }
     }
 

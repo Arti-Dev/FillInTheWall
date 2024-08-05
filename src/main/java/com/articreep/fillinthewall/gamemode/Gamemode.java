@@ -10,6 +10,7 @@ public enum Gamemode {
     INFINITE(ChatColor.LIGHT_PURPLE + "Infinite", ChatColor.GRAY + "Step off the playing field to stop playing."),
     SCORE_ATTACK(ChatColor.GOLD + "Score Attack", ChatColor.GRAY + "Score as much as you can in 2 minutes!"),
     RUSH_SCORE_ATTACK(ChatColor.RED + "Rush Score Attack", ChatColor.GRAY + "Use Rush Attacks to score as much as you can!"),
+    SPRINT(ChatColor.AQUA + "Sprint", ChatColor.GRAY + "Clear 20 walls as fast as you can!"),
     MULTIPLAYER_SCORE_ATTACK(ChatColor.AQUA + "Multiplayer Score Attack", ChatColor.GRAY + "Hypixel-style game"),
     MARATHON(ChatColor.GRAY + "Marathon", ChatColor.GRAY + "Survive as long as you can!"),
     VERSUS(ChatColor.BLUE + "2-player Versus", ChatColor.GRAY + "Experimental versus system with garbage walls"),
@@ -53,6 +54,19 @@ public enum Gamemode {
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.AUTOMATIC_METER, true);
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.ABILITY_EVENT, ModifierEvent.Type.RUSH);
+
+        SPRINT.addAttribute(GamemodeAttribute.CONSISTENT_HOLE_COUNT, true);
+        SPRINT.addAttribute(GamemodeAttribute.RANDOM_HOLE_COUNT, 1);
+        SPRINT.addAttribute(GamemodeAttribute.CONNECTED_HOLE_COUNT, 4);
+        SPRINT.addAttribute(GamemodeAttribute.STARTING_WALL_ACTIVE_TIME, 160);
+        SPRINT.addAttribute(GamemodeAttribute.METER_MAX, 0);
+        SPRINT.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
+        SPRINT.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.PERFECT_WALLS);
+        SPRINT.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.SPEED);
+        SPRINT.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.NONE);
+        SPRINT.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
+        SPRINT.addAttribute(GamemodeAttribute.PERFECT_WALL_CAP, 20);
+        SPRINT.addAttribute(GamemodeAttribute.SCORE_BY_TIME, true);
 
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.TIME_LIMIT, 20*150);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.RANDOM_HOLE_COUNT, 3);

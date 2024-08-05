@@ -39,7 +39,9 @@ public enum GamemodeAttribute {
      * Whether to generate co-op walls. If enabled, the consistent and random hole counts are combined to form
      * a single hole count, which is fed into a different wall algorithm.
      */
-    COOP(Boolean.class, false);
+    COOP(Boolean.class, false),
+    PERFECT_WALL_CAP(Integer.class, -1),
+    SCORE_BY_TIME(Boolean.class, false);
 
     private final Class<?> type;
     private final Object defaultValue;

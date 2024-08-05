@@ -3,9 +3,11 @@ package com.articreep.fillinthewall;
 import com.articreep.fillinthewall.environments.Finals;
 import com.articreep.fillinthewall.environments.TheVoid;
 import com.articreep.fillinthewall.gamemode.Gamemode;
+import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.modifiers.*;
 import com.articreep.fillinthewall.multiplayer.Pregame;
 import com.articreep.fillinthewall.multiplayer.SettingsMenu;
+import com.articreep.fillinthewall.utils.Utils;
 import com.mysql.cj.jdbc.MysqlConnectionPoolDataSource;
 import com.mysql.cj.jdbc.MysqlDataSource;
 import net.md_5.bungee.api.ChatColor;
@@ -458,6 +460,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                 "SCORE_ATTACK INT DEFAULT 0 NOT NULL," +
                 "RUSH_SCORE_ATTACK INT DEFAULT 0 NOT NULL," +
                 "MARATHON INT DEFAULT 0 NOT NULL," +
+                "SPRINT INT DEFAULT 12000 NOT NULL," +
                 "PRIMARY KEY (uuid));";
         try (Connection conn = dataSource.getConnection()) {
             PreparedStatement stmt = conn.prepareStatement(sql);
@@ -479,6 +482,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
         Location scoreAttackLocation = config.getLocation("leaderboards.score-attack");
         Location rushScoreAttackLocation = config.getLocation("leaderboards.rush-score-attack");
         Location marathonLocation = config.getLocation("leaderboards.marathon");
+        Location sprintLocation = config.getLocation("leaderboards.sprint");
 
         if (scoreAttackLocation != null) {
             TextDisplay scoreAttackDisplay = (TextDisplay) scoreAttackLocation.getWorld().spawnEntity(
@@ -500,6 +504,13 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
             marathonDisplay.setText("Marathon Leaderboard");
             marathonDisplay.setBillboard(Display.Billboard.VERTICAL);
             leaderboards.put(marathonDisplay, Gamemode.MARATHON);
+        }
+        if (sprintLocation != null) {
+            TextDisplay sprintDisplay = (TextDisplay) sprintLocation.getWorld().spawnEntity(
+                    sprintLocation, EntityType.TEXT_DISPLAY);
+            sprintDisplay.setText("Sprint Leaderboard");
+            sprintDisplay.setBillboard(Display.Billboard.VERTICAL);
+            leaderboards.put(sprintDisplay, Gamemode.SPRINT);
         }
 
         updateLeaderboards();
@@ -523,14 +534,24 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                 StringBuilder stringBuilder = new StringBuilder(gamemode.getTitle());
                 stringBuilder.append("\n").append(ChatColor.GRAY).append("Top Scores\n");
                 try {
-                    LinkedHashMap<UUID, Integer> topScores = ScoreDatabase.getTopScores(gamemode);
+                    boolean scoreByTime = gamemode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.SCORE_BY_TIME);
+                    LinkedHashMap<UUID, Integer> topScores;
+                    if (scoreByTime) {
+                        topScores = ScoreDatabase.getTopTimes(gamemode);
+                    } else {
+                        topScores = ScoreDatabase.getTopScores(gamemode);
+                    }
                     int i = 1;
                     for (Map.Entry<UUID, Integer> score : topScores.entrySet()) {
                         stringBuilder.append("\n")
                                 .append(ChatColor.YELLOW)
                                 .append("#").append(i).append(" ")
-                                .append(Bukkit.getOfflinePlayer(score.getKey()).getName())
-                                .append(": ").append(score.getValue());
+                                .append(Bukkit.getOfflinePlayer(score.getKey()).getName()).append(": ");
+                        if (scoreByTime) {
+                            stringBuilder.append(Utils.getFormattedTime(score.getValue()));
+                        } else {
+                            stringBuilder.append(score.getValue());
+                        }
                         i++;
                     }
                 } catch (SQLException e) {

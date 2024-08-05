@@ -9,7 +9,7 @@ public enum DisplayType {
     SCORE(ChatColor.GREEN + "Score: %s"),
     ACCURACY(ChatColor.DARK_RED + "Accuracy: %s"),
     SPEED(ChatColor.WHITE + "%s blocks/sec"),
-    PERFECT_WALLS(ChatColor.GOLD + "Perfect Walls: %s"),
+    PERFECT_WALLS(ChatColor.GOLD + "Perfect Walls: %s%s"),
     TIME(ChatColor.AQUA + "Time: %s"),
     LEVEL(ChatColor.DARK_AQUA + "Level %s"),
     POSITION(ChatColor.YELLOW + "Position: %s\n%s"),
