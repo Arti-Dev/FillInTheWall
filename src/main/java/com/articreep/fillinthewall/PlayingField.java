@@ -944,7 +944,7 @@ public class PlayingField implements Listener {
                     }
                     data = array;
                 }
-                case NAME -> data = players.iterator().next().getName();
+                case NAME -> data = Utils.playersToString(players);
                 case GAMEMODE -> data = scorer.getGamemode().getTitle();
                 case EVENTS -> {
                     ArrayList<Object> array = new ArrayList<>();
