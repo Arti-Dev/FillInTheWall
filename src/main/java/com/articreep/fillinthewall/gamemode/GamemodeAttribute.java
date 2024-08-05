@@ -41,7 +41,12 @@ public enum GamemodeAttribute {
      */
     COOP(Boolean.class, false),
     PERFECT_WALL_CAP(Integer.class, -1),
-    SCORE_BY_TIME(Boolean.class, false);
+    SCORE_BY_TIME(Boolean.class, false),
+    REFUSE_IMPERFECT_WALLS(Boolean.class, false),
+    /**
+     * Whether to update everyone's personal bests if more than one player was on the playing field
+     */
+    TEAM_EFFORT(Boolean.class, false);
 
     private final Class<?> type;
     private final Object defaultValue;

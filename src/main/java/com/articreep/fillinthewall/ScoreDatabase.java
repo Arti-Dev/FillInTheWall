@@ -16,6 +16,7 @@ public class ScoreDatabase {
         supportedGamemodes.add(Gamemode.RUSH_SCORE_ATTACK);
         supportedGamemodes.add(Gamemode.MARATHON);
         supportedGamemodes.add(Gamemode.SPRINT);
+        supportedGamemodes.add(Gamemode.MEGA);
     }
 
     private static void addPlayer(UUID uuid) throws SQLException {

@@ -100,6 +100,8 @@ public class Menu implements Listener {
         Gamemode mode = Gamemode.values()[gamemodeIndex];
         if (mode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.MULTIPLAYER)) {
             field.sendMessageToPlayers(ChatColor.RED + "You cannot start a multiplayer game through this menu!");
+        } else if (mode == Gamemode.MEGA && field.getLength() * field.getHeight() < 400) {
+            field.sendMessageToPlayers(ChatColor.RED + "Your board must be at least 400 blocks in total area to play this!");
         } else {
             field.countdownStart(Gamemode.values()[gamemodeIndex]);
         }

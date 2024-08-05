@@ -557,33 +557,42 @@ public class PlayingFieldScorer {
             field.sendMessageToPlayers(ChatColor.GREEN + "Your final score is " + ChatColor.BOLD + score);
         }
         // todo atm other players can simply walk onto the playing field and step off before the game ends
-        if (ScoreDatabase.isSupported(gamemode) && field.getPlayers().size() == 1) {
-            Player player = field.getPlayers().iterator().next();
+        if (ScoreDatabase.isSupported(gamemode)) {
+            ArrayList<Player> players = new ArrayList<>();
+            if (gamemode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.TEAM_EFFORT)) {
+                players.addAll(field.getPlayers());
+            } else {
+                players.add(field.getPlayers().iterator().next());
+            }
             if (scoreByTime) {
-                try {
-                    int record = ScoreDatabase.getRecord(player.getUniqueId(), gamemode);
-                    if (time < record) {
-                        ScoreDatabase.updateRecord(player.getUniqueId(), gamemode, time);
-                        player.sendMessage(ChatColor.GOLD + "New personal best!");
-                    } else {
-                        player.sendMessage(ChatColor.AQUA + "Personal best: " + ChatColor.BOLD + Utils.getFormattedTime(record));
+                for (Player player : players) {
+                    try {
+                        int record = ScoreDatabase.getRecord(player.getUniqueId(), gamemode);
+                        if (time < record) {
+                            ScoreDatabase.updateRecord(player.getUniqueId(), gamemode, time);
+                            player.sendMessage(ChatColor.GOLD + "New personal best!");
+                        } else {
+                            player.sendMessage(ChatColor.AQUA + "Personal best: " + ChatColor.BOLD + Utils.getFormattedTime(record));
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        player.sendMessage(ChatColor.RED + "Error while updating time!");
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    player.sendMessage(ChatColor.RED + "Error while updating time!");
                 }
             } else {
-                try {
-                    int record = ScoreDatabase.getRecord(player.getUniqueId(), gamemode);
-                    if (score > record) {
-                        ScoreDatabase.updateRecord(player.getUniqueId(), gamemode, score);
-                        player.sendMessage(ChatColor.GOLD + "New personal best!");
-                    } else {
-                        player.sendMessage(ChatColor.AQUA + "Personal best: " + ChatColor.BOLD + record);
+                for (Player player : players) {
+                    try {
+                        int record = ScoreDatabase.getRecord(player.getUniqueId(), gamemode);
+                        if (score > record) {
+                            ScoreDatabase.updateRecord(player.getUniqueId(), gamemode, score);
+                            player.sendMessage(ChatColor.GOLD + "New personal best!");
+                        } else {
+                            player.sendMessage(ChatColor.AQUA + "Personal best: " + ChatColor.BOLD + record);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        player.sendMessage(ChatColor.RED + "Error while updating score!");
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    player.sendMessage(ChatColor.RED + "Error while updating score!");
                 }
             }
         }

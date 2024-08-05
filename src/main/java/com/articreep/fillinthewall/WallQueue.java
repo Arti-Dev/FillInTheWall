@@ -8,7 +8,9 @@ import org.bukkit.Bukkit;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.block.Block;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.javatuples.Pair;
 
 import java.util.*;
 
@@ -194,6 +196,17 @@ public class WallQueue {
         if (activeWalls.isEmpty()) return;
         // sort walls by time remaining
         sortActiveWalls();
+
+        if (field.getScorer().getSettings().getBooleanAttribute(GamemodeAttribute.REFUSE_IMPERFECT_WALLS)) {
+            Map<Pair<Integer, Integer>, Block> extraBlocks = frontmostWall.getExtraBlocks(field);
+            Map<Pair<Integer, Integer>, Block> correctBlocks = frontmostWall.getCorrectBlocks(field);
+            Map<Pair<Integer, Integer>, Block> missingBlocks = frontmostWall.getMissingBlocks(field);
+
+            if (!(correctBlocks.size() == frontmostWall.getHoles().size() && extraBlocks.isEmpty() && missingBlocks.isEmpty())) {
+                field.playSoundToPlayers(Sound.ENTITY_VILLAGER_NO, 1);
+                return;
+            }
+        }
         field.matchAndScore(frontmostWall);
         activeWalls.remove(frontmostWall);
         frontmostWall.despawn();

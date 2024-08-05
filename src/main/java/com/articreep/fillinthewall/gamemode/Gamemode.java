@@ -15,6 +15,7 @@ public enum Gamemode {
     MARATHON(ChatColor.GRAY + "Marathon", ChatColor.GRAY + "Survive as long as you can!"),
     VERSUS(ChatColor.BLUE + "2-player Versus", ChatColor.GRAY + "Experimental versus system with garbage walls"),
     CUSTOM(ChatColor.GREEN + "Custom Walls", ChatColor.GRAY + "Load a custom wall pack"),
+    MEGA(ChatColor.DARK_AQUA + "Mega", ChatColor.GRAY + "Work with others to fill 100 holes!"),
     INVERTED(ChatColor.BLACK + "Inverted", ChatColor.GRAY + "Left click to win"),
     ARSON(ChatColor.RED + "Arson", ChatColor.GRAY + "Score points using a Flint and Steel!"),
     STRIPES(ChatColor.YELLOW + "Stripes", ChatColor.GRAY + "Match colors for bonus points!");
@@ -67,6 +68,21 @@ public enum Gamemode {
         SPRINT.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         SPRINT.addAttribute(GamemodeAttribute.PERFECT_WALL_CAP, 20);
         SPRINT.addAttribute(GamemodeAttribute.SCORE_BY_TIME, true);
+
+        MEGA.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
+        MEGA.addAttribute(GamemodeAttribute.STARTING_WALL_ACTIVE_TIME, 20*60*5);
+        MEGA.addAttribute(GamemodeAttribute.RANDOM_HOLE_COUNT, 25);
+        MEGA.addAttribute(GamemodeAttribute.CONNECTED_HOLE_COUNT, 75);
+        MEGA.addAttribute(GamemodeAttribute.METER_MAX, 0);
+        MEGA.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
+        MEGA.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.NONE);
+        MEGA.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.SPEED);
+        MEGA.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.NONE);
+        MEGA.addAttribute(GamemodeAttribute.PERFECT_WALL_CAP, 1);
+        MEGA.addAttribute(GamemodeAttribute.SCORE_BY_TIME, true);
+        MEGA.addAttribute(GamemodeAttribute.HIGHLIGHT_INCORRECT_BLOCKS, true);
+        MEGA.addAttribute(GamemodeAttribute.REFUSE_IMPERFECT_WALLS, true);
+        MEGA.addAttribute(GamemodeAttribute.TEAM_EFFORT, true);
 
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.TIME_LIMIT, 20*150);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.RANDOM_HOLE_COUNT, 3);

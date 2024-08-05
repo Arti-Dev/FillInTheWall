@@ -461,6 +461,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                 "RUSH_SCORE_ATTACK INT DEFAULT 0 NOT NULL," +
                 "MARATHON INT DEFAULT 0 NOT NULL," +
                 "SPRINT INT DEFAULT 12000 NOT NULL," +
+                "MEGA INT DEFAULT 12000 NOT NULL," +
                 "PRIMARY KEY (uuid));";
         try (Connection conn = dataSource.getConnection()) {
             PreparedStatement stmt = conn.prepareStatement(sql);
@@ -483,6 +484,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
         Location rushScoreAttackLocation = config.getLocation("leaderboards.rush-score-attack");
         Location marathonLocation = config.getLocation("leaderboards.marathon");
         Location sprintLocation = config.getLocation("leaderboards.sprint");
+        Location megaLocation = config.getLocation("leaderboards.mega");
 
         if (scoreAttackLocation != null) {
             TextDisplay scoreAttackDisplay = (TextDisplay) scoreAttackLocation.getWorld().spawnEntity(
@@ -511,6 +513,13 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
             sprintDisplay.setText("Sprint Leaderboard");
             sprintDisplay.setBillboard(Display.Billboard.VERTICAL);
             leaderboards.put(sprintDisplay, Gamemode.SPRINT);
+        }
+        if (megaLocation != null) {
+            TextDisplay megaDisplay = (TextDisplay) megaLocation.getWorld().spawnEntity(
+                    megaLocation, EntityType.TEXT_DISPLAY);
+            megaDisplay.setText("Mega Leaderboard");
+            megaDisplay.setBillboard(Display.Billboard.VERTICAL);
+            leaderboards.put(megaDisplay, Gamemode.MEGA);
         }
 
         updateLeaderboards();
