@@ -330,7 +330,7 @@ public class PlayingField implements Listener {
             return;
         }
 
-        if (submitFinalWall) queue.instantSend();
+        if (submitFinalWall) queue.instantSend(true);
         else clearField();
 
         task.cancel();

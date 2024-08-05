@@ -192,12 +192,12 @@ public class WallQueue {
     /**
      * Insta-sends the current wall to the playing field for matching.
      */
-    public void instantSend() {
+    public void instantSend(boolean force) {
         if (activeWalls.isEmpty()) return;
         // sort walls by time remaining
         sortActiveWalls();
 
-        if (field.getScorer().getSettings().getBooleanAttribute(GamemodeAttribute.REFUSE_IMPERFECT_WALLS)) {
+        if (!force && field.getScorer().getSettings().getBooleanAttribute(GamemodeAttribute.REFUSE_IMPERFECT_WALLS)) {
             Map<Pair<Integer, Integer>, Block> extraBlocks = frontmostWall.getExtraBlocks(field);
             Map<Pair<Integer, Integer>, Block> correctBlocks = frontmostWall.getCorrectBlocks(field);
             Map<Pair<Integer, Integer>, Block> missingBlocks = frontmostWall.getMissingBlocks(field);
@@ -210,6 +210,10 @@ public class WallQueue {
         field.matchAndScore(frontmostWall);
         activeWalls.remove(frontmostWall);
         frontmostWall.despawn();
+    }
+
+    public void instantSend() {
+        instantSend(false);
     }
 
     public void sortActiveWalls() {
