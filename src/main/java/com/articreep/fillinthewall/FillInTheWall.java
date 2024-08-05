@@ -349,7 +349,6 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                         sender.sendMessage(ChatColor.RED + "Something went wrong loading custom walls!");
                     } else {
                         List<Wall> walls = bundle.getWalls();
-                        field.getQueue().clearAllWalls();
                         walls.forEach(field.getQueue()::addPriorityWall);
                         sender.sendMessage(ChatColor.GREEN + "Imported " + walls.size() + " walls");
                     }
@@ -358,7 +357,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                     return true;
                 }
             } else if (args[0].equalsIgnoreCase("tip")) {
-                if (args.length == 3) {
+                if (args.length >= 3) {
                     Player player = Bukkit.getPlayer(args[1]);
                     if (player == null) {
                         sender.sendMessage("/hitw tip <player> <string>");
@@ -370,7 +369,13 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                         return true;
                     }
 
-                    field.setTipDisplay(args[2]);
+                    StringBuilder tip = new StringBuilder();
+                    for (int i = 2; i < args.length; i++) {
+                        tip.append(args[i]);
+                        tip.append(" ");
+                    }
+
+                    field.setTipDisplay(tip.toString());
                 }
             } else {
                 return false;
