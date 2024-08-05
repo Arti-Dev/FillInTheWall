@@ -131,7 +131,7 @@ public abstract class MultiplayerGame implements Listener {
         }
 
         if (settings.getModifierEventTypeAttribute(GamemodeAttribute.SINGULAR_EVENT) != ModifierEvent.Type.NONE) {
-            deployEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.SINGULAR_EVENT));
+            deployEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.SINGULAR_EVENT), true);
         }
         generator.addNewWallToQueues();
         otherTasks.add(spectatorTask());
@@ -264,12 +264,17 @@ public abstract class MultiplayerGame implements Listener {
         }.runTaskTimer(FillInTheWall.getInstance(), 0, 1);
     }
 
-    protected void deployEvent(ModifierEvent.Type type) {
+    protected void deployEvent(ModifierEvent.Type type, boolean infinite) {
         PlayingField pilot = playingFields.iterator().next();
         ModifierEvent event = type.createEvent(pilot);
         for (PlayingField field : playingFields) {
-            field.getScorer().activateEvent(event.copy(field));
+            ModifierEvent copy = field.getScorer().activateEvent(event.copy(field));
+            if (infinite) copy.setInfinite(true);
         }
+    }
+
+    protected void deployEvent(ModifierEvent.Type type) {
+        deployEvent(type, false);
     }
 
     @EventHandler
