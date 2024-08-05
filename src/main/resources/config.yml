@@ -60,6 +60,22 @@ leaderboards:
     z: 6.5
     pitch: 0.0
     yaw: -270.0
+  sprint:
+    ==: org.bukkit.Location
+    world: void
+    x: 19.5
+    y: 1.5
+    z: 3.5
+    pitch: 0.0
+    yaw: -270.0
+  mega:
+    ==: org.bukkit.Location
+    world: void
+    x: 19.5
+    y: 1.5
+    z: -2.5
+    pitch: 0.0
+    yaw: -270.0
 
 database:
     host: localhost
