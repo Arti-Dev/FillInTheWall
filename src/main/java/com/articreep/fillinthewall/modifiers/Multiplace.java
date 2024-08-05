@@ -173,7 +173,7 @@ public class Multiplace extends ModifierEvent implements Listener {
             Wall wall = new Wall(field.getLength(), field.getHeight());
             for (int j = 0; j < 3; j++) {
                 ArrayList<Pair<Integer, Integer>> holes = new ArrayList<>();
-                Pair<Integer, Integer> randomCoords = wall.randomCoordinates();
+                Pair<Integer, Integer> randomCoords = Pair.with(random.nextInt(field.getLength() - 2), random.nextInt(field.getHeight() - 2));
                 holes.add(randomCoords);
                 holes.add(Pair.with(randomCoords.getValue0() + 1, randomCoords.getValue1()));
                 holes.add(Pair.with(randomCoords.getValue0(), randomCoords.getValue1() + 1));
