@@ -37,6 +37,8 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Transformation;
@@ -220,6 +222,7 @@ public class PlayingField implements Listener {
         removeEndScreen();
         spawnTextDisplays();
         for (Player player : players) {
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, -1, 0, false, false));
             formatInventory(player);
             setCreative(player);
             setInfiniteReach(player);
@@ -247,6 +250,7 @@ public class PlayingField implements Listener {
             formatInventory(player);
             setCreative(player);
             setInfiniteReach(player);
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, -1, 0, false, false));
             if (scorer.getScoreboard() != null) player.setScoreboard(scorer.getScoreboard());
             if (currentlyPlayingTrack != null)  player.playSound(player, currentlyPlayingTrack, 0.5f, 1);
         }
