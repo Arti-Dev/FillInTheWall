@@ -44,6 +44,14 @@ public class Menu implements Listener {
 
     public void display() {
         select = (TextDisplay) location.getWorld().spawnEntity(location, EntityType.TEXT_DISPLAY);
+        if (field.getHeight() * field.getLength() >= 400) {
+            for (int i = 0; i < Gamemode.values().length; i++) {
+                if (Gamemode.values()[i] == Gamemode.MEGA) {
+                    gamemodeIndex = i;
+                    break;
+                }
+            }
+        }
         setMenuGamemode(Gamemode.values()[gamemodeIndex]);
         select.setBillboard(Display.Billboard.CENTER);
         FillInTheWall.getInstance().getServer().getPluginManager().registerEvents(this, FillInTheWall.getInstance());
