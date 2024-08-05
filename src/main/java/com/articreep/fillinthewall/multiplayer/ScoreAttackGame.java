@@ -136,6 +136,9 @@ public class ScoreAttackGame extends MultiplayerGame {
             generator = new WallGenerator(example.getLength(), example.getHeight(),
                     5, 10, 200);
             generator.setRandomizeFurther(false);
+            if (settings.getBooleanAttribute(GamemodeAttribute.COOP)) {
+                generator.setCoop(true);
+            }
 
             // Move players from old playing field to final playing field
             for (Set<Player> set : qualifyingPlayers) {

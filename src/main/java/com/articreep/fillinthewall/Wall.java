@@ -570,6 +570,7 @@ public class Wall {
         }
     }
 
+    // todo should test this rigorously, it's hard to tell if it's working
     public void generateCoopHoles(int count) {
         // Generate up to five holes on the left and right sides
         // If there are more, spawn them in randomly
