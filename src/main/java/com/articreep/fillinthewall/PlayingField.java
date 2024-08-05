@@ -1249,6 +1249,12 @@ public class PlayingField implements Listener {
         display.setGlowing(true);
         display.setGlowColorOverride(Color.RED);
         incorrectBlockHighlights.put(block, display);
+
+        // remove after 10 seconds
+        Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> {
+            display.remove();
+            incorrectBlockHighlights.remove(block);
+        }, 20*10);
     }
 
     public boolean isClearDelayActive() {
