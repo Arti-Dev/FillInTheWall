@@ -158,9 +158,9 @@ public class TheVoid implements Listener {
 
         int length = field.getLength();
         Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> {
-            for (int i = 0; i < length-1; i++) {
-                location.add(field.getFieldDirection());
+            for (int i = 0; i < length; i++) {
                 location.getWorld().spawnParticle(Particle.SONIC_BOOM, location, 1, 0, 0, 0, 0);
+                location.add(field.getFieldDirection());
             }
         }, field.getClearDelay());
 
@@ -200,7 +200,10 @@ public class TheVoid implements Listener {
 
     // VOID_VERTICAL_LINES
     public static void animateVerticalLines(PlayingField field, double height, int amount) {
-        Location location = field.getReferencePoint().subtract(0.5, 0.5, 0.5);
+        Location location = field.getReferencePoint();
+        location.add(field.getIncomingDirection().multiply(0.5));
+        location.add(field.getFieldDirection().multiply(-0.5));
+        location.add(0, -0.5, 0);
         int across = field.getLength();
         int queue_length = field.getQueue().getFullLength();
         Vector fieldDirection = field.getFieldDirection();

@@ -565,7 +565,7 @@ public class PlayingFieldScorer {
             ArrayList<Player> players = new ArrayList<>();
             if (gamemode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.TEAM_EFFORT)) {
                 players.addAll(field.getPlayers());
-            } else {
+            } else if (field.getPlayers().size() == 1) {
                 players.add(field.getPlayers().iterator().next());
             }
             if (scoreByTime) {
