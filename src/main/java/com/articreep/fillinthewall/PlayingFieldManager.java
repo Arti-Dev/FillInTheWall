@@ -52,7 +52,7 @@ public class PlayingFieldManager implements Listener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        removeGame(event.getPlayer());
+        removeGame(event.getPlayer(), true);
     }
 
     @EventHandler
@@ -106,12 +106,15 @@ public class PlayingFieldManager implements Listener {
      *
      * @param player Player to check
      */
-    public static boolean removeGame(Player player) {
+    public static void removeGame(Player player, boolean force) {
         PlayingField field = activePlayingFields.get(player);
         if (field != null) {
-            return field.removePlayer(player);
+            field.removePlayer(player, force);
         }
-        return false;
+    }
+
+    public static void removeGame(Player player) {
+        removeGame(player, false);
     }
 
     public static boolean isInGame(Player player) {

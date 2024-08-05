@@ -50,7 +50,7 @@ public class Tutorial extends ModifierEvent implements Listener {
     @Override
     public void activate() {
         super.activate();
-        FillInTheWall.getInstance().getServer().getPluginManager().registerEvents(this, FillInTheWall.getInstance());
+        Bukkit.getPluginManager().registerEvents(this, FillInTheWall.getInstance());
         spawnEnderman();
     }
 

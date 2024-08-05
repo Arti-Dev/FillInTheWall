@@ -214,7 +214,7 @@ public class PlayingField implements Listener {
         if (mode == null) {
             throw new IllegalArgumentException("Gamemode cannot be null");
         }
-        FillInTheWall.getInstance().getServer().getPluginManager().registerEvents(this, FillInTheWall.getInstance());
+        Bukkit.getPluginManager().registerEvents(this, FillInTheWall.getInstance());
         if (!resetRecently) reset();
         scorer.setGamemode(mode, settings);
         setDisplaySlots(settings);
@@ -266,8 +266,8 @@ public class PlayingField implements Listener {
     }
 
     /** Returns true if the player was removed, false if unable to (locked to field) */
-    public boolean removePlayer(Player player) {
-        if (multiplayerMode && player.isOnline()) return false;
+    public boolean removePlayer(Player player, boolean force) {
+        if (multiplayerMode && !force) return false;
 
         // If this will be our last player, shut the game down
         if (playerCount() == 1) {
@@ -291,6 +291,10 @@ public class PlayingField implements Listener {
         PlayingFieldManager.activePlayingFields.remove(player);
 
         return true;
+    }
+
+    public boolean removePlayer(Player player) {
+        return removePlayer(player, false);
     }
 
     public void setCreative(Player player) {

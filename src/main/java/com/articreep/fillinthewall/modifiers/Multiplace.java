@@ -4,10 +4,7 @@ import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.PlayingField;
 import com.articreep.fillinthewall.Wall;
 import com.articreep.fillinthewall.WallBundle;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.BlockDisplay;
 import org.bukkit.entity.EntityType;
@@ -39,7 +36,7 @@ public class Multiplace extends ModifierEvent implements Listener {
     @Override
     public void activate() {
         super.activate();
-        FillInTheWall.getInstance().getServer().getPluginManager().registerEvents(this, FillInTheWall.getInstance());
+        Bukkit.getPluginManager().registerEvents(this, FillInTheWall.getInstance());
         field.sendTitleToPlayers(ChatColor.GOLD + "Multiplace!", "Your blocks are 2x2 now!", 0, 40, 10);
         field.playSoundToPlayers(Sound.ITEM_MACE_SMASH_GROUND, 1);
         priorityWallBundle.getWalls().forEach(field.getQueue()::addWall);

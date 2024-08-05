@@ -5,6 +5,7 @@ import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.utils.Utils;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Display;
@@ -54,7 +55,7 @@ public class Menu implements Listener {
         }
         setMenuGamemode(Gamemode.values()[gamemodeIndex]);
         select.setBillboard(Display.Billboard.CENTER);
-        FillInTheWall.getInstance().getServer().getPluginManager().registerEvents(this, FillInTheWall.getInstance());
+        Bukkit.getPluginManager().registerEvents(this, FillInTheWall.getInstance());
     }
 
     @EventHandler

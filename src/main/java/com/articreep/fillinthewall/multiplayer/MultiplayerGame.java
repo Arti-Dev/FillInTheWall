@@ -14,12 +14,16 @@ import net.md_5.bungee.api.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
 
-public abstract class MultiplayerGame {
+public abstract class MultiplayerGame implements Listener {
     protected final Set<PlayingField> playingFields = new HashSet<>();
     protected final List<PlayingField> rankings = new ArrayList<>();
     protected WallGenerator generator;
@@ -61,6 +65,8 @@ public abstract class MultiplayerGame {
             Bukkit.getLogger().severe("Not all playing fields have the same dimensions!");
             return;
         }
+
+        Bukkit.getPluginManager().registerEvents(this, FillInTheWall.getInstance());
 
         // Init playing fields
         for (PlayingField field : playingFields) {
@@ -129,6 +135,7 @@ public abstract class MultiplayerGame {
         }
         generator.addNewWallToQueues();
         otherTasks.add(spectatorTask());
+        otherTasks.add(disconnectTask());
         mainTask = tickLoop();
     }
 
@@ -160,6 +167,7 @@ public abstract class MultiplayerGame {
         }
 
         if (markAsEnded) {
+            HandlerList.unregisterAll(this);
             PlayingFieldManager.game = null;
             Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> {
                 for (Player player : playersToTeleport) {
@@ -199,6 +207,7 @@ public abstract class MultiplayerGame {
             playingFields.remove(field);
             field.setMultiplayerMode(false);
             field.getQueue().resetGenerator();
+            field.getScorer().setMultiplayerGame(null);
         }
     }
 
@@ -239,11 +248,37 @@ public abstract class MultiplayerGame {
         }.runTaskTimer(FillInTheWall.getInstance(), 0, 20);
     }
 
+    protected BukkitTask disconnectTask() {
+        return new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (PlayingField field : playingFields) {
+                    if (field.playerCount() == 0) {
+                        removePlayingfield(field);
+                        if (playingFields.isEmpty()) {
+                            stop();
+                        }
+                    }
+                }
+            }
+        }.runTaskTimer(FillInTheWall.getInstance(), 0, 1);
+    }
+
     protected void deployEvent(ModifierEvent.Type type) {
         PlayingField pilot = playingFields.iterator().next();
         ModifierEvent event = type.createEvent(pilot);
         for (PlayingField field : playingFields) {
             field.getScorer().activateEvent(event.copy(field));
+        }
+    }
+
+    @EventHandler
+    public void onPlayerDisconnect(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        if (spectators.contains(player)) {
+            player.teleport(FillInTheWall.getInstance().getMultiplayerSpawn());
+            player.setGameMode(GameMode.ADVENTURE);
+            spectators.remove(player);
         }
     }
 

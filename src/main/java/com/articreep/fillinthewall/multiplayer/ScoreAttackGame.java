@@ -107,7 +107,7 @@ public class ScoreAttackGame extends MultiplayerGame {
     }
 
     private void transitionToFinals() {
-        if (stage == Stage.QUALIFICATIONS && !finalStageBoards.isEmpty()) {
+        if (stage == Stage.QUALIFICATIONS && !finalStageBoards.isEmpty() && !playingFields.isEmpty()) {
             ArrayList<Set<Player>> qualifyingPlayers = new ArrayList<>();
             ArrayList<Set<Player>> eliminatedPlayers = new ArrayList<>();
 

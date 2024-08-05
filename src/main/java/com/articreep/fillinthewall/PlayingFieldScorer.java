@@ -607,7 +607,7 @@ public class PlayingFieldScorer {
         endScreen.addLine(gamemode.getTitle());
         endScreen.addLine("");
         endScreen.addLine(ChatColor.GREEN + "Final score: " + ChatColor.BOLD + score);
-        if (settings.getBooleanAttribute(GamemodeAttribute.MULTIPLAYER)) {
+        if (settings.getBooleanAttribute(GamemodeAttribute.MULTIPLAYER) && multiplayerGame != null) {
             if (gamemode == Gamemode.MULTIPLAYER_SCORE_ATTACK) {
                 endScreen.addLine(ChatColor.WHITE + "Position: No. " + multiplayerGame.getRank(field));
             }
@@ -799,6 +799,10 @@ public class PlayingFieldScorer {
 
     public void setMultiplayerGame(MultiplayerGame multiplayerGame) {
         this.multiplayerGame = multiplayerGame;
+    }
+
+    public MultiplayerGame getMultiplayerGame() {
+        return multiplayerGame;
     }
 
     public int getPointsBehind() {

@@ -3,6 +3,7 @@ package com.articreep.fillinthewall.modifiers;
 import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.PlayingField;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Player;
@@ -34,7 +35,7 @@ public class Scale extends ModifierEvent implements Listener {
     @Override
     public void activate() {
         super.activate();
-        FillInTheWall.getInstance().getServer().getPluginManager().registerEvents(this, FillInTheWall.getInstance());
+        Bukkit.getPluginManager().registerEvents(this, FillInTheWall.getInstance());
         ChatColor color;
         if (scale < 1) {
             color = ChatColor.RED;
