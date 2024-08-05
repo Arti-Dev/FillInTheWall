@@ -326,11 +326,10 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                     }
 
                     sender.sendMessage("Sent " + amount + " garbage walls to " + player.getName());
-                    return true;
                 } else {
                     sender.sendMessage("/hitw garbage <player> <amount>");
-                    return true;
                 }
+                return true;
             } else if (args[0].equalsIgnoreCase("bundle") && sender.isOp()) {
                 if (args.length == 3) {
                     Player player = Bukkit.getPlayer(args[1]);

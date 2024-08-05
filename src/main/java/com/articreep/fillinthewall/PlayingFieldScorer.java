@@ -13,6 +13,8 @@ import com.articreep.fillinthewall.utils.Utils;
 import net.md_5.bungee.api.chat.*;
 import org.bukkit.Bukkit;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -568,36 +570,32 @@ public class PlayingFieldScorer {
             }
             if (scoreByTime) {
                 // Check that clear conditions have been met
-                if (perfectWallsCleared < gamemode.getDefaultSettings().getIntAttribute(GamemodeAttribute.PERFECT_WALL_CAP)) return;
-                if (eventCount < gamemode.getDefaultSettings().getIntAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP)) return;
-                for (Player player : players) {
-                    try {
-                        int record = ScoreDatabase.getRecord(player.getUniqueId(), gamemode);
-                        if (time < record) {
-                            ScoreDatabase.updateRecord(player.getUniqueId(), gamemode, time);
-                            player.sendMessage(ChatColor.GOLD + "New personal best!");
-                        } else {
+                if (perfectWallsCleared < gamemode.getDefaultSettings().getIntAttribute(GamemodeAttribute.PERFECT_WALL_CAP))
+                    return;
+                if (eventCount < gamemode.getDefaultSettings().getIntAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP))
+                    return;
+            }
+            for (Player player : players) {
+                try {
+                    int record = ScoreDatabase.getRecord(player.getUniqueId(), gamemode);
+                    if ((scoreByTime && time < record) || (!scoreByTime && score > record)) {
+                        ScoreDatabase.updateRecord(player.getUniqueId(), gamemode, time);
+                        player.sendMessage(ChatColor.GOLD + "New personal best!");
+                        player.getWorld().spawnParticle(Particle.TRIAL_SPAWNER_DETECTION_OMINOUS, player.getLocation(), 200, 0, 0, 0, 0.2);
+                        player.playSound(player, Sound.UI_TOAST_CHALLENGE_COMPLETE, 1, 1);
+                        player.sendTitle(ChatColor.AQUA + "PERSONAL BEST", "", 0, 60, 20);
+                    } else {
+                        if (scoreByTime) {
                             player.sendMessage(ChatColor.AQUA + "Personal best: " + ChatColor.BOLD + Utils.getFormattedTime(record));
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        player.sendMessage(ChatColor.RED + "Error while updating time!");
-                    }
-                }
-            } else {
-                for (Player player : players) {
-                    try {
-                        int record = ScoreDatabase.getRecord(player.getUniqueId(), gamemode);
-                        if (score > record) {
-                            ScoreDatabase.updateRecord(player.getUniqueId(), gamemode, score);
-                            player.sendMessage(ChatColor.GOLD + "New personal best!");
                         } else {
                             player.sendMessage(ChatColor.AQUA + "Personal best: " + ChatColor.BOLD + record);
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        player.sendMessage(ChatColor.RED + "Error while updating score!");
+                        player.getWorld().spawnParticle(Particle.TRIAL_SPAWNER_DETECTION, player.getLocation(), 200, 0, 0, 0, 0.2);
+                        player.playSound(player, Sound.BLOCK_VAULT_OPEN_SHUTTER, 1, 1);
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    player.sendMessage(ChatColor.RED + "Error while updating time!");
                 }
             }
         }
