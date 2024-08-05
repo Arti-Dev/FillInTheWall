@@ -601,11 +601,11 @@ public class PlayingField implements Listener {
 
         // Spawn copper break particles - we're not actually breaking them, they're just getting replaced
         for (Block block : getPlayingFieldBlocks(true).values()) {
-            if (block.getType() == Material.COPPER_GRATE) {
+            if (block.getType() == copperSupportItem().getType()) {
                 getWorld().spawnParticle(Particle.BLOCK,
                         block.getLocation().add(0.5, 0.5, 0.5),
                         100, 0.5, 0.5, 0.5, 0.1,
-                        Material.COPPER_GRATE.createBlockData());
+                        copperSupportItem().getType().createBlockData());
             }
         }
 
@@ -1071,7 +1071,7 @@ public class PlayingField implements Listener {
     }
 
     public static ItemStack copperSupportItem() {
-        ItemStack item = new ItemStack(Material.COPPER_GRATE);
+        ItemStack item = new ItemStack(Material.WAXED_COPPER_GRATE);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.of(new java.awt.Color(154, 95, 74)) + "Copper Support Block");
         meta.setLore(Arrays.asList(ChatColor.GRAY + "- place this block on the field",
