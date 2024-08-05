@@ -68,6 +68,7 @@ public enum Gamemode {
         SPRINT.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         SPRINT.addAttribute(GamemodeAttribute.PERFECT_WALL_CAP, 20);
         SPRINT.addAttribute(GamemodeAttribute.SCORE_BY_TIME, true);
+        SPRINT.addAttribute(GamemodeAttribute.REFUSE_IMPERFECT_WALLS, true);
 
         MEGA.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         MEGA.addAttribute(GamemodeAttribute.STARTING_WALL_ACTIVE_TIME, 20*60*5);
