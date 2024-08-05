@@ -252,9 +252,14 @@ public abstract class MultiplayerGame implements Listener {
         return new BukkitRunnable() {
             @Override
             public void run() {
-                for (PlayingField field : playingFields) {
+                Iterator<PlayingField> it = playingFields.iterator();
+                while (it.hasNext()) {
+                    PlayingField field = it.next();
                     if (field.playerCount() == 0) {
-                        removePlayingfield(field);
+                        it.remove();
+                        field.setMultiplayerMode(false);
+                        field.getQueue().resetGenerator();
+                        field.getScorer().setMultiplayerGame(null);
                         if (playingFields.isEmpty()) {
                             stop();
                         }
