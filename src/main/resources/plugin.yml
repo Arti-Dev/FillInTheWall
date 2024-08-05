@@ -5,7 +5,7 @@ api-version: '1.20'
 commands:
   fillinthewall:
     description: testing commands
-    usage: /fillinthewall <reload/abort>
+    usage: /fillinthewall <spawn/custom>
     aliases: [hitw, holeinthewall, fitw]
   registerplayingfield:
     description: Used to create a playing field and register it to config

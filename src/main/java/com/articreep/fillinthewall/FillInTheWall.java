@@ -192,11 +192,11 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length >= 1) {
-            if (args[0].equalsIgnoreCase("reload")) {
+            if (args[0].equalsIgnoreCase("reload") && sender.isOp()) {
                 reload();
                 sender.sendMessage(ChatColor.GREEN + "Config reloaded!");
                 return true;
-            } else if (args[0].equalsIgnoreCase("abort")) {
+            } else if (args[0].equalsIgnoreCase("abort") && sender.isOp()) {
                 // todo everything from this line forth is temporary
                 if (PlayingFieldManager.game != null) {
                     PlayingFieldManager.game.stop();
@@ -213,7 +213,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                 } else {
                     sender.sendMessage("No versus game to abort");
                 }
-            } else if (args[0].equalsIgnoreCase("timer")) {
+            } else if (args[0].equalsIgnoreCase("timer") && sender.isOp()) {
                 if (PlayingFieldManager.pregame.isActive()) {
                     PlayingFieldManager.pregame.cancelCountdown();
                     sender.sendMessage("Score attack timer cancelled");
@@ -229,7 +229,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                     PlayingFieldManager.vsPregame.startCountdown();
                     sender.sendMessage("Versus timer started");
                 }
-            } else if (args[0].equalsIgnoreCase("versus")) {
+            } else if (args[0].equalsIgnoreCase("versus") && sender.isOp()) {
                 if (PlayingFieldManager.vsPregame.isActive()) {
                     PlayingFieldManager.vsPregame.cancelCountdown();
                     sender.sendMessage("Timer cancelled");
@@ -237,7 +237,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                     PlayingFieldManager.vsPregame.startCountdown();
                     sender.sendMessage("Timer started");
                 }
-            } else if (args[0].equalsIgnoreCase("start")) {
+            } else if (args[0].equalsIgnoreCase("start") && sender.isOp()) {
                 if (args.length >= 2 && args[1].equalsIgnoreCase("versus")) {
                     if (PlayingFieldManager.vsPregame.isActive()) {
                         PlayingFieldManager.vsPregame.startGame();
@@ -275,7 +275,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                 } else {
                     sender.sendMessage("Wrong syntax... I won't tell you how though! >:)");
                 }
-            } else if (args[0].equalsIgnoreCase("modifier")) {
+            } else if (args[0].equalsIgnoreCase("modifier") && sender.isOp()) {
                 if (args.length == 4) {
                     Player player = Bukkit.getPlayer(args[1]);
                     if (player == null) {
@@ -306,7 +306,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
             } else if (args[0].equalsIgnoreCase("spawn") && sender instanceof Player player) {
                 player.teleport(FillInTheWall.getInstance().getMultiplayerSpawn());
                 player.setGameMode(GameMode.ADVENTURE);
-            } else if (args[0].equalsIgnoreCase("garbage")) {
+            } else if (args[0].equalsIgnoreCase("garbage") && sender.isOp()) {
                 if (args.length == 3) {
                     Player player = Bukkit.getPlayer(args[1]);
                     if (player == null) {
@@ -331,7 +331,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                     sender.sendMessage("/hitw garbage <player> <amount>");
                     return true;
                 }
-            } else if (args[0].equalsIgnoreCase("bundle")) {
+            } else if (args[0].equalsIgnoreCase("bundle") && sender.isOp()) {
                 if (args.length == 3) {
                     Player player = Bukkit.getPlayer(args[1]);
                     if (player == null) {
@@ -356,7 +356,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                     sender.sendMessage("/hitw bundle <player> <bundlename>");
                     return true;
                 }
-            } else if (args[0].equalsIgnoreCase("tip")) {
+            } else if (args[0].equalsIgnoreCase("tip") && sender.isOp()) {
                 if (args.length >= 3) {
                     Player player = Bukkit.getPlayer(args[1]);
                     if (player == null) {
@@ -414,26 +414,39 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
         List<String> completions = new ArrayList<>();
         ArrayList<String> strings = new ArrayList<>();
         if (args.length == 1) {
-            strings.add("modifier");
+            strings.add("spawn");
             strings.add("custom");
+
+            if (sender.isOp()) {
+                strings.add("reload");
+                strings.add("abort");
+                strings.add("timer");
+                strings.add("start");
+                strings.add("versus");
+                strings.add("garbage");
+                strings.add("bundle");
+                strings.add("tip");
+                strings.add("modifier");
+            }
             StringUtil.copyPartialMatches(args[0], strings, completions);
         } else if (args.length == 2) {
-            if (args[0].equalsIgnoreCase("modifier")) {
-                strings.add("popin");
-                strings.add("freeze");
-                strings.add("rush");
-                strings.add("scale");
-                strings.add("line");
-                strings.add("inverted");
-                strings.add("fireinthehole");
-                strings.add("stripes");
-                strings.add("gravity");
-                strings.add("playerinthewall");
-                strings.add("multiplace");
-                strings.add("flip");
-                StringUtil.copyPartialMatches(args[1], strings, completions);
-            } else if (args[0].equalsIgnoreCase("custom")) {
+            if (args[0].equalsIgnoreCase("custom")) {
                 StringUtil.copyPartialMatches(args[1], WallBundle.getAvailableWallBundles(), completions);
+            } else if (args[0].equalsIgnoreCase("modifier")|| args[0].equalsIgnoreCase("garbage")
+                || args[0].equalsIgnoreCase("bundle") || args[0].equalsIgnoreCase("tip")) {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    strings.add(player.getName());
+                }
+                StringUtil.copyPartialMatches(args[1], strings, completions);
+            }
+        } else if (args.length == 3) {
+            if (args[0].equalsIgnoreCase("modifier")) {
+                for (ModifierEvent.Type type : ModifierEvent.Type.values()) {
+                    strings.add(type.name());
+                }
+                StringUtil.copyPartialMatches(args[2], strings, completions);
+            } else if (args[0].equalsIgnoreCase("bundle")) {
+                StringUtil.copyPartialMatches(args[2], WallBundle.getAvailableWallBundles(), completions);
             }
         }
         return completions;
