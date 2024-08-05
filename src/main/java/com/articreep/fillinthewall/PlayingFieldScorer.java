@@ -579,7 +579,11 @@ public class PlayingFieldScorer {
                 try {
                     int record = ScoreDatabase.getRecord(player.getUniqueId(), gamemode);
                     if ((scoreByTime && time < record) || (!scoreByTime && score > record)) {
-                        ScoreDatabase.updateRecord(player.getUniqueId(), gamemode, time);
+                        if (scoreByTime) {
+                            ScoreDatabase.updateRecord(player.getUniqueId(), gamemode, time);
+                        } else {
+                            ScoreDatabase.updateRecord(player.getUniqueId(), gamemode, score);
+                        }
                         player.sendMessage(ChatColor.GOLD + "New personal best!");
                         player.getWorld().spawnParticle(Particle.TRIAL_SPAWNER_DETECTION_OMINOUS, player.getLocation(), 200, 0, 0, 0, 0.2);
                         player.playSound(player, Sound.UI_TOAST_CHALLENGE_COMPLETE, 1, 1);
