@@ -319,10 +319,10 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                         return true;
                     }
 
-                    int amount = Integer.parseInt(args[3]);
+                    int amount = Integer.parseInt(args[2]);
 
                     for (int i = 0; i < amount; i++) {
-                        field.getQueue().hardenWall(new Wall(field.getLength(), field.getHeight()), 1);
+                        field.getScorer().getGarbageQueue().add(new Wall(field.getLength(), field.getHeight()));
                     }
 
                     sender.sendMessage("Sent " + amount + " garbage walls to " + player.getName());

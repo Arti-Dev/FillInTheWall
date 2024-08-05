@@ -142,6 +142,8 @@ public class PlayingFieldScorer {
                 field.getQueue().hardenWall(garbageWall,
                         (int) settings.getAttribute(GamemodeAttribute.GARBAGE_WALL_HARDNESS));
             }
+        } else if (field.getQueue().countHardenedWalls() > 0) {
+            awardGarbagePoints(judgement);
         }
 
         // Update meter item
