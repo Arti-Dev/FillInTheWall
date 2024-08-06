@@ -606,7 +606,7 @@ public class PlayingFieldScorer {
     }
 
     public EndScreen createEndScreen() {
-        EndScreen endScreen = new EndScreen(field.getCenter());
+        EndScreen endScreen = new EndScreen(field.getCenter(true, false).add(0, 1, 0));
         endScreen.addLine(Utils.playersToString(field.getPlayers()));
         endScreen.addLine(gamemode.getTitle());
         endScreen.addLine("");
