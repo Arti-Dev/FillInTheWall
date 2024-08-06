@@ -16,9 +16,7 @@ public enum Gamemode {
     VERSUS(ChatColor.BLUE + "2-player Versus", ChatColor.GRAY + "Experimental versus system with garbage walls"),
     CUSTOM(ChatColor.GREEN + "Custom Walls", ChatColor.GRAY + "Load a custom wall pack"),
     MEGA(ChatColor.DARK_AQUA + "Mega", ChatColor.GRAY + "Work with others to fill 200 holes!"),
-    INVERTED(ChatColor.BLACK + "Inverted", ChatColor.GRAY + "Left click to win"),
-    ARSON(ChatColor.RED + "Arson", ChatColor.GRAY + "Score points using a Flint and Steel!"),
-    STRIPES(ChatColor.YELLOW + "Stripes", ChatColor.GRAY + "Match colors for bonus points!");
+    ;
 
     static {
         INFINITE.addAttribute(GamemodeAttribute.CONSISTENT_HOLE_COUNT, false);
@@ -135,15 +133,6 @@ public enum Gamemode {
         VERSUS.addAttribute(GamemodeAttribute.DO_CLEARING_MODES, true);
 
         CUSTOM.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
-
-        INVERTED.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
-        INVERTED.addAttribute(GamemodeAttribute.SINGULAR_EVENT, ModifierEvent.Type.INVERTED);
-
-        ARSON.addAttribute(GamemodeAttribute.SINGULAR_EVENT, ModifierEvent.Type.FIREINTHEHOLE);
-        ARSON.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
-
-        STRIPES.addAttribute(GamemodeAttribute.SINGULAR_EVENT, ModifierEvent.Type.STRIPES);
-        STRIPES.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
 
 
     }

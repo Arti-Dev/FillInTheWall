@@ -150,7 +150,7 @@ public class TheVoid implements Listener {
     }
 
     // VOID_SONIC_BOOM
-    public static void randomSonicBoomLine(PlayingField field) {
+    public static void randomSonicBoom(PlayingField field) {
         // Go to a random location on the queue
         Random random = new Random();
         Location location = field.getReferencePoint()
@@ -158,9 +158,9 @@ public class TheVoid implements Listener {
 
         int length = field.getLength();
         Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> {
-            for (int i = 0; i < length; i++) {
+            for (int i = 0; i < length; i += length-1) {
                 location.getWorld().spawnParticle(Particle.SONIC_BOOM, location, 1, 0, 0, 0, 0);
-                location.add(field.getFieldDirection());
+                location.add(field.getFieldDirection().multiply(length-1));
             }
         }, field.getClearDelay());
 
@@ -372,7 +372,7 @@ public class TheVoid implements Listener {
                 for (int i = 0; i < 3; i++) randomFallingBlockDisplay(field);
                 break;
             case VOID_SONIC_BOOM:
-                randomSonicBoomLine(field);
+                randomSonicBoom(field);
                 break;
             case VOID_VERTICAL_LINES:
                 animateVerticalLines(field, 6, 10);
