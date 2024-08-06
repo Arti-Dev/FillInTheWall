@@ -54,7 +54,7 @@ public class TheVoid implements Listener {
                     double x = 0.5 * t - 0.5 * Math.sin(t / 2);
                     double y = -0.125 + 0.125 * Math.cos(t);
                     // spawn particle at x, y
-                    player.spawnParticle(particle, location.clone().add(vector.clone().multiply(x)).add(0, y, 0),
+                    player.getWorld().spawnParticle(particle, location.clone().add(vector.clone().multiply(x)).add(0, y, 0),
                             1, 0.1, 0, 0.1, 0);
                 }
 
