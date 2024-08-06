@@ -38,6 +38,10 @@ public class SettingsMenu implements CommandExecutor, Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender instanceof Player player) {
+            if (!sender.isOp()) {
+                sender.sendMessage(net.md_5.bungee.api.ChatColor.RED + "You don't have permission to do that.");
+                return true;
+            }
             Pregame pregame = getPregame(player);
             if (pregame != null) {
                 openSettingsInventory(player, pregame);
