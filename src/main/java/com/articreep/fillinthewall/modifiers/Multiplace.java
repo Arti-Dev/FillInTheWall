@@ -137,6 +137,7 @@ public class Multiplace extends ModifierEvent implements Listener {
 
         HandlerList.unregisterAll(this);
         field.sendTitleToPlayers("", "Block placements are back to normal!", 0, 20, 10);
+        field.getQueue().clearPriorityHiddenWalls();
         new BukkitRunnable() {
             int i = 0;
             @Override

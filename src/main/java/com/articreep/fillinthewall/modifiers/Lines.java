@@ -40,6 +40,7 @@ public class Lines extends ModifierEvent implements Listener {
         super.end();
         field.playSoundToPlayers(Sound.ENTITY_SHEEP_SHEAR, 1, 1);
         field.sendTitleToPlayers("", "Placed blocks are back to normal!", 0, 20, 10);
+        field.getQueue().clearPriorityHiddenWalls();
         HandlerList.unregisterAll(this);
     }
 
