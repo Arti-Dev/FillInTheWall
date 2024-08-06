@@ -12,6 +12,7 @@ import java.util.List;
 
 public class WallBundle {
     private final ArrayList<Wall> walls = new ArrayList<>();
+    private final ArrayList<Wall> bag = new ArrayList<>();
 
     public WallBundle(Wall... walls) {
         for (Wall wall : walls) {
@@ -68,7 +69,11 @@ public class WallBundle {
 
     public Wall getRandomWall() {
         if (walls.isEmpty()) return null;
-        return walls.get((int) (Math.random() * walls.size())).copy();
+        // no-repeats
+        if (bag.isEmpty()) {
+            bag.addAll(walls);
+        }
+        return bag.remove((int) (Math.random() * bag.size())).copy();
     }
 
     public void addWall(Wall wall) {
