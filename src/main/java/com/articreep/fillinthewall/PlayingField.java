@@ -278,7 +278,6 @@ public class PlayingField implements Listener {
     /** Returns true if the player was removed, false if unable to (locked to field) */
     public boolean removePlayer(Player player, boolean force) {
         if (multiplayerMode && !force) return false;
-        player.setAllowFlight(false);
         saveHotbar(player);
 
         // If this will be our last player, shut the game down
@@ -294,6 +293,7 @@ public class PlayingField implements Listener {
         if (previousGamemodes.containsKey(player) && player.getGameMode() != GameMode.SPECTATOR) {
             GameMode previousGamemode = previousGamemodes.get(player);
             if (previousGamemode != null) player.setGameMode(previousGamemode);
+            if (previousGamemode != GameMode.CREATIVE) player.setAllowFlight(false);
         }
         previousGamemodes.remove(player);
         resetReach(player);
