@@ -229,9 +229,7 @@ public class TheVoid implements Listener {
 
     // VOID_BIG_PUDDLE
     public static void bigPuddle(PlayingField field) {
-        Location location = field.getReferencePoint()
-                .add(field.getFieldDirection().multiply((double) field.getLength() / 2))
-                .add(0, -1.5, 0);
+        Location location = field.getCenter(true, false).add(0, -2, 0);
 
         Particle particle = Particle.DUST_PLUME;
 
