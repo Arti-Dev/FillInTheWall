@@ -21,6 +21,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
@@ -86,6 +88,16 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
 
         Bukkit.getLogger().info(ChatColor.BLUE + "FillInTheWall has been enabled!");
 
+    }
+
+    @EventHandler
+    public void onExplosion(EntityExplodeEvent event) {
+        event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onHunger(FoodLevelChangeEvent event) {
+        event.setCancelled(true);
     }
 
     @Override
