@@ -221,6 +221,7 @@ public class PlayingField implements Listener {
         Bukkit.getPluginManager().registerEvents(this, FillInTheWall.getInstance());
         if (!resetRecently) reset();
         scorer.setGamemode(mode, settings);
+        scorer.setPlayersOnGameStart(players.size());
         setDisplaySlots(settings);
         removeMenu();
         removeEndScreen();
@@ -246,6 +247,10 @@ public class PlayingField implements Listener {
     public boolean addPlayer(Player player, AddReason reason) {
         if (multiplayerMode && reason != AddReason.MULTIPLAYER) return false;
         if (player.getGameMode() == GameMode.SPECTATOR) return false;
+        Gamemode mode = scorer.getGamemode();
+        // Do not add extra players to singleplayer leaderboard games
+        if (hasStarted() && !players.isEmpty() && Database.isSupported(mode) &&
+                !mode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.TEAM_EFFORT)) return false;
         players.add(player);
         player.setAllowFlight(true);
         if (!hasStarted() && !hasMenu() && !multiplayerMode) {

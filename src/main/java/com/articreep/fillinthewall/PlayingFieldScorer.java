@@ -43,6 +43,7 @@ public class PlayingFieldScorer {
     private Gamemode gamemode = Gamemode.INFINITE;
     private GamemodeSettings settings = Gamemode.INFINITE.getDefaultSettings();
     private int eventCount = 0;
+    private int playersOnGameStart = 0;
 
     // Levels (if enabled)
     boolean doLevels = false;
@@ -555,13 +556,14 @@ public class PlayingFieldScorer {
 
     public void announceFinalScore() {
         boolean scoreByTime = gamemode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.SCORE_BY_TIME);
+        boolean teamEffort = gamemode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.TEAM_EFFORT);
+        boolean solo = field.getPlayers().size() == 1 && playersOnGameStart == 1;
         if (scoreByTime) {
             field.sendMessageToPlayers(ChatColor.AQUA + "Your final time is " + ChatColor.BOLD + Utils.getFormattedTime(time));
         } else {
             field.sendMessageToPlayers(ChatColor.GREEN + "Your final score is " + ChatColor.BOLD + score);
         }
-        // todo atm other players can simply walk onto the playing field and step off before the game ends
-        if (Database.isSupported(gamemode)) {
+        if (Database.isSupported(gamemode) && (teamEffort || solo)) {
             ArrayList<Player> players = new ArrayList<>();
             if (gamemode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.TEAM_EFFORT)) {
                 players.addAll(field.getPlayers());
@@ -833,5 +835,9 @@ public class PlayingFieldScorer {
 
     public void setHasImportedCustomWalls(boolean bool) {
         hasImportedCustomWalls = bool;
+    }
+
+    public void setPlayersOnGameStart(int playersOnGameStart) {
+        this.playersOnGameStart = playersOnGameStart;
     }
 }
