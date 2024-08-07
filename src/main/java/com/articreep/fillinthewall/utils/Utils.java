@@ -80,6 +80,10 @@ public class Utils {
         return String.format("%02d:%02d", (ticks/20) / 60, (ticks/20) % 60);
     }
 
+    public static String getPreciseFormattedTime(int ticks) {
+        return String.format("%02d:%02d.%02d", (ticks/20) / 60, (ticks/20) % 60, (ticks % 20) * 5);
+    }
+
     /* Taken from https://www.baeldung.com/java-set-draw-sample */
     public static <T> T randomSetElement(Set<T> set) {
         if (set == null || set.isEmpty()) return null;

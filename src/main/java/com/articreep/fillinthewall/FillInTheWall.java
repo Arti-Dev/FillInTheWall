@@ -581,7 +581,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                                 .append("#").append(i).append(" ")
                                 .append(Bukkit.getOfflinePlayer(score.getKey()).getName()).append(": ");
                         if (scoreByTime) {
-                            stringBuilder.append(Utils.getFormattedTime(score.getValue()));
+                            stringBuilder.append(Utils.getPreciseFormattedTime(score.getValue()));
                         } else {
                             stringBuilder.append(score.getValue());
                         }

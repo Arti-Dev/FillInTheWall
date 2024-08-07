@@ -425,6 +425,10 @@ public class PlayingFieldScorer {
         return Utils.getFormattedTime(time);
     }
 
+    public String getPreciseFormattedTime() {
+        return Utils.getPreciseFormattedTime(time);
+    }
+
     public int getAbsoluteTimeElapsed() {
         return absoluteTimeElapsed;
     }
@@ -559,7 +563,7 @@ public class PlayingFieldScorer {
         boolean teamEffort = gamemode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.TEAM_EFFORT);
         boolean solo = field.getPlayers().size() == 1 && playersOnGameStart == 1;
         if (scoreByTime) {
-            field.sendMessageToPlayers(ChatColor.AQUA + "Your final time is " + ChatColor.BOLD + Utils.getFormattedTime(time));
+            field.sendMessageToPlayers(ChatColor.AQUA + "Your final time is " + ChatColor.BOLD + Utils.getPreciseFormattedTime(time));
         } else {
             field.sendMessageToPlayers(ChatColor.GREEN + "Your final score is " + ChatColor.BOLD + score);
         }
@@ -592,7 +596,7 @@ public class PlayingFieldScorer {
                         player.sendTitle(ChatColor.AQUA + "PERSONAL BEST", "", 0, 60, 20);
                     } else {
                         if (scoreByTime) {
-                            player.sendMessage(ChatColor.AQUA + "Personal best: " + ChatColor.BOLD + Utils.getFormattedTime(record));
+                            player.sendMessage(ChatColor.AQUA + "Personal best: " + ChatColor.BOLD + Utils.getPreciseFormattedTime(record));
                         } else {
                             player.sendMessage(ChatColor.AQUA + "Personal best: " + ChatColor.BOLD + record);
                         }
@@ -619,7 +623,7 @@ public class PlayingFieldScorer {
             }
         }
         if (settings.getIntAttribute(GamemodeAttribute.TIME_LIMIT) <= 0) {
-            endScreen.addLine(ChatColor.AQUA + "Time: " + ChatColor.BOLD + getFormattedTime());
+            endScreen.addLine(ChatColor.AQUA + "Time: " + ChatColor.BOLD + getPreciseFormattedTime());
         }
         endScreen.addLine(ChatColor.GOLD + "Perfect Walls cleared: " + ChatColor.BOLD + perfectWallsCleared);
         endScreen.addLine(ChatColor.RED + getFormattedBlocksPerSecond() + " blocks per second");

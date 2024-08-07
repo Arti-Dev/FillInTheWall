@@ -95,7 +95,7 @@ public class Menu implements Listener {
         if (personalBests.containsKey(mode)) {
             if (mode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.SCORE_BY_TIME)) {
                 string += ChatColor.AQUA + "Personal best: " + ChatColor.BOLD +
-                        Utils.getFormattedTime(personalBests.get(mode)) + "\n";
+                        Utils.getPreciseFormattedTime(personalBests.get(mode)) + "\n";
             } else {
                 string += ChatColor.GOLD + "Personal best: " + ChatColor.BOLD + personalBests.get(mode) + "\n";
             }
