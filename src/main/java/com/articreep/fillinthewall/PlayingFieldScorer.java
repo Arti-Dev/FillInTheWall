@@ -561,7 +561,7 @@ public class PlayingFieldScorer {
             field.sendMessageToPlayers(ChatColor.GREEN + "Your final score is " + ChatColor.BOLD + score);
         }
         // todo atm other players can simply walk onto the playing field and step off before the game ends
-        if (ScoreDatabase.isSupported(gamemode)) {
+        if (Database.isSupported(gamemode)) {
             ArrayList<Player> players = new ArrayList<>();
             if (gamemode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.TEAM_EFFORT)) {
                 players.addAll(field.getPlayers());
@@ -577,12 +577,12 @@ public class PlayingFieldScorer {
             }
             for (Player player : players) {
                 try {
-                    int record = ScoreDatabase.getRecord(player.getUniqueId(), gamemode);
+                    int record = Database.getRecord(player.getUniqueId(), gamemode);
                     if ((scoreByTime && time < record) || (!scoreByTime && score > record)) {
                         if (scoreByTime) {
-                            ScoreDatabase.updateRecord(player.getUniqueId(), gamemode, time);
+                            Database.updateRecord(player.getUniqueId(), gamemode, time);
                         } else {
-                            ScoreDatabase.updateRecord(player.getUniqueId(), gamemode, score);
+                            Database.updateRecord(player.getUniqueId(), gamemode, score);
                         }
                         player.sendMessage(ChatColor.GOLD + "New personal best!");
                         player.getWorld().spawnParticle(Particle.TRIAL_SPAWNER_DETECTION_OMINOUS, player.getLocation(), 200, 0, 0, 0, 0.2);

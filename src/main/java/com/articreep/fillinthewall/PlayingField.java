@@ -36,6 +36,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -47,6 +48,7 @@ import org.javatuples.Pair;
 import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
+import java.sql.SQLException;
 import java.util.*;
 
 public class PlayingField implements Listener {
@@ -109,6 +111,8 @@ public class PlayingField implements Listener {
     private final HashMap<Block, BlockDisplay> incorrectBlockHighlights = new HashMap<>();
 
     private Sound currentlyPlayingTrack = null;
+
+    public static final String DEFAULT_HOTBAR = "PVCSM____";
 
     // Multiplayer settings
     /** Whether to prevent new players from joining and current players from leaving, AND prevent players from starting their own games
@@ -243,6 +247,7 @@ public class PlayingField implements Listener {
         if (multiplayerMode && reason != AddReason.MULTIPLAYER) return false;
         if (player.getGameMode() == GameMode.SPECTATOR) return false;
         players.add(player);
+        player.setAllowFlight(true);
         if (!hasStarted() && !hasMenu() && !multiplayerMode) {
             // Display a new menu
             createMenu();
@@ -268,6 +273,8 @@ public class PlayingField implements Listener {
     /** Returns true if the player was removed, false if unable to (locked to field) */
     public boolean removePlayer(Player player, boolean force) {
         if (multiplayerMode && !force) return false;
+        player.setAllowFlight(false);
+        saveHotbar(player);
 
         // If this will be our last player, shut the game down
         if (playerCount() == 1) {
@@ -303,17 +310,47 @@ public class PlayingField implements Listener {
     }
 
     public void formatInventory(Player player) {
-        // todo could save the player's inventory and restore after, but might not be necessary
-        // since this is a minigame
         player.getInventory().clear();
-        player.getInventory().setItem(0, buildingItem(playerMaterial));
-        player.getInventory().setItem(1, variableItem());
-        player.getInventory().setItem(2, copperSupportItem());
-        player.getInventory().setItem(3, stoneSupportItem());
-        player.getInventory().setItem(4, meterItem());
+        String hotbar;
+        try {
+            hotbar = Database.getHotbar(player.getUniqueId());
+        } catch (SQLException e) {
+            e.printStackTrace();
+            hotbar = DEFAULT_HOTBAR;
+
+        }
+        for (int i = 0; i < hotbar.length(); i++) {
+            char c = hotbar.charAt(i);
+            if (c == 'P') {
+                player.getInventory().setItem(i, buildingItem(playerMaterial));
+            } else if (c == 'V') {
+                player.getInventory().setItem(i, variableItem());
+            } else if (c == 'C') {
+                player.getInventory().setItem(i, copperSupportItem());
+            } else if (c == 'S') {
+                player.getInventory().setItem(i, stoneSupportItem());
+            } else if (c == 'M') {
+                player.getInventory().setItem(i, meterItem());
+            } else {
+                player.getInventory().setItem(i, new ItemStack(Material.AIR));
+            }
+        }
+
+        // Add any missing items
+        if (!hotbar.contains("P")) {
+            player.getInventory().addItem(buildingItem(playerMaterial));
+        } if (!hotbar.contains("V")) {
+            player.getInventory().addItem(variableItem());
+        } if (!hotbar.contains("C")) {
+            player.getInventory().addItem(copperSupportItem());
+        } if (!hotbar.contains("S")) {
+            player.getInventory().addItem(stoneSupportItem());
+        } if (!hotbar.contains("M")) {
+            player.getInventory().addItem(meterItem());
+        }
         // todo temporary
         if (scorer.getSettings().getBooleanAttribute(GamemodeAttribute.DO_CLEARING_MODES)) {
-            player.getInventory().setItem(4, new ItemStack(Material.FIREWORK_STAR));
+            player.getInventory().addItem(new ItemStack(Material.FIREWORK_STAR));
         }
 
     }
@@ -1298,5 +1335,37 @@ public class PlayingField implements Listener {
                 if (i >= 4) cancel();
             }
         }.runTaskTimer(FillInTheWall.getInstance(), 0, 20);
+    }
+
+    public void saveHotbar(Player player) {
+        StringBuilder hotbar = new StringBuilder();
+        PlayerInventory inventory = player.getInventory();
+        for (int i = 0; i < 9; i++) {
+            ItemStack item = inventory.getItem(i);
+            if (item == null || item.getType().isAir()) {
+                hotbar.append("_");
+                continue;
+            }
+            PersistentDataContainer container = null;
+            if (item.hasItemMeta()) {
+                container = item.getItemMeta().getPersistentDataContainer();
+            }
+
+            if (item.getType() == playerMaterial) {
+                hotbar.append("P");
+            } else if (item.getType() == copperSupportItem().getType()) {
+                hotbar.append("C");
+            } else if (item.getType() == stoneSupportItem().getType()) {
+                hotbar.append("S");
+            } else if (container != null && container.has(meterKey, PersistentDataType.BOOLEAN)) {
+                hotbar.append("M");
+            } else if (container != null && container.has(variableKey, PersistentDataType.BOOLEAN)) {
+                hotbar.append("V");
+            } else {
+                hotbar.append("_");
+            }
+        }
+
+        Database.updateHotbar(player.getUniqueId(), hotbar.toString());
     }
 }

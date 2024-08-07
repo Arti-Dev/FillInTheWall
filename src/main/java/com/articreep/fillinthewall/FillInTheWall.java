@@ -472,7 +472,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
             return false;
         }
 
-        String sql = "CREATE TABLE IF NOT EXISTS scores(" +
+        String sql1 = "CREATE TABLE IF NOT EXISTS scores(" +
                 "uuid CHAR(36) NOT NULL," +
                 "SCORE_ATTACK INT DEFAULT 0 NOT NULL," +
                 "RUSH_SCORE_ATTACK INT DEFAULT 0 NOT NULL," +
@@ -480,8 +480,15 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                 "SPRINT INT DEFAULT 12000 NOT NULL," +
                 "MEGA INT DEFAULT 12000 NOT NULL," +
                 "PRIMARY KEY (uuid));";
+        String sql2 = "CREATE TABLE IF NOT EXISTS hotbars(" +
+                "uuid CHAR(36) NOT NULL," +
+                "hotbar CHAR(9) DEFAULT ? NOT NULL," +
+                "PRIMARY KEY (uuid));";
         try (Connection conn = dataSource.getConnection()) {
-            PreparedStatement stmt = conn.prepareStatement(sql);
+            PreparedStatement stmt = conn.prepareStatement(sql1);
+            stmt.executeUpdate();
+            stmt = conn.prepareStatement(sql2);
+            stmt.setString(1, PlayingField.DEFAULT_HOTBAR);
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -563,9 +570,9 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                     boolean scoreByTime = gamemode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.SCORE_BY_TIME);
                     LinkedHashMap<UUID, Integer> topScores;
                     if (scoreByTime) {
-                        topScores = ScoreDatabase.getTopTimes(gamemode);
+                        topScores = Database.getTopTimes(gamemode);
                     } else {
-                        topScores = ScoreDatabase.getTopScores(gamemode);
+                        topScores = Database.getTopScores(gamemode);
                     }
                     int i = 1;
                     for (Map.Entry<UUID, Integer> score : topScores.entrySet()) {

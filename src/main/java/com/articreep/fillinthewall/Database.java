@@ -8,7 +8,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 
-public class ScoreDatabase {
+public class Database {
     private static final HashSet<Gamemode> supportedGamemodes = new HashSet<>();
 
     static {
@@ -19,17 +19,31 @@ public class ScoreDatabase {
         supportedGamemodes.add(Gamemode.MEGA);
     }
 
-    private static void addPlayer(UUID uuid) throws SQLException {
+    private static void addPlayerToScores(UUID uuid) throws SQLException {
         // Adds a new UUID into the database
-        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+        try (Connection connection = FillInTheWall.getSQLConnection();
+             PreparedStatement stmt1 = connection.prepareStatement(
                 "INSERT INTO scores(uuid) VALUES(?)"
         )) {
-            stmt.setString(1, uuid.toString());
-            stmt.executeUpdate();
+            stmt1.setString(1, uuid.toString());
+            stmt1.executeUpdate();
         } catch (SQLException e) {
+            e.printStackTrace();
             throw new SQLException("Error while adding new user to database!");
         }
+    }
 
+    private static void addPlayerToHotbars(UUID uuid) throws SQLException {
+        try (Connection connection = FillInTheWall.getSQLConnection();
+             PreparedStatement stmt1 = connection.prepareStatement(
+                     "INSERT INTO hotbars(uuid) VALUES(?)"
+             )) {
+            stmt1.setString(1, uuid.toString());
+            stmt1.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error while adding new user to database!");
+        }
     }
 
     // The gamemode has to be concatenated into the SQL query, or else exceptions will be thrown:
@@ -44,7 +58,7 @@ public class ScoreDatabase {
                 return result.getInt(gamemode.toString());
             } else {
                 // If they didn't exist before, add them!
-                addPlayer(uuid);
+                addPlayerToScores(uuid);
                 return 0;
             }
         } catch (SQLException e) {
@@ -96,6 +110,39 @@ public class ScoreDatabase {
             throw new SQLException("Error while getting top times from database!");
         }
     }
+
+    public static void updateHotbar(UUID uuid, String hotbar) {
+        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "UPDATE hotbars SET hotbar = ? WHERE uuid = ?"
+        )) {
+            stmt.setString(1, hotbar);
+            stmt.setString(2, uuid.toString());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static String getHotbar(UUID uuid) throws SQLException {
+        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "SELECT hotbar FROM hotbars WHERE uuid = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return result.getString("hotbar");
+            } else {
+                // If they didn't exist before, add them!
+                addPlayerToHotbars(uuid);
+                return PlayingField.DEFAULT_HOTBAR;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error while getting user hotbar from database!");
+        }
+    }
+
+
 
     public static boolean isSupported(Gamemode gamemode) {
         return supportedGamemodes.contains(gamemode);

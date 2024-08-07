@@ -33,9 +33,9 @@ public class Menu implements Listener {
         this.location = location;
         this.field = field;
         if (field.getPlayers().size() == 1) {
-            for (Gamemode mode : ScoreDatabase.getSupportedGamemodes()) {
+            for (Gamemode mode : Database.getSupportedGamemodes()) {
                 try {
-                    personalBests.put(mode, ScoreDatabase.getRecord(field.getPlayers().iterator().next().getUniqueId(), mode));
+                    personalBests.put(mode, Database.getRecord(field.getPlayers().iterator().next().getUniqueId(), mode));
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
