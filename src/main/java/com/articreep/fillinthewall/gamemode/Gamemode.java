@@ -15,8 +15,7 @@ public enum Gamemode {
     MARATHON(ChatColor.GRAY + "Marathon", ChatColor.GRAY + "Survive as long as you can!"),
     VERSUS(ChatColor.BLUE + "2-player Versus", ChatColor.GRAY + "Experimental versus system with garbage walls"),
     CUSTOM(ChatColor.GREEN + "Custom Walls", ChatColor.GRAY + "Load a custom wall pack"),
-    MEGA(ChatColor.DARK_AQUA + "Mega", ChatColor.GRAY + "Work with others to fill 200 holes!"),
-    ;
+    MEGA(ChatColor.DARK_AQUA + "Mega", ChatColor.GRAY + "Work with others to fill 200 holes!");
 
     static {
         INFINITE.addAttribute(GamemodeAttribute.CONSISTENT_HOLE_COUNT, false);
@@ -39,7 +38,7 @@ public enum Gamemode {
         SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.LEVEL);
         SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         SCORE_ATTACK.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
-        SCORE_ATTACK.addAttribute(GamemodeAttribute.WALL_TIME_DECREASE_AMOUNT, 20);
+        SCORE_ATTACK.addAttribute(GamemodeAttribute.WALL_TIME_DECREASE_AMOUNT, 18);
 
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.DO_LEVELS, false);
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP, 5);
