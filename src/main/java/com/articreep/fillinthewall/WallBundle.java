@@ -90,6 +90,9 @@ public class WallBundle {
         ArrayList<String> list = new ArrayList<>();
         File dataFolder = FillInTheWall.getInstance().getDataFolder();
         File customWallFolder = new File(dataFolder, "custom");
+        if (!customWallFolder.exists()) {
+            customWallFolder.mkdirs();
+        }
         File[] files = customWallFolder.listFiles();
         if (files == null) {
             Bukkit.getLogger().severe("Failed to load custom wall folder");
