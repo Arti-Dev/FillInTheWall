@@ -32,7 +32,7 @@ public class TheVoid implements Listener {
         Location location = player.getLocation();
         if (location.clone().add(0, -0.05, 0).getBlock().getType() != Material.BARRIER) return;
 
-        // x = 0.5t-0.5sin(t/2) y = 0.25 - 0.25cos(t)
+        // x = 0.5t-0.5sin(t/2) y = - 0.125 + 0.125cos(t)
         // fan out in 360 degrees, 10 degree increments
 
         puddleCooldowns.add(player);
