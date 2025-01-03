@@ -72,7 +72,9 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
         loadPlayingFieldConfig();
         saveDefaultConfig();
 
-        if (!loadSQL()) return;
+        if (!loadSQL()) {
+            Database.setOfflineMode(true);
+        }
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
             // todo temporary
@@ -472,7 +474,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
         dataSource.setPassword(config.getString("database.password"));
 
 
-        // Test the connection, if it fails do not load the plugin
+        // Test the connection
         try {
             Connection conn = dataSource.getConnection();
             if (!conn.isValid(1)) {
@@ -480,7 +482,6 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            getServer().getPluginManager().disablePlugin(this);
             return false;
         }
 

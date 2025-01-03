@@ -10,6 +10,7 @@ import java.util.*;
 
 public class Database {
     private static final HashSet<Gamemode> supportedGamemodes = new HashSet<>();
+    private static boolean offlineMode = false;
 
     static {
         supportedGamemodes.add(Gamemode.SCORE_ATTACK);
@@ -17,6 +18,10 @@ public class Database {
         supportedGamemodes.add(Gamemode.MARATHON);
         supportedGamemodes.add(Gamemode.SPRINT);
         supportedGamemodes.add(Gamemode.MEGA);
+    }
+
+    protected static void setOfflineMode(boolean boo) {
+        offlineMode = boo;
     }
 
     private static void addPlayerToScores(UUID uuid) throws SQLException {
