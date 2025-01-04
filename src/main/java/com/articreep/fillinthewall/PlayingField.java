@@ -318,7 +318,8 @@ public class PlayingField implements Listener {
         player.getInventory().clear();
         String hotbar;
         try {
-            hotbar = Database.getHotbar(player.getUniqueId());
+            if (Database.isOfflineMode()) hotbar = DEFAULT_HOTBAR;
+            else hotbar = Database.getHotbar(player.getUniqueId());
         } catch (SQLException e) {
             e.printStackTrace();
             hotbar = DEFAULT_HOTBAR;
@@ -1343,6 +1344,11 @@ public class PlayingField implements Listener {
     }
 
     public void saveHotbar(Player player) {
+        if (Database.isOfflineMode()) {
+            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(
+                    ChatColor.GRAY + "Database is down - your hotbar will not be saved"));
+            return;
+        }
         StringBuilder hotbar = new StringBuilder();
         PlayerInventory inventory = player.getInventory();
         for (int i = 0; i < 9; i++) {

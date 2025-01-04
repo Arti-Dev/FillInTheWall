@@ -567,7 +567,7 @@ public class PlayingFieldScorer {
         } else {
             field.sendMessageToPlayers(ChatColor.GREEN + "Your final score is " + ChatColor.BOLD + score);
         }
-        if (Database.isSupported(gamemode) && (teamEffort || solo)) {
+        if (!Database.isOfflineMode() && Database.isSupported(gamemode) && (teamEffort || solo)) {
             ArrayList<Player> players = new ArrayList<>();
             if (gamemode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.TEAM_EFFORT)) {
                 players.addAll(field.getPlayers());
