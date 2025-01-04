@@ -24,6 +24,10 @@ public class Database {
         offlineMode = boo;
     }
 
+    public static boolean isOfflineMode() {
+        return offlineMode;
+    }
+
     private static void addPlayerToScores(UUID uuid) throws SQLException {
         // Adds a new UUID into the database
         try (Connection connection = FillInTheWall.getSQLConnection();

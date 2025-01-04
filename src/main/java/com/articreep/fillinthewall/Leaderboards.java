@@ -19,7 +19,7 @@ import java.util.UUID;
 
 public class Leaderboards {
 
-    private static Map<TextDisplay, Gamemode> leaderboards = new HashMap<>();
+    private static final Map<TextDisplay, Gamemode> leaderboards = new HashMap<>();
 
     protected static void spawnLeaderboards(FileConfiguration config) {
         removeLeaderboards();
@@ -81,6 +81,13 @@ public class Leaderboards {
             Gamemode gamemode = entry.getValue();
             StringBuilder stringBuilder = new StringBuilder(gamemode.getTitle());
             stringBuilder.append("\n").append(ChatColor.GRAY).append("Top Scores\n");
+
+            if (Database.isOfflineMode()) {
+                stringBuilder.append(ChatColor.GRAY).append("\nDatabase is currently offline.\nPlease check back later.");
+                display.setText(stringBuilder.toString());
+                continue;
+            }
+
             try {
                 boolean scoreByTime = gamemode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.SCORE_BY_TIME);
                 LinkedHashMap<UUID, Integer> topScores;
