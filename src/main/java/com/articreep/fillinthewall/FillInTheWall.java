@@ -49,7 +49,6 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
     private Location multiplayerSpawn = null;
     private Location spectatorFinalsSpawn = null;
 
-    private Map<TextDisplay, Gamemode> leaderboards = new HashMap<>();
     private BukkitTask leaderboardUpdateTask = null;
 
     private final static MysqlDataSource dataSource = new MysqlConnectionPoolDataSource();
@@ -83,7 +82,8 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
             PlayingFieldManager.vsPregame = new Pregame(Bukkit.getWorld("versus"), Gamemode.VERSUS, 2, 15);
             PlayingFieldManager.parseConfig(getPlayingFieldConfig());
             spawnPortals();
-            spawnLeaderboards();
+            Leaderboards.spawnLeaderboards(getConfig());
+            leaderboardUpdateTask = Bukkit.getScheduler().runTaskTimer(this, Leaderboards::updateLeaderboards, 0, 20 * 30);
             multiplayerSpawn = getConfig().getLocation("multiplayer-spawn");
             spectatorFinalsSpawn = getConfig().getLocation("spectator-finals-spawn");
         }, 1);
@@ -106,7 +106,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
     public void onDisable() {
         // Plugin shutdown logic
         displays.forEach(Entity::remove);
-        removeLeaderboards();
+        Leaderboards.removeLeaderboards();
 
         for (PlayingField field : PlayingFieldManager.playingFieldLocations.values()) {
             if (field.hasStarted()) field.stop(false, false);
@@ -405,7 +405,8 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
         displays.clear();
         if (!loadSQL()) return;
         spawnPortals();
-        spawnLeaderboards();
+        Leaderboards.spawnLeaderboards(getConfig());
+        leaderboardUpdateTask = Bukkit.getScheduler().runTaskTimer(this, Leaderboards::updateLeaderboards, 0, 20 * 30);
         multiplayerSpawn = getConfig().getLocation("multiplayer-spawn");
         spectatorFinalsSpawn = getConfig().getLocation("spectator-finals-spawn");
         loadPlayingFieldConfig();
@@ -511,104 +512,6 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
 
     public static Connection getSQLConnection() throws SQLException {
         return dataSource.getConnection();
-    }
-
-    public void spawnLeaderboards() {
-        removeLeaderboards();
-        FileConfiguration config = getConfig();
-
-        Location scoreAttackLocation = config.getLocation("leaderboards.score-attack");
-        Location rushScoreAttackLocation = config.getLocation("leaderboards.rush-score-attack");
-        Location marathonLocation = config.getLocation("leaderboards.marathon");
-        Location sprintLocation = config.getLocation("leaderboards.sprint");
-        Location megaLocation = config.getLocation("leaderboards.mega");
-
-        if (scoreAttackLocation != null) {
-            TextDisplay scoreAttackDisplay = (TextDisplay) scoreAttackLocation.getWorld().spawnEntity(
-                    scoreAttackLocation, EntityType.TEXT_DISPLAY);
-            scoreAttackDisplay.setText("Score Attack Leaderboard");
-            scoreAttackDisplay.setBillboard(Display.Billboard.VERTICAL);
-            leaderboards.put(scoreAttackDisplay, Gamemode.SCORE_ATTACK);
-        }
-        if (rushScoreAttackLocation != null) {
-            TextDisplay rushScoreAttackDisplay = (TextDisplay) rushScoreAttackLocation.getWorld().spawnEntity(
-                    rushScoreAttackLocation, EntityType.TEXT_DISPLAY);
-            rushScoreAttackDisplay.setText("Rush Score Attack Leaderboard");
-            rushScoreAttackDisplay.setBillboard(Display.Billboard.VERTICAL);
-            leaderboards.put(rushScoreAttackDisplay, Gamemode.RUSH_SCORE_ATTACK);
-        }
-        if (marathonLocation != null) {
-            TextDisplay marathonDisplay = (TextDisplay) marathonLocation.getWorld().spawnEntity(
-                    marathonLocation, EntityType.TEXT_DISPLAY);
-            marathonDisplay.setText("Marathon Leaderboard");
-            marathonDisplay.setBillboard(Display.Billboard.VERTICAL);
-            leaderboards.put(marathonDisplay, Gamemode.MARATHON);
-        }
-        if (sprintLocation != null) {
-            TextDisplay sprintDisplay = (TextDisplay) sprintLocation.getWorld().spawnEntity(
-                    sprintLocation, EntityType.TEXT_DISPLAY);
-            sprintDisplay.setText("Sprint Leaderboard");
-            sprintDisplay.setBillboard(Display.Billboard.VERTICAL);
-            leaderboards.put(sprintDisplay, Gamemode.SPRINT);
-        }
-        if (megaLocation != null) {
-            TextDisplay megaDisplay = (TextDisplay) megaLocation.getWorld().spawnEntity(
-                    megaLocation, EntityType.TEXT_DISPLAY);
-            megaDisplay.setText("Mega Leaderboard");
-            megaDisplay.setBillboard(Display.Billboard.VERTICAL);
-            leaderboards.put(megaDisplay, Gamemode.MEGA);
-        }
-
-        updateLeaderboards();
-    }
-
-    private void removeLeaderboards() {
-        for (TextDisplay display : leaderboards.keySet()) {
-            display.remove();
-        }
-        leaderboards.clear();
-    }
-
-    private void updateLeaderboards() {
-        if (leaderboardUpdateTask != null) {
-            leaderboardUpdateTask.cancel();
-        }
-        leaderboardUpdateTask = Bukkit.getScheduler().runTaskTimer(this, () -> {
-            for (Map.Entry<TextDisplay, Gamemode> entry : leaderboards.entrySet()) {
-                TextDisplay display = entry.getKey();
-                Gamemode gamemode = entry.getValue();
-                StringBuilder stringBuilder = new StringBuilder(gamemode.getTitle());
-                stringBuilder.append("\n").append(ChatColor.GRAY).append("Top Scores\n");
-                try {
-                    boolean scoreByTime = gamemode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.SCORE_BY_TIME);
-                    LinkedHashMap<UUID, Integer> topScores;
-                    if (scoreByTime) {
-                        topScores = Database.getTopTimes(gamemode);
-                    } else {
-                        topScores = Database.getTopScores(gamemode);
-                    }
-                    int i = 1;
-                    for (Map.Entry<UUID, Integer> score : topScores.entrySet()) {
-                        stringBuilder.append("\n")
-                                .append(ChatColor.YELLOW)
-                                .append("#").append(i).append(" ")
-                                .append(Bukkit.getOfflinePlayer(score.getKey()).getName()).append(": ");
-                        if (scoreByTime) {
-                            stringBuilder.append(Utils.getPreciseFormattedTime(score.getValue()));
-                        } else {
-                            stringBuilder.append(score.getValue());
-                        }
-                        i++;
-                    }
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                    stringBuilder.append("\n").append(ChatColor.RED).append("Error loading scores");
-                } finally {
-                    stringBuilder.append("\n\n").append(ChatColor.GRAY).append("Updates every 30 seconds");
-                    display.setText(stringBuilder.toString());
-                }
-            }
-        }, 0, 20 * 30);
     }
 
     public Location getMultiplayerSpawn() {
