@@ -482,7 +482,10 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                 throw new SQLException("Could not establish database connection.");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            Bukkit.getLogger().severe("FillInTheWall: Could not establish database connection. " +
+                    "Please make sure you are using a MySQL server and that the config.yml is set up correctly." +
+                    "\nThe plugin will still work, but leaderboards will be disabled, scores will not submit, and player-saved " +
+                    "hotbars will not load");
             return false;
         }
 
