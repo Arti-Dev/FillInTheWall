@@ -11,6 +11,7 @@ import com.articreep.fillinthewall.utils.Utils;
 import com.mysql.cj.jdbc.MysqlConnectionPoolDataSource;
 import com.mysql.cj.jdbc.MysqlDataSource;
 import net.md_5.bungee.api.ChatColor;
+import net.minecraft.network.protocol.game.ClientboundGameEventPacket;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -18,6 +19,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.craftbukkit.v1_21_R3.entity.CraftPlayer;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -293,7 +295,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                 if (args.length == 4) {
                     Player player = Bukkit.getPlayer(args[1]);
                     if (player == null) {
-                        sender.sendMessage("/hitw modifier <player> <mod> <ticks>");
+                        sender.sendMessage("/fitw modifier <player> <mod> <ticks>");
                         return true;
                     }
                     PlayingField field = PlayingFieldManager.activePlayingFields.get(player);
@@ -314,7 +316,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                     event.setTicksRemaining(ticks);
                     event.activate();
                 } else {
-                    sender.sendMessage("/hitw modifier <player> <mod> <ticks>");
+                    sender.sendMessage("/fitw modifier <player> <mod> <ticks>");
                 }
 
             } else if (args[0].equalsIgnoreCase("spawn") && sender instanceof Player player) {
@@ -324,7 +326,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                 if (args.length == 3) {
                     Player player = Bukkit.getPlayer(args[1]);
                     if (player == null) {
-                        sender.sendMessage("/hitw garbage <player> <amount>");
+                        sender.sendMessage("/fitw garbage <player> <amount>");
                         return true;
                     }
                     PlayingField field = PlayingFieldManager.activePlayingFields.get(player);
@@ -341,14 +343,14 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
 
                     sender.sendMessage("Sent " + amount + " garbage walls to " + player.getName());
                 } else {
-                    sender.sendMessage("/hitw garbage <player> <amount>");
+                    sender.sendMessage("/fitw garbage <player> <amount>");
                 }
                 return true;
             } else if (args[0].equalsIgnoreCase("bundle") && sender.isOp()) {
                 if (args.length == 3) {
                     Player player = Bukkit.getPlayer(args[1]);
                     if (player == null) {
-                        sender.sendMessage("/hitw bundle <player> <bundlename>");
+                        sender.sendMessage("/fitw bundle <player> <bundlename>");
                         return true;
                     }
                     PlayingField field = PlayingFieldManager.activePlayingFields.get(player);
@@ -366,14 +368,14 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                         sender.sendMessage(ChatColor.GREEN + "Imported " + walls.size() + " walls");
                     }
                 } else {
-                    sender.sendMessage("/hitw bundle <player> <bundlename>");
+                    sender.sendMessage("/fitw bundle <player> <bundlename>");
                     return true;
                 }
             } else if (args[0].equalsIgnoreCase("tip") && sender.isOp()) {
                 if (args.length >= 3) {
                     Player player = Bukkit.getPlayer(args[1]);
                     if (player == null) {
-                        sender.sendMessage("/hitw tip <player> <string>");
+                        sender.sendMessage("/fitw tip <player> <string>");
                         return true;
                     }
                     PlayingField field = PlayingFieldManager.activePlayingFields.get(player);
@@ -389,6 +391,28 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                     }
 
                     field.setTipDisplay(tip.toString());
+                }
+            } else if (args[0].equalsIgnoreCase("demomode") && sender.isOp()) {
+                if (args.length >= 2) {
+                    Player player = Bukkit.getPlayer(args[1]);
+                    if (player == null) {
+                        sender.sendMessage("/fitw demomode <player>");
+                        return true;
+                    }
+
+                    ClientboundGameEventPacket packet = new ClientboundGameEventPacket(ClientboundGameEventPacket.DEMO_EVENT, 0);
+                    ((CraftPlayer) player).getHandle().connection.sendPacket(packet);
+                }
+            } else if (args[0].equalsIgnoreCase("endcredits") && sender.isOp()) {
+                if (args.length >= 2) {
+                    Player player = Bukkit.getPlayer(args[1]);
+                    if (player == null) {
+                        sender.sendMessage("/fitw endcredits <player>");
+                        return true;
+                    }
+
+                    ClientboundGameEventPacket packet = new ClientboundGameEventPacket(ClientboundGameEventPacket.WIN_GAME, 1);
+                    ((CraftPlayer) player).getHandle().connection.sendPacket(packet);
                 }
             } else {
                 return false;
@@ -441,13 +465,16 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
                 strings.add("bundle");
                 strings.add("tip");
                 strings.add("modifier");
+                strings.add("demomode");
+                strings.add("endcredits");
             }
             StringUtil.copyPartialMatches(args[0], strings, completions);
         } else if (args.length == 2) {
             if (args[0].equalsIgnoreCase("custom")) {
                 StringUtil.copyPartialMatches(args[1], WallBundle.getAvailableWallBundles(), completions);
             } else if (args[0].equalsIgnoreCase("modifier")|| args[0].equalsIgnoreCase("garbage")
-                || args[0].equalsIgnoreCase("bundle") || args[0].equalsIgnoreCase("tip")) {
+                || args[0].equalsIgnoreCase("bundle") || args[0].equalsIgnoreCase("tip")
+                    || args[0].equalsIgnoreCase("endcredits") || args[0].equalsIgnoreCase("demomode")) {
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     strings.add(player.getName());
                 }
