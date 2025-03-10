@@ -175,7 +175,7 @@ public class Tutorial extends ModifierEvent implements Listener {
             // wait for the board to be submitted
         } else if (slideToPlay == 5) {
             field.sendTitleToPlayers("", ChatColor.GREEN + "Nice! You get an extra point for PERFECT judgements.", 10, 40, 10);
-            field.flashScore();
+            field.flashScore(80);
             ticksBeforeNextSlide = 20 * 3;
         } else if (slideToPlay == 6) {
             Wall wall = new Wall(field.getLength(), field.getHeight());

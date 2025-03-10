@@ -1,5 +1,6 @@
 package com.articreep.fillinthewall;
 
+import com.articreep.fillinthewall.display.DisplayType;
 import com.articreep.fillinthewall.display.ScoreboardEntry;
 import com.articreep.fillinthewall.display.ScoreboardEntryType;
 import com.articreep.fillinthewall.gamemode.Gamemode;
@@ -18,6 +19,7 @@ import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
@@ -120,15 +122,6 @@ public class PlayingFieldScorer {
             awardMeterPoints(percent);
         }
 
-        // Activate meter
-        if (meter >= meterMax && doLevels) {
-            setLevel(level + 1);
-            field.sendTitleToPlayers("", ChatColor.GREEN + "Level up!", 0, 10, 5);
-        } else if (meter >= meterMax && ((boolean) settings.getAttribute(GamemodeAttribute.AUTOMATIC_METER))) {
-            ModifierEvent newEvent = activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT), true);
-            newEvent.allowMeterAccumulation = false;
-        }
-
         // Garbage wall rules
         if (settings.getBooleanAttribute(GamemodeAttribute.DO_GARBAGE_WALLS)) {
             if (percent >= Judgement.COOL.getPercent()) {
@@ -181,6 +174,12 @@ public class PlayingFieldScorer {
         return bonus;
     }
 
+    /**
+     * Takes a % accuracy on the scored wall and awards meter points based on that.
+     * Updates and activates meter-related items/UI as well.
+     * This includes leveling if enabled.
+     * @param percent Percent score of the last wall
+     */
     private void awardMeterPoints(double percent) {
         if (percent >= Judgement.COOL.getPercent()) {
             meter += percent;
@@ -205,6 +204,39 @@ public class PlayingFieldScorer {
             }
             if (meter < 0) meter = 0;
         }
+
+        // Activate meter/level up
+        if (meter >= meterMax && doLevels) {
+            setLevel(level + 1);
+            field.flashLevel(80);
+            levelUpSound();
+        } else if (meter >= meterMax && ((boolean) settings.getAttribute(GamemodeAttribute.AUTOMATIC_METER))) {
+            ModifierEvent newEvent = activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT), true);
+            newEvent.allowMeterAccumulation = false;
+        }
+    }
+
+    private void levelUpSound() {
+        new BukkitRunnable() {
+            final float CSHARP = (float) Math.pow(2, -5f/12);
+            final float D = (float) Math.pow(2, -4f/12);
+            final float DSHARP = (float) Math.pow(2, -3f/12);
+            int i = 0;
+            @Override
+            public void run() {
+                float pitch = 2;
+                if (i == 0) pitch = CSHARP;
+                else if (i == 1) pitch = D;
+                else {
+                    pitch = DSHARP;
+                    cancel();
+                }
+                for (Player player : field.getPlayers()) {
+                    player.playSound(player, Sound.BLOCK_NOTE_BLOCK_BASS, 1f, pitch);
+                }
+                i++;
+            }
+        }.runTaskTimer(FillInTheWall.getInstance(), 0, 2);
     }
 
     private void attackOrDefend(Wall wall, Judgement judgement) {
@@ -385,7 +417,7 @@ public class PlayingFieldScorer {
         if (event instanceof Rush rush) {
             // (x/2)^2
             int rushResults = (int) Math.pow(((double) rush.getBoardsCleared() / 2), 2);
-            field.overrideScoreDisplay(80, ChatColor.RED + "+" + ChatColor.BOLD + rushResults + " points from Rush!!!");
+            field.overrideDisplay(DisplayType.SCORE, 80, ChatColor.RED + "+" + ChatColor.BOLD + rushResults + " points from Rush!!!");
             score += rushResults;
         }
     }

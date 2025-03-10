@@ -83,7 +83,7 @@ public class PlayingField implements Listener {
     private final int displaySlotsLength = 6;
     private final DisplayType[] displaySlots = new DisplayType[displaySlotsLength];
     private final TextDisplay[] textDisplays = new TextDisplay[displaySlotsLength];
-    private boolean scoreDisplayOverride = false;
+    private Set<DisplayType> displayOverrides = new HashSet<>();
 
     // Tip statistics
     private int ticksSinceFlying = 0;
@@ -958,7 +958,7 @@ public class PlayingField implements Listener {
             // todo we definitely need to refactor this
             Object data = null;
             DisplayType type = displaySlots[i];
-            if (type == DisplayType.SCORE && scoreDisplayOverride) continue;
+            if (displayOverrides.contains(type)) continue;
             switch (type) {
                 case NONE -> data = "";
                 case SCORE -> data = scorer.getScore();
@@ -1025,14 +1025,36 @@ public class PlayingField implements Listener {
         return event.isActive();
     }
 
-    public void overrideScoreDisplay(int ticks, String message) {
-        scoreDisplayOverride = true;
+    /**
+     * Overrides specific displays with a custom message. This message will be held for the specified amount of ticks.
+     * You are free to change what is displayed using PlayingField#modifyOverridenDisplayText during this time.
+     * @param type DisplayType to affect
+     * @param ticks Amount of ticks to override
+     * @param message Message to display
+     */
+    public void overrideDisplay(DisplayType type, int ticks, String message) {
+        displayOverrides.add(type);
         for (int i = 0; i < displaySlotsLength; i++) {
-            if (displaySlots[i] == DisplayType.SCORE) {
+            if (displaySlots[i] == type) {
                 textDisplays[i].setText(message);
             }
         }
-        Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> scoreDisplayOverride = false, ticks);
+        Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> displayOverrides.remove(type), ticks);
+    }
+
+    /**
+     * To be used in conjunction with PlayingField#overrideDisplay
+     * If the type is not currently being overriden, this method will immediately return
+     * @param type DisplayType to affect
+     * @param message Message to display
+     */
+    public void modifyOverridenDisplayText(DisplayType type, String message) {
+        if (!displayOverrides.contains(type)) return;
+        for (int i = 0; i < displaySlotsLength; i++) {
+            if (displaySlots[i] == type) {
+                textDisplays[i].setText(message);
+            }
+        }
     }
 
     public WorldBoundingBox getBoundingBox() {
@@ -1202,24 +1224,79 @@ public class PlayingField implements Listener {
         return playerMaterial;
     }
 
-    public void flashScore() {
-        overrideScoreDisplay(40, "");
+    public void flashScore(int ticks) {
+        overrideDisplay(DisplayType.SCORE, ticks, "");
+        final int rate = 4;
         new BukkitRunnable() {
-            int i = 0;
+            int elapsed = 0;
+            int cover = 0;
+            int flash = 5;
+            final ChatColor primary = ChatColor.AQUA;
+            final ChatColor accent = ChatColor.DARK_AQUA;
             @Override
             public void run() {
-                if (i >= 8) cancel();
-                String text = DisplayType.SCORE.getFormattedText(scorer.getScore());
-                if (i % 2 == 0) text = ChatColor.WHITE + "" + ChatColor.BOLD + ChatColor.stripColor(text);
-
-                for (int i = 0; i < displaySlotsLength; i++) {
-                    if (displaySlots[i] == DisplayType.SCORE) {
-                        textDisplays[i].setText(text);
-                    }
+                if (elapsed >= ticks) {
+                    cancel();
+                    return;
                 }
-                i++;
+                String text = DisplayType.SCORE.getFormattedText(scorer.getScore());
+                text = flashTextFormat(text, cover, flash, primary, accent);
+                modifyOverridenDisplayText(DisplayType.SCORE, text);
+
+                if (flash == 0) cover++;
+                else flash--;
+                if (cover >= text.length() - 1) {
+                    flash = 5;
+                    cover = 0;
+                }
+                elapsed += rate;
             }
-        }.runTaskTimer(FillInTheWall.getInstance(), 0, 5);
+        }.runTaskTimer(FillInTheWall.getInstance(), 0, rate);
+    }
+
+    public void flashLevel(int ticks) {
+        overrideDisplay(DisplayType.LEVEL, ticks, "");
+        final int rate = 4;
+        new BukkitRunnable() {
+            int elapsed = 0;
+            int cover = 0;
+            int flash = 5;
+            final ChatColor primary = ChatColor.AQUA;
+            final ChatColor accent = ChatColor.DARK_AQUA;
+            @Override
+            public void run() {
+                if (elapsed >= ticks) {
+                    cancel();
+                    return;
+                }
+                String text = DisplayType.LEVEL.getFormattedText(scorer.getLevel());
+                text = flashTextFormat(text, cover, flash, primary, accent);
+                modifyOverridenDisplayText(DisplayType.LEVEL, text);
+
+                if (flash == 0) cover++;
+                else flash--;
+                if (cover >= text.length()) {
+                    flash = 5;
+                    cover = 0;
+                }
+                elapsed += rate;
+            }
+        }.runTaskTimer(FillInTheWall.getInstance(), 10, rate);
+    }
+
+    private String flashTextFormat(String text, int cover, int flash, ChatColor primary, ChatColor accent) {
+        text = ChatColor.stripColor(text);
+        // Flash takes priority
+        if (flash > 0) {
+            if (flash % 2 == 0) text = accent + text;
+            else text = primary + "" + ChatColor.BOLD + text;
+        } else {
+            cover = Integer.min(cover, text.length() - 1);
+            String front = text.substring(0, cover);
+            String back = text.substring(cover);
+            text = primary + front + accent + back;
+        }
+        return text;
     }
 
     public Material getWallMaterial() {
