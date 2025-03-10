@@ -363,14 +363,14 @@ public class PlayingField implements Listener {
 
     public void setInfiniteReach(Player player) {
         if (!scorer.getSettings().getBooleanAttribute(GamemodeAttribute.INFINITE_BLOCK_REACH)) return;
-        AttributeInstance attribute = player.getAttribute(Attribute.PLAYER_BLOCK_INTERACTION_RANGE);
+        AttributeInstance attribute = player.getAttribute(Attribute.BLOCK_INTERACTION_RANGE);
         previousBlockReach.put(player, attribute.getBaseValue());
         attribute.setBaseValue(64);
     }
 
     public void resetReach(Player player) {
         if (previousBlockReach.containsKey(player)) {
-            player.getAttribute(Attribute.PLAYER_BLOCK_INTERACTION_RANGE).setBaseValue(previousBlockReach.get(player));
+            player.getAttribute(Attribute.BLOCK_INTERACTION_RANGE).setBaseValue(previousBlockReach.get(player));
             previousBlockReach.remove(player);
         }
     }

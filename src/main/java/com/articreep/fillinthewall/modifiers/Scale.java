@@ -45,10 +45,10 @@ public class Scale extends ModifierEvent implements Listener {
         final double DEFAULT_BLOCK_INTERACTION_RANGE = 4.5;
         double blockInteractionRange = DEFAULT_BLOCK_INTERACTION_RANGE * Math.max(scale, 1);
         for (Player player : field.getPlayers()) {
-            playerScales.put(player, player.getAttribute(Attribute.GENERIC_SCALE).getBaseValue());
-            player.getAttribute(Attribute.GENERIC_SCALE).setBaseValue(scale);
-            playerReachDistances.put(player, player.getAttribute(Attribute.PLAYER_BLOCK_INTERACTION_RANGE).getBaseValue());
-            player.getAttribute(Attribute.PLAYER_BLOCK_INTERACTION_RANGE).setBaseValue(blockInteractionRange);
+            playerScales.put(player, player.getAttribute(Attribute.SCALE).getBaseValue());
+            player.getAttribute(Attribute.SCALE).setBaseValue(scale);
+            playerReachDistances.put(player, player.getAttribute(Attribute.BLOCK_INTERACTION_RANGE).getBaseValue());
+            player.getAttribute(Attribute.BLOCK_INTERACTION_RANGE).setBaseValue(blockInteractionRange);
         }
 
         new BukkitRunnable() {
@@ -87,12 +87,12 @@ public class Scale extends ModifierEvent implements Listener {
     private void resetPlayer(Player player) {
         if (playerScales.containsKey(player)) {
             double scale = playerScales.get(player);
-            player.getAttribute(Attribute.GENERIC_SCALE).setBaseValue(scale);
+            player.getAttribute(Attribute.SCALE).setBaseValue(scale);
             playerScales.remove(player);
         }
         if (playerReachDistances.containsKey(player)) {
             double blockInteractionRange = playerReachDistances.get(player);
-            player.getAttribute(Attribute.PLAYER_BLOCK_INTERACTION_RANGE).setBaseValue(blockInteractionRange);
+            player.getAttribute(Attribute.BLOCK_INTERACTION_RANGE).setBaseValue(blockInteractionRange);
             playerReachDistances.remove(player);
         }
         HandlerList.unregisterAll(this);
