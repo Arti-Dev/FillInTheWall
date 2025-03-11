@@ -234,7 +234,7 @@ public class PlayingField implements Listener {
         for (Player player : players) {
             player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, -1, 0, false, false));
             formatInventory(player);
-            setCreative(player);
+            player.setGameMode(GameMode.CREATIVE);
             setInfiniteReach(player);
         }
         task = tickLoop();
@@ -259,12 +259,13 @@ public class PlayingField implements Listener {
         players.add(player);
         player.setInvulnerable(true);
         player.setAllowFlight(true);
+        previousGamemodes.put(player, player.getGameMode());
         if (!hasStarted() && !hasMenu() && !multiplayerMode) {
             // Display a new menu
             createMenu();
         } else if (hasStarted()) {
             formatInventory(player);
-            setCreative(player);
+            player.setGameMode(GameMode.CREATIVE);
             setInfiniteReach(player);
             player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, -1, 0, false, false));
             if (scorer.getScoreboard() != null) player.setScoreboard(scorer.getScoreboard());
@@ -314,11 +315,6 @@ public class PlayingField implements Listener {
 
     public boolean removePlayer(Player player) {
         return removePlayer(player, false);
-    }
-
-    public void setCreative(Player player) {
-        previousGamemodes.put(player, player.getGameMode());
-        player.setGameMode(GameMode.CREATIVE);
     }
 
     public void formatInventory(Player player) {
