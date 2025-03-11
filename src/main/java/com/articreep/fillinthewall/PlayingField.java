@@ -394,7 +394,10 @@ public class PlayingField implements Listener {
             return;
         }
 
-        if (submitFinalWall) queue.instantSend(true);
+        if (submitFinalWall) {
+            scorer.penalizeEmptyField = false;
+            queue.instantSend(true);
+        }
         else clearField();
 
         task.cancel();

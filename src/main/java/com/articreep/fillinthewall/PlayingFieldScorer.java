@@ -46,6 +46,7 @@ public class PlayingFieldScorer {
     private GamemodeSettings settings = Gamemode.INFINITE.getDefaultSettings();
     private int eventCount = 0;
     private int playersOnGameStart = 0;
+    public boolean penalizeEmptyField = true;
 
     // Levels (if enabled)
     boolean doLevels = false;
@@ -410,6 +411,7 @@ public class PlayingFieldScorer {
         // Check score
         int points = correctBlocks.size() - extraBlocks.size();
         if (points < 0) points = 0;
+        if (penalizeEmptyField && extraBlocks.isEmpty() && correctBlocks.isEmpty()) points = -1;
         return points;
     }
 
@@ -424,12 +426,14 @@ public class PlayingFieldScorer {
 
     public double calculatePercent(Wall wall, int score) {
         if (wall.getHoles().isEmpty() && score == 0) return 1;
+        if (score < 0) return 0;
         return (double) score / wall.getHoles().size();
     }
 
     public double calculatePercent(Wall wall, PlayingField field) {
         int score = calculateScore(wall, field);
         if (wall.getHoles().isEmpty() && score == 0) return 1;
+        if (score < 0) return 0;
         return (double) score / wall.getHoles().size();
     }
 
