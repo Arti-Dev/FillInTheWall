@@ -38,7 +38,6 @@ public abstract class ModifierEvent {
     public boolean shelveEvent = false;
     protected ModifierEvent shelvedEvent;
 
-    protected double meterPercentRequired = 1;
     protected WallQueue queue;
     protected int ticksRemaining;
     protected boolean infinite = false;
@@ -49,26 +48,21 @@ public abstract class ModifierEvent {
     protected boolean active = false;
 
 
-    protected ModifierEvent(PlayingField field) {
-        if (field == null) return;
-        this.field = field;
-        this.queue = field.getQueue();
-        clearDelay = field.getClearDelay();
-
+    protected ModifierEvent() {
         this.ticksRemaining = DEFAULT_TICKS;
     }
 
-    public static ModifierEvent createEvent(Class<? extends ModifierEvent> clazz, PlayingField field) {
+    public static ModifierEvent createEvent(Class<? extends ModifierEvent> clazz) {
         if (clazz == null) return null;
         Constructor<? extends ModifierEvent> constructor;
         try {
-            constructor = clazz.getConstructor(PlayingField.class);
+            constructor = clazz.getConstructor();
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
             return null;
         }
         try {
-            return constructor.newInstance(field);
+            return constructor.newInstance();
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
             return null;
@@ -79,7 +73,7 @@ public abstract class ModifierEvent {
     public enum Type {
         FIREINTHEHOLE(FireInTheHole.class),
         FLIP(Flip.class),
-        FREEZE(Freeze.class),
+        FREEZE(Freeze.class, 0.5),
         GRAVITY(Gravity.class),
         INVERTED(Inverted.class),
         LINES(Lines.class),
@@ -89,29 +83,40 @@ public abstract class ModifierEvent {
         RUSH(Rush.class),
         SCALE(Scale.class),
         STRIPES(Stripes.class),
-        TUTORIAL(Tutorial.class),
+        // The tutorial uses a fake meter
+        TUTORIAL(Tutorial.class, 0),
         RANDOM(null),
         NONE(null);
 
         final Class<? extends ModifierEvent> clazz;
+        double meterPercentRequired = 1;
         Type(Class<? extends ModifierEvent> clazz) {
             this.clazz = clazz;
         }
 
-        public ModifierEvent createEvent(PlayingField field) {
+        Type(Class<? extends ModifierEvent> clazz, double meterPercentRequired) {
+            this.clazz = clazz;
+            this.meterPercentRequired = meterPercentRequired;
+        }
+
+        public ModifierEvent createEvent() {
             if (this == RANDOM) {
                 ArrayList<Type> types = new ArrayList<>(List.of(values()));
                 types.remove(RANDOM);
                 types.remove(TUTORIAL);
                 types.remove(FREEZE);
                 Type type = types.get((int) (Math.random() * types.size()));
-                return type.createEvent(field);
+                return type.createEvent();
             }
-            return ModifierEvent.createEvent(clazz, field);
+            return ModifierEvent.createEvent(clazz);
         }
 
         public Class<? extends ModifierEvent> getClazz() {
             return clazz;
+        }
+
+        public double getMeterPercentRequired() {
+            return meterPercentRequired;
         }
     }
 
@@ -137,7 +142,7 @@ public abstract class ModifierEvent {
 
     public void setShelvedEvent(ModifierEvent event) {
         // Prevent "infinite shelving"
-        if (createEvent(event.getClass(), field).shelveEvent) shelvedEvent = null;
+        if (createEvent(event.getClass()).shelveEvent) shelvedEvent = null;
         else shelvedEvent = event;
     }
 
@@ -201,10 +206,6 @@ public abstract class ModifierEvent {
         // override
     }
 
-    public double getMeterPercentRequired() {
-        return meterPercentRequired;
-    }
-
     public boolean isActive() {
         return active;
     }
@@ -246,9 +247,15 @@ public abstract class ModifierEvent {
         this.infinite = infinite;
     }
 
-    public abstract ModifierEvent copy(PlayingField newPlayingField);
+    public abstract ModifierEvent copy();
 
     public abstract void playActivateSound();
 
     public abstract void playDeactivateSound();
+
+    public void setPlayingField(PlayingField field) {
+        this.field = field;
+        this.queue = field.getQueue();
+        clearDelay = field.getClearDelay();
+    }
 }

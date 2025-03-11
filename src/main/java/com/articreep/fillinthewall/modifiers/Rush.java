@@ -28,10 +28,6 @@ public class Rush extends ModifierEvent {
         overrideGeneration = true;
         allowMultipleWalls = true;
         allowMeterAccumulation = false;
-
-        nextWall = new Wall(field.getLength(), field.getHeight());
-        nextWall.setMaterial(randomMaterial());
-        nextWall.insertHole(nextWall.randomCoordinates());
     }
 
     public void deploy() {
@@ -101,6 +97,10 @@ public class Rush extends ModifierEvent {
         queue.clearAllWalls();
         queue.allowMultipleWalls(true);
         queue.setMaxSpawnCooldown(30);
+
+        nextWall = new Wall(field.getLength(), field.getHeight());
+        nextWall.setMaterial(randomMaterial());
+        nextWall.insertHole(nextWall.randomCoordinates());
 
         if (field.getEnvironment().equalsIgnoreCase("VOID")) {
             TheVoid.spawnRotatingBlocks(field, this);

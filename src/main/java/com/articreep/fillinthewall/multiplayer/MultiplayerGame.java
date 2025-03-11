@@ -270,10 +270,9 @@ public abstract class MultiplayerGame implements Listener {
     }
 
     protected void deployEvent(ModifierEvent.Type type, boolean infinite) {
-        PlayingField pilot = playingFields.iterator().next();
-        ModifierEvent event = type.createEvent(pilot);
+        ModifierEvent event = type.createEvent();
         for (PlayingField field : playingFields) {
-            ModifierEvent copy = field.getScorer().activateEvent(event.copy(field));
+            ModifierEvent copy = field.getScorer().activateEvent(event.copy());
             if (infinite) copy.setInfinite(true);
         }
     }

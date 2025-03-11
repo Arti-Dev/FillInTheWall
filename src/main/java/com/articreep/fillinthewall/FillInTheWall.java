@@ -308,13 +308,14 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
 
                     ModifierEvent event;
                     try {
-                        event = ModifierEvent.Type.valueOf(args[2].toUpperCase()).createEvent(field);
+                        event = ModifierEvent.Type.valueOf(args[2].toUpperCase()).createEvent();
                     } catch (IllegalArgumentException e) {
                         sender.sendMessage(ChatColor.RED + "Unknown modifier");
                         return true;
                     }
 
                     event.setTicksRemaining(ticks);
+                    event.setPlayingField(field);
                     event.activate();
                 } else {
                     sender.sendMessage("/fitw modifier <player> <mod> <ticks>");

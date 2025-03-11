@@ -332,7 +332,7 @@ public class PlayingFieldScorer {
             return;
         }
 
-        if (settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT).createEvent(field) == null) {
+        if (settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT).createEvent() == null) {
             player.sendMessage(ChatColor.RED + "No event to activate!");
             return;
         }
@@ -352,7 +352,7 @@ public class PlayingFieldScorer {
         if (type == null || type == ModifierEvent.Type.NONE) {
             return null;
         }
-        ModifierEvent event = type.createEvent(field);
+        ModifierEvent event = type.createEvent();
         return activateEvent(event, resetMeter);
     }
 
@@ -362,6 +362,7 @@ public class PlayingFieldScorer {
 
     public ModifierEvent activateEvent(ModifierEvent event, boolean resetMeter) {
         Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> {
+            event.setPlayingField(field);
             event.activate();
             eventCount++;
 
@@ -383,18 +384,9 @@ public class PlayingFieldScorer {
                 0, 10, 5);
     }
 
-    // todo these two methods could be replaced with some reflection
     public boolean isMeterFilledEnough(double percent) {
         ModifierEvent.Type type = settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT);
-        if (type != ModifierEvent.Type.FREEZE && type != ModifierEvent.Type.RUSH && type != ModifierEvent.Type.TUTORIAL) {
-            return percent >= 1;
-        } else {
-            if (type == ModifierEvent.Type.RUSH && percent >= ModifierEvent.createEvent(Rush.class, null).getMeterPercentRequired()) {
-                return true;
-            } else if (type == ModifierEvent.Type.FREEZE && percent >= ModifierEvent.createEvent(Freeze.class, null).getMeterPercentRequired()) {
-                return true;
-            } else return type == ModifierEvent.Type.TUTORIAL;
-        }
+        return percent >= type.getMeterPercentRequired();
     }
 
     public void playJudgementSound(Judgement judgement) {

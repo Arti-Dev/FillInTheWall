@@ -10,7 +10,6 @@ public class Freeze extends ModifierEvent {
         super();
         wallFreeze = true;
         timeFreeze = true;
-        meterPercentRequired = 0.5;
         shelveEvent = true;
     }
 
