@@ -1,6 +1,5 @@
 package com.articreep.fillinthewall.modifiers;
 
-import com.articreep.fillinthewall.PlayingField;
 import com.articreep.fillinthewall.Wall;
 import com.articreep.fillinthewall.environments.TheVoid;
 import net.md_5.bungee.api.ChatColor;
@@ -23,7 +22,7 @@ public class Rush extends ModifierEvent {
     private int boardsCleared = 0;
     public Rush() {
         super();
-        clearDelay = 5;
+        clearDelayOverride = 5;
         overrideCompleteScoring = true;
         overrideGeneration = true;
         allowMultipleWalls = true;

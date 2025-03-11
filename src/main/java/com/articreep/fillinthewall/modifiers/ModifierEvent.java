@@ -28,7 +28,7 @@ public abstract class ModifierEvent {
     public boolean overrideCorrectBlocksVisual = false;
     public boolean overrideGeneration = false;
     public boolean allowMultipleWalls = false;
-    public int clearDelay;
+    public int clearDelayOverride = -1;
     public boolean timeFreeze = false;
     public boolean wallFreeze = false;
     public boolean fillFieldAfterSubmission = false;
@@ -256,7 +256,6 @@ public abstract class ModifierEvent {
     public void setPlayingField(PlayingField field) {
         this.field = field;
         this.queue = field.getQueue();
-        clearDelay = field.getClearDelay();
     }
 
     /**

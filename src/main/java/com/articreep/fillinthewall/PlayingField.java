@@ -29,7 +29,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
@@ -452,7 +451,7 @@ public class PlayingField implements Listener {
         hasSubmittedUsingOffhand = true;
         confirmOnCooldown = true;
         int pauseTime = this.clearDelay;
-        if (eventActive()) pauseTime = this.event.clearDelay;
+        if (eventActive()) pauseTime = this.event.clearDelayOverride;
         Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> {
             confirmOnCooldown = false;
         }, pauseTime);
@@ -679,7 +678,9 @@ public class PlayingField implements Listener {
         }
 
         int pauseTime = this.clearDelay;
-        if (eventActive()) pauseTime = event.clearDelay;
+        if (eventActive() && event.clearDelayOverride > 0) {
+            pauseTime = event.clearDelayOverride;
+        }
 
         clearDelayActive = true;
         if (eventActive() && event.overrideCorrectBlocksVisual) {
