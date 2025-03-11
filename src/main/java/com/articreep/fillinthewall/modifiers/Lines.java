@@ -23,7 +23,6 @@ public class Lines extends ModifierEvent implements Listener {
 
     public Lines() {
         super();
-        priorityWallBundle = generatePriorityWallBundle();
     }
 
     @Override
@@ -87,7 +86,7 @@ public class Lines extends ModifierEvent implements Listener {
         field.playSoundToPlayers(Sound.ENTITY_SHEEP_SHEAR, 1, 1);
     }
 
-    public WallBundle generatePriorityWallBundle() {
+    public WallBundle generatePriorityWallBundle(int length, int height) {
         Random random = new Random();
         WallBundle bundle = new WallBundle();
         for (int i = 0; i < 3; i++) {
@@ -95,16 +94,16 @@ public class Lines extends ModifierEvent implements Listener {
             // Generate holes along these lines
             // Remove up to 2 holes
 
-            Wall wall = new Wall(field.getLength(), field.getHeight());
+            Wall wall = new Wall(length, height);
             ArrayList<Pair<Integer, Integer>> holes = new ArrayList<>();
-            int x = random.nextInt(0, field.getLength());
-            int y = random.nextInt(0, field.getHeight());
+            int x = random.nextInt(0, length);
+            int y = random.nextInt(0, height);
 
-            for (int j = 0; j < field.getHeight(); j++) {
+            for (int j = 0; j < length; j++) {
                 holes.add(Pair.with(x, j));
             }
 
-            for (int k = 0; k < field.getLength(); k++) {
+            for (int k = 0; k < height; k++) {
                 holes.add(Pair.with(k, y));
             }
 
@@ -119,4 +118,8 @@ public class Lines extends ModifierEvent implements Listener {
         return bundle;
     }
 
+    @Override
+    public void additionalInit(int length, int height) {
+        priorityWallBundle = generatePriorityWallBundle(length, height);
+    }
 }
