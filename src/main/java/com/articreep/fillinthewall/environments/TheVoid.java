@@ -133,6 +133,7 @@ public class TheVoid implements Listener {
 
     public static void randomShape(PlayingField field) {
         Location location = field.getEffectBox().randomLocation();
+        if (location == null) return;
         Random random = new Random();
         int shape = random.nextInt(3,8);
         int radius = random.nextInt(1, 5);
@@ -142,6 +143,7 @@ public class TheVoid implements Listener {
 
     public static void randomPetal(PlayingField field) {
         Location location = field.getEffectBox().randomLocation();
+        if (location == null) return;
         Random random = new Random();
         int petals = random.nextInt(3, 8);
         int radius = random.nextInt(1, 5);
@@ -174,7 +176,7 @@ public class TheVoid implements Listener {
     public static void randomFallingBlockDisplay(PlayingField field) {
         Random random = new Random();
         // arbitrarily add 10 blocks of height haha
-        Location location = field.getEffectBox().randomLocation().add(0, 10, 0);
+        Location location = field.getEffectBox().randomLocationIgnoreExclusion().add(0, 10, 0);
         Material material = possibleFallingBlocks.get(random.nextInt(possibleFallingBlocks.size()));
         BlockDisplay display = (BlockDisplay) location.getWorld().spawnEntity(location, EntityType.BLOCK_DISPLAY);
         display.setBlock(material.createBlockData());

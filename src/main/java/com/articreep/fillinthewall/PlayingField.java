@@ -62,7 +62,9 @@ public class PlayingField implements Listener {
      * The location is situated in the CENTER of the target block when it is set by the constructor.
      */
     private final Location fieldReferencePoint;
-    private final Vector fieldDirection; // parallel to the field, positive x direction
+    /** parallel to the field, pointing left relative to the field */
+    private final Vector fieldDirection;
+    /** normal to the field, pointing the direction incoming walls go */
     private final Vector incomingDirection; // normal to the field
     private final int height;
     private final int length;

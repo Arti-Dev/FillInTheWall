@@ -222,9 +222,17 @@ public class PlayingFieldManager implements Listener {
                 .subtract(incomingDirection.clone().multiply(queueLength))
                 .add(fieldDirection.clone().multiply(fieldLength))
                 .add(new Vector(0, fieldHeight * 2.5, 0));
-        WorldBoundingBox box = new WorldBoundingBox(corner1, corner2);
+        WorldBoundingBox box = new WorldBoundingBox(corner1, corner2, Particle.HAPPY_VILLAGER, Particle.HEART);
         box.getBoundingBox().expand(fieldDirection, 7);
         box.getBoundingBox().expand(fieldDirection.clone().multiply(-1), 7);
+
+        Location exclusionPoint1 = refPoint.clone()
+                .subtract(fieldDirection.clone().multiply(2));
+        Location exclusionPoint2 = refPoint.clone()
+                .subtract(incomingDirection.clone().multiply(queueLength))
+                .add(fieldDirection.clone().multiply(fieldLength + 2))
+                .add(new Vector(0, fieldHeight * 1.5, 0));
+        box.addExclusionBox(exclusionPoint1, exclusionPoint2);
 
         return box;
 
