@@ -29,6 +29,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
@@ -252,6 +253,7 @@ public class PlayingField implements Listener {
         if (hasStarted() && !players.isEmpty() && Database.isSupported(mode) &&
                 !mode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.TEAM_EFFORT)) return false;
         players.add(player);
+        player.setInvulnerable(true);
         player.setAllowFlight(true);
         if (!hasStarted() && !hasMenu() && !multiplayerMode) {
             // Display a new menu
@@ -297,6 +299,7 @@ public class PlayingField implements Listener {
         }
         previousGamemodes.remove(player);
         resetReach(player);
+        player.setInvulnerable(false);
         if (currentlyPlayingTrack != null) player.stopSound(currentlyPlayingTrack);
 
         // Remove from playing field manager
@@ -452,6 +455,8 @@ public class PlayingField implements Listener {
             event.setCancelled(true);
             player.sendMessage(ChatColor.RED + "Can't place blocks here!");
             return;
+        } else {
+            event.setCancelled(false);
         }
 
         if (event.getBlockPlaced().getType() == Material.CRACKED_STONE_BRICKS) {
@@ -480,11 +485,12 @@ public class PlayingField implements Listener {
         if (!isInField(block.getLocation())) {
             event.setCancelled(true);
             player.sendMessage(ChatColor.RED + "Can't break blocks here!");
-        }
-
-        if (incorrectBlockHighlights.containsKey(block)) {
-            incorrectBlockHighlights.get(block).remove();
-            incorrectBlockHighlights.remove(block);
+        } else {
+            event.setCancelled(false);
+            if (incorrectBlockHighlights.containsKey(block)) {
+                incorrectBlockHighlights.get(block).remove();
+                incorrectBlockHighlights.remove(block);
+            }
         }
     }
 

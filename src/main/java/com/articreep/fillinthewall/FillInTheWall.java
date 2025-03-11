@@ -69,6 +69,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
         getServer().getPluginManager().registerEvents(new Finals(), this);
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(settingsMenu, this);
+        getServer().getPluginManager().registerEvents(new GlobalListeners(), this);
 
         loadPlayingFieldConfig();
         saveDefaultConfig();
