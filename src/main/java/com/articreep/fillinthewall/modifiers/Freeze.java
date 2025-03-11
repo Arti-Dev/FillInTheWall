@@ -16,8 +16,10 @@ public class Freeze extends ModifierEvent {
     @Override
     public void activate() {
         super.activate();
-        // Reduce time based on percent filled
-        ticksRemaining = (int) (200 * field.getScorer().getMeterPercentFilled());
+        if (ticksRemaining != DEFAULT_TICKS) {
+            // Reduce time based on percent filled
+            ticksRemaining = (int) (200 * field.getScorer().getMeterPercentFilled());
+        }
         field.sendTitleToPlayers(ChatColor.AQUA + "FREEZE!", "Walls and gimmicks are temporarily frozen!", 0, 40, 10);
         field.getQueue().correctAllWalls();
     }
