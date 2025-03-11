@@ -30,7 +30,6 @@ public class Multiplace extends ModifierEvent implements Listener {
 
     public Multiplace() {
         super();
-        priorityWallBundle = generatePriorityWallBundle();
     }
 
     @Override
@@ -38,6 +37,9 @@ public class Multiplace extends ModifierEvent implements Listener {
         super.activate();
         Bukkit.getPluginManager().registerEvents(this, FillInTheWall.getInstance());
         field.sendTitleToPlayers(ChatColor.GOLD + "Multiplace!", "Your blocks are 2x2 now!", 0, 40, 10);
+        if (priorityWallBundle == null) {
+            priorityWallBundle = generatePriorityWallBundle(field.getLength(), field.getHeight());
+        }
         priorityWallBundle.getWalls().forEach(field.getQueue()::addWall);
     }
 
@@ -166,7 +168,7 @@ public class Multiplace extends ModifierEvent implements Listener {
         }.runTaskTimer(FillInTheWall.getInstance(), 0, 2);
     }
 
-    public WallBundle generatePriorityWallBundle() {
+    public WallBundle generatePriorityWallBundle(int length, int height) {
         WallBundle bundle = new WallBundle();
         Random random = new Random();
         // A simpler algorithm without wall kicking
@@ -194,5 +196,10 @@ public class Multiplace extends ModifierEvent implements Listener {
             bundle.addWall(wall);
         }
         return bundle;
+    }
+
+    @Override
+    public void additionalInit(int length, int height) {
+        priorityWallBundle = generatePriorityWallBundle(length, height);
     }
 }

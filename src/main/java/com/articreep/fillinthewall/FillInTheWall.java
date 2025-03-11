@@ -316,6 +316,7 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
 
                     event.setTicksRemaining(ticks);
                     event.setPlayingField(field);
+                    event.additionalInit(field.getLength(), field.getHeight());
                     event.activate();
                 } else {
                     sender.sendMessage("/fitw modifier <player> <mod> <ticks>");

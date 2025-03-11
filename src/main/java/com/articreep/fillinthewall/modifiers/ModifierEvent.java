@@ -258,4 +258,13 @@ public abstract class ModifierEvent {
         this.queue = field.getQueue();
         clearDelay = field.getClearDelay();
     }
+
+    /**
+     * Additional initialization that requires the length and height of the playing field.
+     * @param length length
+     * @param height height
+     */
+    public void additionalInit(int length, int height) {
+        // override
+    }
 }
