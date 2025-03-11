@@ -29,7 +29,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
@@ -75,6 +75,10 @@ public class PlayingField implements Listener {
     private final List<Block> borderBlocks = new ArrayList<>();
     private final Material defaultBorderMaterial = Material.GRAY_CONCRETE;
     private final Material playerMaterial;
+    /**
+     * Used to (somewhat) certify that this item was issued by the server
+     */
+    public static final NamespacedKey gameKey = new NamespacedKey(FillInTheWall.getInstance(), "GAME_ITEM");
     public static final NamespacedKey meterKey = new NamespacedKey(FillInTheWall.getInstance(), "METER_ITEM");
     public static final NamespacedKey variableKey = new NamespacedKey(FillInTheWall.getInstance(), "VARIABLE_ITEM");
     private final WorldBoundingBox boundingBox;
@@ -1133,6 +1137,7 @@ public class PlayingField implements Listener {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
         meta.setLore(Collections.singletonList(ChatColor.GRAY + "Fill the holes in the incoming wall with this!"));
+        meta.getPersistentDataContainer().set(gameKey, PersistentDataType.BOOLEAN, true);
         item.setItemMeta(meta);
         return item;
     }
@@ -1145,6 +1150,7 @@ public class PlayingField implements Listener {
                 ChatColor.GRAY + "- place another block against this block",
                 ChatColor.YELLOW + "" + ChatColor.BOLD + "- ???",
                 ChatColor.AQUA + "- floating block"));
+        meta.getPersistentDataContainer().set(gameKey, PersistentDataType.BOOLEAN, true);
         item.setItemMeta(meta);
         return item;
     }
@@ -1157,6 +1163,7 @@ public class PlayingField implements Listener {
                 ChatColor.GRAY + "- block breaks right before wall is submitted",
                 ChatColor.YELLOW + "" + ChatColor.BOLD + "- ???",
                 ChatColor.AQUA + "- no left clicks required"));
+        meta.getPersistentDataContainer().set(gameKey, PersistentDataType.BOOLEAN, true);
         item.setItemMeta(meta);
         return item;
     }
@@ -1168,6 +1175,7 @@ public class PlayingField implements Listener {
         meta.setLore(Arrays.asList(ChatColor.GRAY + "When your meter is full enough, hold this item",
                 ChatColor.GRAY + "and click to activate a" + ChatColor.GOLD + " special ability" + ChatColor.GRAY + "!"));
         meta.getPersistentDataContainer().set(meterKey, PersistentDataType.BOOLEAN, true);
+        meta.getPersistentDataContainer().set(gameKey, PersistentDataType.BOOLEAN, true);
         item.setItemMeta(meta);
         return item;
     }
@@ -1179,6 +1187,7 @@ public class PlayingField implements Listener {
         meta.setLore(Arrays.asList(ChatColor.GRAY + "This is replaced with special items during specific events!",
                 ChatColor.DARK_GRAY + "Feel free to move this anywhere in your inventory!"));
         meta.getPersistentDataContainer().set(variableKey, PersistentDataType.BOOLEAN, true);
+        meta.getPersistentDataContainer().set(gameKey, PersistentDataType.BOOLEAN, true);
         item.setItemMeta(meta);
         return item;
 
