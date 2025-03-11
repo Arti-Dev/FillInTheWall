@@ -19,7 +19,7 @@ public class Inverted extends ModifierEvent {
 
     @Override
     public void activate() {
-        field.getQueue().instantSend();
+        field.getQueue().instantSend(true);
         field.fillField(field.getPlayerMaterial());
         super.activate();
         field.sendTitleToPlayers(ChatColor.BLACK + "Inverted!", "Left-click to win..?", 0, 40, 10);
@@ -45,7 +45,7 @@ public class Inverted extends ModifierEvent {
 
     @Override
     public void end() {
-        field.getQueue().instantSend();
+        field.getQueue().instantSend(true);
         for (Wall wall : field.getQueue().getActiveWalls()) {
             if (wall.isInverted()) wall.invert();
         }

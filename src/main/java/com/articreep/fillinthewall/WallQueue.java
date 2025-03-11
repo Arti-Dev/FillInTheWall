@@ -191,6 +191,7 @@ public class WallQueue {
 
     /**
      * Insta-sends the current wall to the playing field for matching.
+     * @param force Whether to forcefully send the wall. If this is the case, no penalty for an empty field will be applied
      */
     public void instantSend(boolean force) {
         if (activeWalls.isEmpty()) return;
@@ -207,7 +208,11 @@ public class WallQueue {
                 return;
             }
         }
+
+        boolean originalPenalize = field.getScorer().penalizeEmptyField;
+        if (force) field.getScorer().penalizeEmptyField = false;
         field.matchAndScore(frontmostWall);
+        field.getScorer().penalizeEmptyField = originalPenalize;
         activeWalls.remove(frontmostWall);
         frontmostWall.despawn();
     }

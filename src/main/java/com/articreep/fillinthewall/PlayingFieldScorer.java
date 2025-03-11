@@ -46,6 +46,7 @@ public class PlayingFieldScorer {
     private GamemodeSettings settings = Gamemode.INFINITE.getDefaultSettings();
     private int eventCount = 0;
     private int playersOnGameStart = 0;
+    // todo maybe make this an actual setting
     public boolean penalizeEmptyField = true;
 
     // Levels (if enabled)
