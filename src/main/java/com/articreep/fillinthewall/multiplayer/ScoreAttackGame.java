@@ -21,8 +21,8 @@ public class ScoreAttackGame extends MultiplayerGame {
     private BukkitTask sortTask;
     private Stage stage = Stage.QUALIFICATIONS;
     private final ArrayList<PlayingField> finalStageBoards;
-    private int eventTime0;
-    private int eventTime1;
+    private final int eventTime0;
+    private final int eventTime1;
     private final Sound[] possibleQualificationsMusic = {Sound.MUSIC_DISC_BLOCKS, Sound.MUSIC_DISC_CHIRP, Sound.MUSIC_DISC_FAR,
     Sound.MUSIC_DISC_STAL, Sound.MUSIC_DISC_WAIT};
     private final Sound[] possibleFinalsMusic = {Sound.MUSIC_DISC_PRECIPICE};
@@ -79,7 +79,7 @@ public class ScoreAttackGame extends MultiplayerGame {
                     if (time == eventTime0) {
                         deployEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.MULTI_EVENT_0));
                     } else if (time == eventTime1) {
-                        deployEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.MULTI_EVENT_0));
+                        deployEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.MULTI_EVENT_1));
                     }
                 }
 
