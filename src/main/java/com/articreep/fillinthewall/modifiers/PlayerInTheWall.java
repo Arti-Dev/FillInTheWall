@@ -48,7 +48,7 @@ public class PlayerInTheWall extends ModifierEvent {
     public HashMap<PlayingFieldScorer.BonusType, Integer> evaluateBonus(double percent, Wall wall) {
         HashMap<PlayingFieldScorer.BonusType, Integer> bonusMap = super.evaluateBonus(percent, wall);
 
-        bonusMap.put(PlayingFieldScorer.BonusType.PLAYER, countPlayerBlocksInHoles(wall) * 2);
+        bonusMap.put(PlayingFieldScorer.BonusType.PLAYER, countPlayerBlocksInHoles(wall));
         return bonusMap;
     }
 
