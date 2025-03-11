@@ -99,12 +99,12 @@ public class Lines extends ModifierEvent implements Listener {
             int x = random.nextInt(0, length);
             int y = random.nextInt(0, height);
 
-            for (int j = 0; j < length; j++) {
-                holes.add(Pair.with(x, j));
+            for (int k = 0; k < length; k++) {
+                holes.add(Pair.with(k, y));
             }
 
-            for (int k = 0; k < height; k++) {
-                holes.add(Pair.with(k, y));
+            for (int j = 0; j < height; j++) {
+                holes.add(Pair.with(x, j));
             }
 
             for (int l = 0; l < Math.random() * 2; l++) {
