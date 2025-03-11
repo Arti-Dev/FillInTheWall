@@ -36,7 +36,6 @@ public class PopIn extends ModifierEvent {
     public void activate() {
         super.activate();
         field.sendTitleToPlayers(ChatColor.RED + "Pop-in", "Random blocks may appear...", 0, 40, 10);
-        playIntroSound(field);
     }
 
     @Override
@@ -47,7 +46,6 @@ public class PopIn extends ModifierEvent {
         }
         blockDisplays.clear();
         field.sendTitleToPlayers("", ChatColor.RED + "Blocks no longer randomly pop in!", 0, 20, 10);
-        playOutroSound(field);
     }
 
     @Override
@@ -83,7 +81,8 @@ public class PopIn extends ModifierEvent {
         }.runTaskLater(FillInTheWall.getInstance(), field.getClearDelay()+20);
     }
 
-    public static void playIntroSound(PlayingField field) {
+    @Override
+    public void playActivateSound() {
         new BukkitRunnable() {
             int i = 0;
             @Override
@@ -95,7 +94,7 @@ public class PopIn extends ModifierEvent {
         }.runTaskTimer(FillInTheWall.getInstance(), 0, 1);
     }
 
-    public static void playOutroSound(PlayingField field) {
+    public void playDeactivateSound() {
         new BukkitRunnable() {
             int i = 12;
             @Override

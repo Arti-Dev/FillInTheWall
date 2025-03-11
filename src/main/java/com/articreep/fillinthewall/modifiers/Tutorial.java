@@ -350,4 +350,14 @@ public class Tutorial extends ModifierEvent implements Listener {
     public Tutorial copy(PlayingField newPlayingField) {
         return new Tutorial(newPlayingField);
     }
+
+    @Override
+    public void playActivateSound() {
+
+    }
+
+    @Override
+    public void playDeactivateSound() {
+
+    }
 }

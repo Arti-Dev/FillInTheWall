@@ -37,7 +37,6 @@ public class Gravity extends ModifierEvent {
     @Override
     public void activate() {
         super.activate();
-        field.playSoundToPlayers(Sound.BLOCK_BREWING_STAND_BREW, 2);
         field.sendTitleToPlayers(ChatColor.DARK_PURPLE + "Gravity!", "Blocks fall "
                 + ChatColor.YELLOW + directionName + ChatColor.RESET + "!", 0, 40, 10);
     }
@@ -123,7 +122,6 @@ public class Gravity extends ModifierEvent {
     @Override
     public void end() {
         super.end();
-        field.playSoundToPlayers(Sound.ENTITY_SPLASH_POTION_BREAK, 1);
         field.sendTitleToPlayers("", "Placed blocks are back to normal!", 0, 20, 10);
     }
 
@@ -132,5 +130,15 @@ public class Gravity extends ModifierEvent {
         copy.direction = direction.clone();
         copy.directionName = directionName;
         return copy;
+    }
+
+    @Override
+    public void playActivateSound() {
+        field.playSoundToPlayers(Sound.BLOCK_BREWING_STAND_BREW, 2);
+    }
+
+    @Override
+    public void playDeactivateSound() {
+        field.playSoundToPlayers(Sound.ENTITY_SPLASH_POTION_BREAK, 1);
     }
 }

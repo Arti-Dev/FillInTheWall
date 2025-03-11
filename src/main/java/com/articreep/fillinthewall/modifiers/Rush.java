@@ -96,7 +96,6 @@ public class Rush extends ModifierEvent {
         setTicksRemaining(600);
         for (Player player : field.getPlayers()) {
             player.sendTitle(ChatColor.RED + "RUSH!", ChatColor.RED + "Clear as many walls as you can!", 0, 40, 10);
-            player.playSound(player, Sound.ENTITY_ENDER_DRAGON_GROWL, 0.5F, 1);
         }
         field.clearField();
 
@@ -121,7 +120,6 @@ public class Rush extends ModifierEvent {
             TheVoid.resetTime(field);
         }
         for (Player player : field.getPlayers()) {
-            player.playSound(player, Sound.ENTITY_GENERIC_EXPLODE, 1, 1);
             player.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, player.getLocation(), 1);
             player.sendTitle(ChatColor.GREEN + "RUSH OVER!", ChatColor.GREEN + "" + boardsCleared + " walls cleared", 0, 40, 10);
         }
@@ -167,6 +165,16 @@ public class Rush extends ModifierEvent {
 
     public Rush copy(PlayingField newPlayingField) {
         return new Rush(newPlayingField);
+    }
+
+    @Override
+    public void playActivateSound() {
+        field.playSoundToPlayers(Sound.ENTITY_ENDER_DRAGON_GROWL, 0.5F, 1);
+    }
+
+    @Override
+    public void playDeactivateSound() {
+        field.playSoundToPlayers(Sound.ENTITY_GENERIC_EXPLODE, 1, 1);
     }
 
 }

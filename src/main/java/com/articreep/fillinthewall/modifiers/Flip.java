@@ -2,6 +2,7 @@ package com.articreep.fillinthewall.modifiers;
 
 import com.articreep.fillinthewall.PlayingField;
 import com.articreep.fillinthewall.Wall;
+import org.bukkit.Sound;
 
 public class Flip extends ModifierEvent {
     public Flip(PlayingField field) {
@@ -33,5 +34,15 @@ public class Flip extends ModifierEvent {
 
     public Flip copy(PlayingField newPlayingField) {
         return new Flip(newPlayingField);
+    }
+
+    @Override
+    public void playActivateSound() {
+        field.playSoundToPlayers(Sound.ENTITY_BREEZE_WHIRL, 1);
+    }
+
+    @Override
+    public void playDeactivateSound() {
+
     }
 }

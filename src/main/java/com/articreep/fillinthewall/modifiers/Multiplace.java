@@ -38,7 +38,6 @@ public class Multiplace extends ModifierEvent implements Listener {
         super.activate();
         Bukkit.getPluginManager().registerEvents(this, FillInTheWall.getInstance());
         field.sendTitleToPlayers(ChatColor.GOLD + "Multiplace!", "Your blocks are 2x2 now!", 0, 40, 10);
-        field.playSoundToPlayers(Sound.ITEM_MACE_SMASH_GROUND, 1);
         priorityWallBundle.getWalls().forEach(field.getQueue()::addWall);
     }
 
@@ -138,6 +137,21 @@ public class Multiplace extends ModifierEvent implements Listener {
         HandlerList.unregisterAll(this);
         field.sendTitleToPlayers("", "Block placements are back to normal!", 0, 20, 10);
         field.getQueue().clearPriorityHiddenWalls();
+    }
+
+    public Multiplace copy(PlayingField newPlayingField) {
+        Multiplace copy = new Multiplace(newPlayingField);
+        copy.priorityWallBundle = priorityWallBundle;
+        return copy;
+    }
+
+    @Override
+    public void playActivateSound() {
+        field.playSoundToPlayers(Sound.ITEM_MACE_SMASH_GROUND, 1);
+    }
+
+    @Override
+    public void playDeactivateSound() {
         new BukkitRunnable() {
             int i = 0;
             @Override
@@ -150,12 +164,6 @@ public class Multiplace extends ModifierEvent implements Listener {
                 i++;
             }
         }.runTaskTimer(FillInTheWall.getInstance(), 0, 2);
-    }
-
-    public Multiplace copy(PlayingField newPlayingField) {
-        Multiplace copy = new Multiplace(newPlayingField);
-        copy.priorityWallBundle = priorityWallBundle;
-        return copy;
     }
 
     public WallBundle generatePriorityWallBundle() {

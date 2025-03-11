@@ -27,6 +27,8 @@ public class ScoreAttackGame extends MultiplayerGame {
     Sound.MUSIC_DISC_STAL, Sound.MUSIC_DISC_WAIT};
     private final Sound[] possibleFinalsMusic = {Sound.MUSIC_DISC_PRECIPICE};
     private final WallBundle customWallBundle = WallBundle.getWallBundle("finals");
+    private final int ticksBetweenSignals = 20;
+    private final int signalCount = 3;
 
     public ScoreAttackGame(List<PlayingField> fields, ArrayList<PlayingField> finalStageBoards, GamemodeSettings settings) {
         super(fields, settings);
@@ -94,6 +96,29 @@ public class ScoreAttackGame extends MultiplayerGame {
                 time--;
             }
         }.runTaskTimer(FillInTheWall.getInstance(), 0, 1);
+    }
+
+    private void deployEventWithSignal(ModifierEvent.Type type) {
+        new BukkitRunnable() {
+            int signals = 0;
+            @Override
+            public void run() {
+                if (signals < signalCount) {
+                    ChatColor color = ChatColor.YELLOW;
+                    if (signals == signalCount - 1) {
+                        color = ChatColor.RED;
+                    }
+
+                    for (PlayingField field : playingFields) {
+                        field.sendTitleToPlayers("", color + "⚠", 0, 5, 10);
+                    }
+                    signals++;
+                } else {
+                    deployEvent(type);
+                    cancel();
+                }
+            }
+        }.runTaskTimer(FillInTheWall.getInstance(), 0, 20);
     }
 
     @Override

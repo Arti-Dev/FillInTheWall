@@ -31,14 +31,12 @@ public class Lines extends ModifierEvent implements Listener {
         super.activate();
         Bukkit.getPluginManager().registerEvents(this, FillInTheWall.getInstance());
         field.sendTitleToPlayers(ChatColor.LIGHT_PURPLE + "Lines", "Placed blocks extend to the other side!", 0, 40, 10);
-        field.playSoundToPlayers(Sound.ENTITY_SHEEP_AMBIENT, 1, 1);
         priorityWallBundle.getWalls().forEach(field.getQueue()::addWall);
     }
 
     @Override
     public void end() {
         super.end();
-        field.playSoundToPlayers(Sound.ENTITY_SHEEP_SHEAR, 1, 1);
         field.sendTitleToPlayers("", "Placed blocks are back to normal!", 0, 20, 10);
         field.getQueue().clearPriorityHiddenWalls();
         HandlerList.unregisterAll(this);
@@ -77,6 +75,16 @@ public class Lines extends ModifierEvent implements Listener {
         Lines copy = new Lines(newPlayingField);
         copy.priorityWallBundle = priorityWallBundle;
         return copy;
+    }
+
+    @Override
+    public void playActivateSound() {
+        field.playSoundToPlayers(Sound.ENTITY_SHEEP_AMBIENT, 1, 1);
+    }
+
+    @Override
+    public void playDeactivateSound() {
+        field.playSoundToPlayers(Sound.ENTITY_SHEEP_SHEAR, 1, 1);
     }
 
     public WallBundle generatePriorityWallBundle() {

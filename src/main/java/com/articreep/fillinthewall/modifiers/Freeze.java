@@ -20,10 +20,7 @@ public class Freeze extends ModifierEvent {
         super.activate();
         // Reduce time based on percent filled
         ticksRemaining = (int) (200 * field.getScorer().getMeterPercentFilled());
-        for (Player player : field.getPlayers()) {
-            player.sendTitle(ChatColor.AQUA + "FREEZE!", "Walls and gimmicks are temporarily frozen!", 0, 40, 10);
-            player.playSound(player, Sound.ENTITY_PLAYER_HURT_FREEZE, 0.5F, 1);
-        }
+        field.sendTitleToPlayers(ChatColor.AQUA + "FREEZE!", "Walls and gimmicks are temporarily frozen!", 0, 40, 10);
         field.getQueue().correctAllWalls();
     }
 
@@ -32,7 +29,6 @@ public class Freeze extends ModifierEvent {
         super.end();
         for (Player player : field.getPlayers()) {
             player.sendTitle("", ChatColor.GREEN + "Walls are no longer frozen!", 0, 20, 10);
-            player.playSound(player, Sound.BLOCK_LAVA_EXTINGUISH, 0.5F, 1);
             player.setFreezeTicks(0);
         }
     }
@@ -54,6 +50,16 @@ public class Freeze extends ModifierEvent {
 
     public Freeze copy(PlayingField newPlayingField) {
         return new Freeze(newPlayingField);
+    }
+
+    @Override
+    public void playActivateSound() {
+        field.playSoundToPlayers(Sound.ENTITY_PLAYER_HURT_FREEZE, 0.5F, 1);
+    }
+
+    @Override
+    public void playDeactivateSound() {
+        field.playSoundToPlayers(Sound.BLOCK_LAVA_EXTINGUISH, 0.5F, 1);
     }
 
 }

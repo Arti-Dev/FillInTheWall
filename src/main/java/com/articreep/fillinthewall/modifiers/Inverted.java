@@ -23,7 +23,6 @@ public class Inverted extends ModifierEvent {
         field.getQueue().instantSend();
         field.fillField(field.getPlayerMaterial());
         super.activate();
-        field.playSoundToPlayers(Sound.BLOCK_BEACON_ACTIVATE, 2f);
         field.sendTitleToPlayers(ChatColor.BLACK + "Inverted!", "Left-click to win..?", 0, 40, 10);
     }
 
@@ -53,7 +52,6 @@ public class Inverted extends ModifierEvent {
         }
         field.clearField();
         super.end();
-        field.playSoundToPlayers(Sound.BLOCK_BEACON_DEACTIVATE, 2f);
         field.sendTitleToPlayers("", "Walls are back to normal!", 0, 20, 10);
     }
 
@@ -64,5 +62,15 @@ public class Inverted extends ModifierEvent {
 
     public Inverted copy(PlayingField newPlayingField) {
         return new Inverted(newPlayingField);
+    }
+
+    @Override
+    public void playActivateSound() {
+        field.playSoundToPlayers(Sound.BLOCK_BEACON_ACTIVATE, 2f);
+    }
+
+    @Override
+    public void playDeactivateSound() {
+        field.playSoundToPlayers(Sound.BLOCK_BEACON_DEACTIVATE, 2f);
     }
 }

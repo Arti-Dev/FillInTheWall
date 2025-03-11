@@ -34,7 +34,6 @@ public class PlayerInTheWall extends ModifierEvent {
         for (Player player : field.getPlayers()) {
             player.setAllowFlight(false);
             player.teleport(field.getReferencePoint().setDirection(field.getIncomingDirection().multiply(-1)));
-            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             player.sendTitle(ChatColor.GREEN + "PLAYER IN THE WALL", "Fit yourself into the holes for bonus points!", 0, 40, 10);
         }
     }
@@ -100,7 +99,6 @@ public class PlayerInTheWall extends ModifierEvent {
         setBarriers(Material.AIR);
         for (Player player : field.getPlayers()) {
             player.teleport(field.getSpawnLocation());
-            player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
             player.setAllowFlight(true);
             player.sendTitle("", "You're free!", 0, 20, 10);
         }
@@ -147,5 +145,15 @@ public class PlayerInTheWall extends ModifierEvent {
 
     public PlayerInTheWall copy(PlayingField newPlayingField) {
         return new PlayerInTheWall(newPlayingField);
+    }
+
+    @Override
+    public void playActivateSound() {
+        field.playSoundToPlayers(Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
+    }
+
+    @Override
+    public void playDeactivateSound() {
+        field.playSoundToPlayers(Sound.ENTITY_ENDERMAN_TELEPORT, 1, 1);
     }
 }

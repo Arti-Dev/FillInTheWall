@@ -32,7 +32,6 @@ public class FireInTheHole extends ModifierEvent {
         field.sendTitleToPlayers(ChatColor.GREEN + "FIRE IN THE HOLE", "Fill holes with " +
                 ChatColor.RED + "fire" + ChatColor.RESET + " for bonus points!", 0, 40, 10);
         addTemporaryItemToPlayers(flintAndSteel());
-        field.playSoundToPlayers(Sound.ENTITY_GHAST_SCREAM, 1, 1);
     }
 
     @Override
@@ -111,8 +110,6 @@ public class FireInTheHole extends ModifierEvent {
     @Override
     public void end() {
         super.end();
-        // todo remove flint and steel
-        field.playSoundToPlayers(Sound.ENTITY_BLAZE_SHOOT, 1);
         field.sendTitleToPlayers("", "Fire no longer gives a point bonus!", 0, 20, 10);
     }
 
@@ -127,5 +124,15 @@ public class FireInTheHole extends ModifierEvent {
 
     public FireInTheHole copy(PlayingField newPlayingField) {
         return new FireInTheHole(newPlayingField);
+    }
+
+    @Override
+    public void playActivateSound() {
+        field.playSoundToPlayers(Sound.ENTITY_GHAST_SCREAM, 1, 1);
+    }
+
+    @Override
+    public void playDeactivateSound() {
+        field.playSoundToPlayers(Sound.ENTITY_BLAZE_SHOOT, 1);
     }
 }

@@ -30,7 +30,6 @@ public class Stripes extends ModifierEvent {
         Wall wall = field.getQueue().getFrontmostWall();
         if (wall != null) wall.setStripes(true);
         addTemporaryItemToPlayers(altWallMaterial());
-        field.playSoundToPlayers(Sound.ITEM_BOOK_PAGE_TURN, 1, 1);
         field.sendTitleToPlayers(ChatColor.DARK_AQUA + "Stripes!", "Match colors for bonus points!", 0, 40, 10);
     }
 
@@ -71,7 +70,6 @@ public class Stripes extends ModifierEvent {
         super.end();
         Wall wall = field.getQueue().getFrontmostWall();
         if (wall != null) wall.setStripes(false);
-        field.playSoundToPlayers(Sound.ENTITY_VILLAGER_WORK_LEATHERWORKER, 1, 1);
         field.sendTitleToPlayers("", "Stripes are gone!", 0, 20, 10);
     }
 
@@ -90,5 +88,15 @@ public class Stripes extends ModifierEvent {
 
     public Stripes copy(PlayingField newPlayingField) {
         return new Stripes(newPlayingField);
+    }
+
+    @Override
+    public void playActivateSound() {
+        field.playSoundToPlayers(Sound.ITEM_BOOK_PAGE_TURN, 1, 1);
+    }
+
+    @Override
+    public void playDeactivateSound() {
+        field.playSoundToPlayers(Sound.ENTITY_VILLAGER_WORK_LEATHERWORKER, 1, 1);
     }
 }

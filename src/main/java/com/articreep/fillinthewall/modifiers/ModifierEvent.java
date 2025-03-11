@@ -132,6 +132,7 @@ public abstract class ModifierEvent {
         if (field == null) return;
         field.setEvent(this);
         active = true;
+        playActivateSound();
     }
 
     public void setShelvedEvent(ModifierEvent event) {
@@ -142,6 +143,7 @@ public abstract class ModifierEvent {
 
     public void end() {
         active = false;
+        playDeactivateSound();
         for (Player player : field.getPlayers()) {
             PlayerInventory inventory = player.getInventory();
             ItemStack[] contents = inventory.getContents();
@@ -245,4 +247,8 @@ public abstract class ModifierEvent {
     }
 
     public abstract ModifierEvent copy(PlayingField newPlayingField);
+
+    public abstract void playActivateSound();
+
+    public abstract void playDeactivateSound();
 }

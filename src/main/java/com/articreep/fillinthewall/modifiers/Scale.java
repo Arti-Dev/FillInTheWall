@@ -125,4 +125,14 @@ public class Scale extends ModifierEvent implements Listener {
         copy.scale = scale;
         return copy;
     }
+
+    @Override
+    public void playActivateSound() {
+
+    }
+
+    @Override
+    public void playDeactivateSound() {
+
+    }
 }
