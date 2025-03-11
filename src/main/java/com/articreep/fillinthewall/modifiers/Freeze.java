@@ -16,7 +16,7 @@ public class Freeze extends ModifierEvent {
     @Override
     public void activate() {
         super.activate();
-        if (ticksRemaining != DEFAULT_TICKS) {
+        if (ticksRemaining == DEFAULT_TICKS) {
             // Reduce time based on percent filled
             ticksRemaining = (int) (200 * field.getScorer().getMeterPercentFilled());
         }
