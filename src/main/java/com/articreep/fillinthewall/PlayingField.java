@@ -54,6 +54,7 @@ import java.util.*;
 
 public class PlayingField implements Listener {
     private final Set<Player> players = new HashSet<>();
+    private final ArrayList<UUID> playerOrder = new ArrayList<>();
     private final HashMap<Player, GameMode> previousGamemodes = new HashMap<>();
     private final HashMap<Player, Double> previousBlockReach = new HashMap<>();
     /**
@@ -257,6 +258,7 @@ public class PlayingField implements Listener {
         if (hasStarted() && !players.isEmpty() && Database.isSupported(mode) &&
                 !mode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.TEAM_EFFORT)) return false;
         players.add(player);
+        playerOrder.add(player.getUniqueId());
         player.setInvulnerable(true);
         player.setAllowFlight(true);
         previousGamemodes.put(player, player.getGameMode());
@@ -296,6 +298,7 @@ public class PlayingField implements Listener {
         }
 
         players.remove(player);
+        playerOrder.remove(player.getUniqueId());
         // do not recover the player's gamemode if in spectator
         if (previousGamemodes.containsKey(player) && player.getGameMode() != GameMode.SPECTATOR) {
             GameMode previousGamemode = previousGamemodes.get(player);
@@ -315,6 +318,11 @@ public class PlayingField implements Listener {
 
     public boolean removePlayer(Player player) {
         return removePlayer(player, false);
+    }
+
+    public UUID getEarliestPlayerUUID() {
+        if (players.isEmpty() || playerOrder.isEmpty()) return null;
+        return playerOrder.getFirst();
     }
 
     public void formatInventory(Player player) {

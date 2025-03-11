@@ -5,11 +5,10 @@ import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.utils.Utils;
 import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -17,10 +16,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class Menu implements Listener {
     private final Location location;
@@ -28,6 +29,7 @@ public class Menu implements Listener {
     private final PlayingField field;
     private final Map<Gamemode, Integer> personalBests = new HashMap<>();
     private int gamemodeIndex = 0;
+    private BukkitTask particleTask;
 
     public Menu(Location location, PlayingField field) {
         this.location = location;
@@ -56,11 +58,25 @@ public class Menu implements Listener {
         setMenuGamemode(Gamemode.values()[gamemodeIndex]);
         select.setBillboard(Display.Billboard.CENTER);
         Bukkit.getPluginManager().registerEvents(this, FillInTheWall.getInstance());
+        particleTask = createParticleTask();
+    }
+
+    private BukkitTask createParticleTask() {
+        return Bukkit.getScheduler().runTaskTimer(FillInTheWall.getInstance(), () -> {
+            Player player = Bukkit.getPlayer(field.getEarliestPlayerUUID());
+            if (player != null) {
+                World world = player.getWorld();
+                Color color = Color.fromRGB((int) (Math.random() * 255), (int) (Math.random() * 255), (int) (Math.random() * 255));
+                world.spawnParticle(Particle.DUST, player.getLocation().add(0, 1, 0), 2,
+                        0.5, 1, 0.5, 0.1, new Particle.DustOptions(color, 1F));
+            }
+        }, 0, 5);
     }
 
     @EventHandler
     public void onPlayerClick(PlayerInteractEvent event) {
-        if (!field.getPlayers().contains(event.getPlayer())) return;
+        UUID controller = field.getEarliestPlayerUUID();
+        if (controller == null || !controller.equals(event.getPlayer().getUniqueId())) return;
         if (event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK) {
             nextGamemode();
         } else if (event.getAction() == Action.RIGHT_CLICK_BLOCK &&
@@ -126,5 +142,8 @@ public class Menu implements Listener {
     public void despawn() {
         HandlerList.unregisterAll(this);
         select.remove();
+        if (particleTask != null) {
+            particleTask.cancel();
+        }
     }
 }
