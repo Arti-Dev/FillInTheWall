@@ -1,6 +1,5 @@
 package com.articreep.fillinthewall.modifiers;
 
-import com.articreep.fillinthewall.PlayingField;
 import com.articreep.fillinthewall.Wall;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
@@ -10,8 +9,8 @@ import org.javatuples.Pair;
 import java.util.Map;
 
 public class Inverted extends ModifierEvent {
-    public Inverted(PlayingField field) {
-        super(field);
+    public Inverted() {
+        super();
         fillFieldAfterSubmission = true;
         modifyWalls = true;
         overrideScoreCalculation = true;
@@ -60,8 +59,8 @@ public class Inverted extends ModifierEvent {
         wall.invert();
     }
 
-    public Inverted copy(PlayingField newPlayingField) {
-        return new Inverted(newPlayingField);
+    public Inverted copy() {
+        return new Inverted();
     }
 
     @Override

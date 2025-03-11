@@ -34,8 +34,8 @@ public class Tutorial extends ModifierEvent implements Listener {
     double fakeMeter = 0;
     int fakeMeterMax = 2;
 
-    public Tutorial(PlayingField field) {
-        super(field);
+    public Tutorial() {
+        super();
         overrideGeneration = true;
         allowMultipleWalls = true;
     }
@@ -347,8 +347,8 @@ public class Tutorial extends ModifierEvent implements Listener {
         return color + "Freeze Meter: " + String.format("%.2f", fakeMeter) + "/" + fakeMeterMax;
     }
 
-    public Tutorial copy(PlayingField newPlayingField) {
-        return new Tutorial(newPlayingField);
+    public Tutorial copy() {
+        return new Tutorial();
     }
 
     @Override

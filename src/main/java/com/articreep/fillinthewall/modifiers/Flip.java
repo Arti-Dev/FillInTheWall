@@ -1,12 +1,11 @@
 package com.articreep.fillinthewall.modifiers;
 
-import com.articreep.fillinthewall.PlayingField;
 import com.articreep.fillinthewall.Wall;
 import org.bukkit.Sound;
 
 public class Flip extends ModifierEvent {
-    public Flip(PlayingField field) {
-        super(field);
+    public Flip() {
+        super();
         modifyWalls = true;
     }
 
@@ -32,8 +31,8 @@ public class Flip extends ModifierEvent {
         }
     }
 
-    public Flip copy(PlayingField newPlayingField) {
-        return new Flip(newPlayingField);
+    public Flip copy() {
+        return new Flip();
     }
 
     @Override

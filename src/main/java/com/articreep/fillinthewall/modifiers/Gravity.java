@@ -1,7 +1,6 @@
 package com.articreep.fillinthewall.modifiers;
 
 import com.articreep.fillinthewall.FillInTheWall;
-import com.articreep.fillinthewall.PlayingField;
 import com.articreep.fillinthewall.Wall;
 import com.articreep.fillinthewall.utils.Utils;
 import org.bukkit.*;
@@ -23,22 +22,34 @@ public class Gravity extends ModifierEvent {
     final double acceleration = 9.8;
     Set<BlockDisplay> blockDisplays = new HashSet<>();
 
-    public Gravity(PlayingField field) {
-        super(field);
-        HashMap<Vector, String> possibleDirections = new HashMap<>();
-        possibleDirections.put(new Vector(0, -1, 0), "down");
-        possibleDirections.put(new Vector(0, 1, 0), "up");
-        possibleDirections.put(field.getFieldDirection(), "right");
-        possibleDirections.put(field.getFieldDirection().multiply(-1), "left");
-        direction = Utils.randomSetElement(possibleDirections.keySet());
-        directionName = possibleDirections.get(direction);
+    public Gravity() {
+        super();
+        Set<String> possibleDirections = new HashSet<>(Arrays.asList("up", "down", "left", "right"));
+        directionName = Utils.randomSetElement(possibleDirections);
     }
 
     @Override
     public void activate() {
         super.activate();
+        assignVector();
         field.sendTitleToPlayers(ChatColor.DARK_PURPLE + "Gravity!", "Blocks fall "
                 + ChatColor.YELLOW + directionName + ChatColor.RESET + "!", 0, 40, 10);
+    }
+
+    private void assignVector() {
+        if (field == null) {
+            direction = new Vector(0, -1, 0);
+            return;
+        }
+        if (directionName.equalsIgnoreCase("up")) {
+            direction = new Vector(0, 1, 0);
+        } else if (directionName.equalsIgnoreCase("down")) {
+            direction = new Vector(0, -1, 0);
+        } else if (directionName.equalsIgnoreCase("left")) {
+            direction = field.getFieldDirection().multiply(-1);
+        } else if (directionName.equalsIgnoreCase("right")) {
+            direction = field.getFieldDirection();
+        }
     }
 
     @Override
@@ -125,9 +136,8 @@ public class Gravity extends ModifierEvent {
         field.sendTitleToPlayers("", "Placed blocks are back to normal!", 0, 20, 10);
     }
 
-    public Gravity copy(PlayingField newPlayingField) {
-        Gravity copy = new Gravity(newPlayingField);
-        copy.direction = direction.clone();
+    public Gravity copy() {
+        Gravity copy = new Gravity();
         copy.directionName = directionName;
         return copy;
     }

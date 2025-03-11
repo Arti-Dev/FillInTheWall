@@ -1,14 +1,13 @@
 package com.articreep.fillinthewall.modifiers;
 
-import com.articreep.fillinthewall.PlayingField;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
 public class Freeze extends ModifierEvent {
 
-    public Freeze(PlayingField field) {
-        super(field);
+    public Freeze() {
+        super();
         wallFreeze = true;
         timeFreeze = true;
         meterPercentRequired = 0.5;
@@ -48,8 +47,8 @@ public class Freeze extends ModifierEvent {
         return ChatColor.AQUA + "" + ChatColor.BOLD + "Frozen for " + ticksRemaining/20 + " seconds";
     }
 
-    public Freeze copy(PlayingField newPlayingField) {
-        return new Freeze(newPlayingField);
+    public Freeze copy() {
+        return new Freeze();
     }
 
     @Override

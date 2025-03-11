@@ -22,8 +22,8 @@ public class Scale extends ModifierEvent implements Listener {
     private final Map<Player, Double> playerReachDistances = new HashMap<>();
     private double scale;
 
-    public Scale(PlayingField field) {
-        super(field);
+    public Scale() {
+        super();
         Random random = new Random();
         if (random.nextBoolean()) {
             scale = random.nextDouble(0.0625, 1);
@@ -120,8 +120,8 @@ public class Scale extends ModifierEvent implements Listener {
     }
 
     @Override
-    public Scale copy(PlayingField newPlayingField) {
-        Scale copy = new Scale(newPlayingField);
+    public Scale copy() {
+        Scale copy = new Scale();
         copy.scale = scale;
         return copy;
     }

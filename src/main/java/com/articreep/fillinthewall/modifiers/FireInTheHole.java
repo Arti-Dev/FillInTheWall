@@ -18,8 +18,8 @@ import java.util.*;
 
 
 public class FireInTheHole extends ModifierEvent {
-    public FireInTheHole(PlayingField field) {
-        super(field);
+    public FireInTheHole() {
+        super();
         overrideScoreCalculation = true;
         overrideBonusCalculation = true;
         overrideScoreTitle = true;
@@ -122,8 +122,8 @@ public class FireInTheHole extends ModifierEvent {
         return item;
     }
 
-    public FireInTheHole copy(PlayingField newPlayingField) {
-        return new FireInTheHole(newPlayingField);
+    public FireInTheHole copy() {
+        return new FireInTheHole();
     }
 
     @Override

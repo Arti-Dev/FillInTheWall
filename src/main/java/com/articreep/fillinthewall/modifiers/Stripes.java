@@ -17,8 +17,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Stripes extends ModifierEvent {
-    public Stripes(PlayingField field) {
-        super(field);
+    public Stripes() {
+        super();
         modifyWalls = true;
         overrideBonusCalculation = true;
         overrideScoreTitle = true;
@@ -86,8 +86,8 @@ public class Stripes extends ModifierEvent {
         return item;
     }
 
-    public Stripes copy(PlayingField newPlayingField) {
-        return new Stripes(newPlayingField);
+    public Stripes copy() {
+        return new Stripes();
     }
 
     @Override

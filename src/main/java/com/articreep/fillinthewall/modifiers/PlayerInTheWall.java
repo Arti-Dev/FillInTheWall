@@ -19,8 +19,8 @@ import java.util.Set;
  * Not compatible with the Scale event
  */
 public class PlayerInTheWall extends ModifierEvent {
-    public PlayerInTheWall(PlayingField field) {
-        super(field);
+    public PlayerInTheWall() {
+        super();
         modifyWalls = true;
         overrideScoreCalculation = true;
         overrideBonusCalculation = true;
@@ -143,8 +143,8 @@ public class PlayerInTheWall extends ModifierEvent {
         // if we reach here, the wall has no holes... that's a troll moment
     }
 
-    public PlayerInTheWall copy(PlayingField newPlayingField) {
-        return new PlayerInTheWall(newPlayingField);
+    public PlayerInTheWall copy() {
+        return new PlayerInTheWall();
     }
 
     @Override

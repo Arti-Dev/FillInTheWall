@@ -28,8 +28,8 @@ public class Multiplace extends ModifierEvent implements Listener {
     Map<Player, Set<BlockDisplay>> blockDisplays = new HashMap<>();
     WallBundle priorityWallBundle;
 
-    public Multiplace(PlayingField field) {
-        super(field);
+    public Multiplace() {
+        super();
         priorityWallBundle = generatePriorityWallBundle();
     }
 
@@ -139,8 +139,8 @@ public class Multiplace extends ModifierEvent implements Listener {
         field.getQueue().clearPriorityHiddenWalls();
     }
 
-    public Multiplace copy(PlayingField newPlayingField) {
-        Multiplace copy = new Multiplace(newPlayingField);
+    public Multiplace copy() {
+        Multiplace copy = new Multiplace();
         copy.priorityWallBundle = priorityWallBundle;
         return copy;
     }

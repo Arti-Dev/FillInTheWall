@@ -21,8 +21,8 @@ import java.util.Random;
 public class Lines extends ModifierEvent implements Listener {
     WallBundle priorityWallBundle;
 
-    public Lines(PlayingField field) {
-        super(field);
+    public Lines() {
+        super();
         priorityWallBundle = generatePriorityWallBundle();
     }
 
@@ -71,8 +71,8 @@ public class Lines extends ModifierEvent implements Listener {
         }
     }
 
-    public Lines copy(PlayingField newPlayingField) {
-        Lines copy = new Lines(newPlayingField);
+    public Lines copy() {
+        Lines copy = new Lines();
         copy.priorityWallBundle = priorityWallBundle;
         return copy;
     }

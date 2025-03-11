@@ -21,28 +21,27 @@ public class Rush extends ModifierEvent {
     private Wall nextWall;
     private int wallSpeed = 200;
     private int boardsCleared = 0;
-    public Rush(PlayingField field) {
-        super(field);
+    public Rush() {
+        super();
         clearDelay = 5;
         overrideCompleteScoring = true;
         overrideGeneration = true;
         allowMultipleWalls = true;
         allowMeterAccumulation = false;
 
-        if (field == null) return;
         nextWall = new Wall(field.getLength(), field.getHeight());
         nextWall.setMaterial(randomMaterial());
         nextWall.insertHole(nextWall.randomCoordinates());
     }
 
     public void deploy() {
-        Wall toReturn = nextWall;
+        Wall toAdd = nextWall;
         nextWall = generateNextWall();
-        toReturn.setTimeRemaining(wallSpeed);
+        toAdd.setTimeRemaining(wallSpeed);
         wallSpeed -= 9;
         if (wallSpeed < 7) wallSpeed = 7;
 
-        queue.addWall(toReturn);
+        queue.addWall(toAdd);
     }
 
     private Wall generateNextWall() {
@@ -163,8 +162,8 @@ public class Rush extends ModifierEvent {
         firstWallCleared = b;
     }
 
-    public Rush copy(PlayingField newPlayingField) {
-        return new Rush(newPlayingField);
+    public Rush copy() {
+        return new Rush();
     }
 
     @Override
