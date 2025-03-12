@@ -14,6 +14,7 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SpawnEggMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -58,7 +59,7 @@ public class GlobalListeners implements Listener {
         event.setCancelled(true);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOW)
     public void onInventoryClick(InventoryClickEvent event) {
         if (event.getWhoClicked().isOp()) return;
         ItemStack cursorItem = event.getCursor();
@@ -77,7 +78,7 @@ public class GlobalListeners implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOW)
     public void onPlayerSwapItem(PlayerItemHeldEvent event) {
         Player player = event.getPlayer();
         if (player.isOp()) return;
@@ -88,5 +89,11 @@ public class GlobalListeners implements Listener {
             player.getInventory().setItem(event.getNewSlot(), new ItemStack(Material.AIR));
             player.sendMessage(ChatColor.DARK_GRAY + "Can't use this item!");
         }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        if (event.getPlayer().isOp()) return;
+        event.getPlayer().teleport(FillInTheWall.getInstance().getMultiplayerSpawn());
     }
 }
