@@ -247,7 +247,7 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
         dataSource.setServerName(config.getString("database.host"));
         dataSource.setPortNumber(config.getInt("database.port"));
         dataSource.setDatabaseName(config.getString("database.database"));
-        dataSource.setUser(config.getString("database.user"));
+        dataSource.setUser(config.getString("database.username"));
         dataSource.setPassword(config.getString("database.password"));
 
 
@@ -262,6 +262,7 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
                     "Please make sure you are using a MySQL server and that the config.yml is set up correctly." +
                     "\nThe plugin will still work, but leaderboards will be disabled, scores will not submit, and player-saved " +
                     "hotbars will not load");
+            e.printStackTrace();
             return false;
         }
 
