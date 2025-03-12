@@ -17,7 +17,7 @@ Since this plugin uses some NMS, you'll need to use BuildTools to install remapp
 
 ![image](https://github.com/user-attachments/assets/e377c175-10e3-4b2f-a92e-6d18a15e6366)
 
-*At the time of writing this, this plugin is for 1.21!*
+*At the time of writing this, this plugin is for 1.21.4!*
 
 Clone this repository onto your machine and build the Maven project with `mvn package`. You can also open IntelliJ and do it from there.
 
@@ -27,9 +27,7 @@ Grab the jar file from the /target/ folder and place it in your Spigot/Paper ser
 
 If you try to load the plugin in this state, the plugin will load, but it will say that it failed to connect to a SQL database and that personal bests will not persist and leaderboards will not work.
 
-To fix this, in the config file that's generated at plugins/FillInTheWall/config.yml, configure the database settings. You'll also need to manually create a "fitw" database in the MySQL server, as the plugin doesn't do that automatically. *This will change later!*
-
-*Please note that the username field doesn't work for some reason, so you might have to make a new user for the SQL server .-.*
+To fix this, in the config file that's generated at plugins/FillInTheWall/config.yml, configure the database settings. You'll need to manually create a database in the MySQL server you're connecting to, as the plugin will not do this for you. *May change in the future!*
 
 # Config
 
