@@ -36,6 +36,7 @@ public class Wall {
     private Material material = null;
     private int tickCooldown = 0;
     private boolean doSpin = false;
+    private int spinTicks = 0;
     private final int defaultTeleportDuration = 5;
     private int teleportDuration = defaultTeleportDuration;
     private boolean inverted = false;
@@ -300,9 +301,15 @@ public class Wall {
             for (Display display : entities) {
                 Location target = display.getLocation()
                         .add(movementDirection.clone().multiply(distanceToTraverse * teleportDuration / (double) maxTime));
-                if (doSpin && display instanceof BlockDisplay && blocks.containsKey(display)) target.setYaw(target.getYaw() + 10);
+                if (doSpin && display instanceof BlockDisplay && blocks.containsKey(display)) {
+                    target.setYaw(target.getYaw() + 10);
+                }
                 display.teleport(target);
             }
+            if (doSpin) {
+                spinTicks++;
+            }
+
             // Note where we're teleporting to in case we need to correct the wall's location during interpolation
             teleportTo = timeRemaining - teleportDuration;
             // Reset tick cooldown
@@ -337,11 +344,14 @@ public class Wall {
         new BukkitRunnable() {
             @Override
             public void run() {
-                setTeleportDuration(defaultTeleportDuration);
-                doSpin = false;
-                cancel();
+                if (spinTicks >= 18) {
+                    setTeleportDuration(defaultTeleportDuration);
+                    doSpin = false;
+                    spinTicks = 0;
+                    cancel();
+                }
             }
-        }.runTaskLater(FillInTheWall.getInstance(), 18);
+        }.runTaskTimer(FillInTheWall.getInstance(), 0, 1);
     }
 
     /* SCORING */
