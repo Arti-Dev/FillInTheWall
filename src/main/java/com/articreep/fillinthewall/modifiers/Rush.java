@@ -73,6 +73,10 @@ public class Rush extends ModifierEvent {
         if (queue.countHiddenWalls() < 5) {
             deploy();
         }
+
+        if (ticksRemaining > 0 && ticksRemaining <= 100 && ticksRemaining % 20 == 0) {
+            field.playSoundToPlayers(Sound.ENTITY_CREEPER_HURT, 1);
+        }
     }
 
     public void increaseBoardsCleared() {
@@ -87,7 +91,7 @@ public class Rush extends ModifierEvent {
     public void activate() {
         super.activate();
         // Override whatever custom time we have
-        setTicksRemaining(600);
+        ticksRemaining = 600;
         for (Player player : field.getPlayers()) {
             player.sendTitle(ChatColor.RED + "RUSH!", ChatColor.RED + "Clear as many walls as you can!", 0, 40, 10);
         }
@@ -134,7 +138,11 @@ public class Rush extends ModifierEvent {
         } else {
             color = ChatColor.GREEN;
         }
-        return color + "" + ChatColor.BOLD + "Walls Cleared: " + cleared;
+
+        ChatColor timerColor = ChatColor.GOLD;
+        if (ticksRemaining < 100) timerColor = ChatColor.RED;
+
+        return color + "" + ChatColor.BOLD + "Walls Cleared: " + cleared + " " + timerColor + ticksRemaining / 20 + "s left";
     }
 
     @Override

@@ -178,10 +178,6 @@ public class WallQueue {
                 wall.despawn();
                 it.remove();
                 field.matchAndScore(wall);
-                if (field.eventActive() && field.getEvent() instanceof Rush) {
-                    field.endEvent();
-                }
-
                 pauseTickLoop = field.getClearDelay();
             } else if (wall.getWallState() != WallState.VISIBLE) {
                 Bukkit.getLogger().severe(ChatColor.RED + "Attempted to tick wall before spawned..");
