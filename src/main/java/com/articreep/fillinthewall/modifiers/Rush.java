@@ -118,9 +118,9 @@ public class Rush extends ModifierEvent {
         queue.setMaxSpawnCooldown(80);
         queue.allowMultipleWalls(false);
         field.getScorer().scoreEvent(this);
-        if (field.getEnvironment().equalsIgnoreCase("VOID")) {
-            TheVoid.resetTime(field);
-        }
+//        if (field.getEnvironment().equalsIgnoreCase("VOID")) {
+//            TheVoid.resetTime(field);
+//        }
         for (Player player : field.getPlayers()) {
             player.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, player.getLocation(), 1);
             player.sendTitle(ChatColor.GREEN + "RUSH OVER!", ChatColor.GREEN + "" + boardsCleared + " walls cleared", 0, 40, 10);
@@ -153,9 +153,10 @@ public class Rush extends ModifierEvent {
             for (Player player : field.getPlayers()) player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1, (float) pitch);
             increaseBoardsCleared();
             field.critParticles();
-            if (field.getEnvironment().equalsIgnoreCase("VOID")) {
-                TheVoid.adjustTime(field, this);
-            }
+            // todo make this clientside
+//            if (field.getEnvironment().equalsIgnoreCase("VOID")) {
+//                TheVoid.adjustTime(field, this);
+//            }
         } else {
             for (Player player : field.getPlayers()) player.playSound(player, Sound.BLOCK_NOTE_BLOCK_SNARE, 1, 1);
         }
