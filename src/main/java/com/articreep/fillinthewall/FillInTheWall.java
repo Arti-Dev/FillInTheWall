@@ -531,12 +531,18 @@ public final class FillInTheWall extends JavaPlugin implements CommandExecutor, 
         String sql2 = "CREATE TABLE IF NOT EXISTS hotbars(" +
                 "uuid CHAR(36) NOT NULL," +
                 "hotbar CHAR(9) DEFAULT ? NOT NULL," +
-                "PRIMARY KEY (uuid));";
+                "FOREIGN KEY (uuid) REFERENCES scores(uuid) ON DELETE CASCADE);";
+        String sql3 = "CREATE TABLE IF NOT EXISTS playerInfo(" +
+                "uuid CHAR(36) NOT NULL," +
+                "newcomer BIT DEFAULT 1 NOT NULL," +
+                "FOREIGN KEY (uuid) REFERENCES scores(uuid) ON DELETE CASCADE);";
         try (Connection conn = dataSource.getConnection()) {
             PreparedStatement stmt = conn.prepareStatement(sql1);
             stmt.executeUpdate();
             stmt = conn.prepareStatement(sql2);
             stmt.setString(1, PlayingField.DEFAULT_HOTBAR);
+            stmt.executeUpdate();
+            stmt = conn.prepareStatement(sql3);
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

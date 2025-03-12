@@ -151,6 +151,49 @@ public class Database {
         }
     }
 
+    public static boolean isNewcomer(UUID uuid) throws SQLException {
+        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "SELECT newcomer FROM playerInfo WHERE uuid = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            ResultSet result = stmt.executeQuery();
+            if (result.next()){
+                return result.getBoolean("newcomer");
+            } else {
+                // If they didn't exist before, add them!
+                addNewcomer(uuid);
+                return true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error while checking if user is newcomer!");
+        }
+    }
+
+    public static void setNewcomer(UUID uuid, boolean newcomer) {
+        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "UPDATE playerInfo SET newcomer = ? WHERE uuid = ?"
+        )) {
+            stmt.setBoolean(1, newcomer);
+            stmt.setString(2, uuid.toString());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void addNewcomer(UUID uuid) {
+        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "INSERT INTO playerInfo(uuid, newcomer) VALUES(?, ?)"
+        )) {
+            stmt.setString(1, uuid.toString());
+            stmt.setBoolean(2, true);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 
     public static boolean isSupported(Gamemode gamemode) {

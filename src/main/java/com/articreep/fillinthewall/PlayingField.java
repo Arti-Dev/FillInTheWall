@@ -238,6 +238,17 @@ public class PlayingField implements Listener {
             formatInventory(player);
             player.setGameMode(GameMode.CREATIVE);
             setInfiniteReach(player);
+            try {
+                if (!Database.isOfflineMode() && Database.isNewcomer(player.getUniqueId())) {
+                    if (mode != Gamemode.TUTORIAL) Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () ->
+                            player.sendTitle(ChatColor.AQUA + "Place glass blocks", ChatColor.DARK_AQUA + "such that they" +
+                            ChatColor.AQUA + " fill in the " + ChatColor.DARK_AQUA + "incoming" + ChatColor.AQUA + " wall!",
+                                    10, 200, 20), 40);
+                    Database.setNewcomer(player.getUniqueId(), false);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
         task = tickLoop();
     }
