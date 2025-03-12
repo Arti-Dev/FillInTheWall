@@ -88,9 +88,10 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
                 NBSMusic.enabled = false;
             }
 
-            // todo temporary
+            // todo should be replaced with a more flexible system
             PlayingFieldManager.pregame = new Pregame(Bukkit.getWorld("multi"), Gamemode.MULTIPLAYER_SCORE_ATTACK,
                     2, 30);
+            PlayingFieldManager.pregame.startCountdown();
             PlayingFieldManager.vsPregame = new Pregame(Bukkit.getWorld("versus"), Gamemode.VERSUS, 2, 15);
             PlayingFieldManager.parseConfig(getPlayingFieldConfig());
             spawnPortals();
