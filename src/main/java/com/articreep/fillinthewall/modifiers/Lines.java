@@ -30,7 +30,7 @@ public class Lines extends ModifierEvent implements Listener {
         super.activate();
         Bukkit.getPluginManager().registerEvents(this, FillInTheWall.getInstance());
         field.sendTitleToPlayers(ChatColor.LIGHT_PURPLE + "Lines", "Placed blocks extend to the other side!", 0, 40, 10);
-        priorityWallBundle.getWalls().forEach(field.getQueue()::addWall);
+        priorityWallBundle.getWalls().forEach(field.getQueue()::addPriorityWall);
     }
 
     @Override

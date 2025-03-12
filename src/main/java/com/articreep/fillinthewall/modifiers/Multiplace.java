@@ -40,7 +40,7 @@ public class Multiplace extends ModifierEvent implements Listener {
         if (priorityWallBundle == null) {
             priorityWallBundle = generatePriorityWallBundle(field.getLength(), field.getHeight());
         }
-        priorityWallBundle.getWalls().forEach(field.getQueue()::addWall);
+        priorityWallBundle.getWalls().forEach(field.getQueue()::addPriorityWall);
     }
 
     @EventHandler (priority = EventPriority.HIGH)
@@ -178,10 +178,10 @@ public class Multiplace extends ModifierEvent implements Listener {
             // 50/50 chance to remove one of the holes at random
             // Insert into wall
 
-            Wall wall = new Wall(field.getLength(), field.getHeight());
+            Wall wall = new Wall(length, height);
             for (int j = 0; j < 3; j++) {
                 ArrayList<Pair<Integer, Integer>> holes = new ArrayList<>();
-                Pair<Integer, Integer> randomCoords = Pair.with(random.nextInt(field.getLength() - 2), random.nextInt(field.getHeight() - 2));
+                Pair<Integer, Integer> randomCoords = Pair.with(random.nextInt(length - 2), random.nextInt(height - 2));
                 holes.add(randomCoords);
                 holes.add(Pair.with(randomCoords.getValue0() + 1, randomCoords.getValue1()));
                 holes.add(Pair.with(randomCoords.getValue0(), randomCoords.getValue1() + 1));
