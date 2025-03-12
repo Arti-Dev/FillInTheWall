@@ -32,6 +32,8 @@ public abstract class MultiplayerGame implements Listener {
     protected Set<BukkitTask> otherTasks = new HashSet<>();
     protected GamemodeSettings settings;
     protected Set<Player> spectators = new HashSet<>();
+    protected int ticksBetweenSignals = 20;
+    protected int signalCount = 3;
 
     public MultiplayerGame(List<PlayingField> fields, GamemodeSettings settings) {
         if (fields.isEmpty()) {
@@ -157,8 +159,7 @@ public abstract class MultiplayerGame implements Listener {
         rankPlayingFields();
         broadcastResults();
 
-        Set<Player> playersToTeleport = new HashSet<>();
-        playersToTeleport.addAll(spectators);
+        Set<Player> playersToTeleport = new HashSet<>(spectators);
         for (PlayingField field : playingFields) {
             field.getQueue().resetGenerator();
             field.setMultiplayerMode(false);
@@ -281,6 +282,45 @@ public abstract class MultiplayerGame implements Listener {
 
     protected void deployEvent(ModifierEvent.Type type) {
         deployEvent(type, false);
+    }
+
+    protected void deployEventWithSignals(ModifierEvent.Type type) {
+        PlayingField sampleField = playingFields.iterator().next();
+        ModifierEvent event = type.createEvent();
+        event.additionalInit(sampleField.getLength(), sampleField.getHeight());
+
+        // Hold an event for each playing field until they're ready to be activated
+        HashSet<ModifierEvent> events = new HashSet<>();
+        for (PlayingField field : playingFields) {
+            ModifierEvent copy = event.copy();
+            copy.setPlayingField(field);
+            events.add(copy);
+        }
+
+        new BukkitRunnable() {
+            int signals = 0;
+            @Override
+            public void run() {
+                if (signals < signalCount) {
+                    ChatColor color = ChatColor.YELLOW;
+                    if (signals == signalCount - 1) {
+                        color = ChatColor.RED;
+                    }
+
+                    for (ModifierEvent event : events) {
+                        if (signals == 0) event.playActivateSound();
+                        else event.getPlayingField().playSoundToPlayers(Sound.BLOCK_NOTE_BLOCK_HAT, 1);
+                        event.getPlayingField().sendTitleToPlayers(color + "⚠", "", 0, 5, 10);
+                    }
+                    signals++;
+                } else {
+                    for (ModifierEvent event : events) {
+                        event.activate();
+                    }
+                    cancel();
+                }
+            }
+        }.runTaskTimer(FillInTheWall.getInstance(), 0, ticksBetweenSignals);
     }
 
     @EventHandler

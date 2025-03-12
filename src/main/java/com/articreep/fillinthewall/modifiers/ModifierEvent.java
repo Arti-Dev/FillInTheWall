@@ -258,6 +258,10 @@ public abstract class ModifierEvent {
         this.queue = field.getQueue();
     }
 
+    public PlayingField getPlayingField() {
+        return field;
+    }
+
     /**
      * Additional initialization that requires the length and height of the playing field.
      * @param length length
