@@ -221,7 +221,8 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
             display.remove();
         }
         displays.clear();
-        if (!loadSQL()) return;
+        NBSMusic.loadConfig(getConfig());
+        Database.setOfflineMode(!loadSQL());
         spawnPortals();
         Leaderboards.spawnLeaderboards(getConfig());
         leaderboardUpdateTask = Bukkit.getScheduler().runTaskTimer(this, Leaderboards::updateLeaderboards, 0, 20 * 30);
