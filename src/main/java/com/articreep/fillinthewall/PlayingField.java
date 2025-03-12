@@ -328,6 +328,7 @@ public class PlayingField implements Listener {
 
     public void formatInventory(Player player) {
         player.getInventory().clear();
+        player.setItemOnCursor(null);
         String hotbar;
         try {
             if (Database.isOfflineMode()) hotbar = DEFAULT_HOTBAR;
