@@ -1,7 +1,6 @@
 package com.articreep.fillinthewall.modifiers;
 
 import com.articreep.fillinthewall.FillInTheWall;
-import com.articreep.fillinthewall.PlayingField;
 import com.articreep.fillinthewall.Wall;
 import com.articreep.fillinthewall.utils.CustomPathfinderGoal;
 import com.articreep.fillinthewall.utils.ToggleLookAtPlayerGoal;
@@ -33,6 +32,7 @@ public class Tutorial extends ModifierEvent implements Listener {
     int currentSlide = 0;
     double fakeMeter = 0;
     int fakeMeterMax = 2;
+    boolean error = false;
 
     public Tutorial() {
         super();
@@ -51,13 +51,21 @@ public class Tutorial extends ModifierEvent implements Listener {
     public void activate() {
         super.activate();
         Bukkit.getPluginManager().registerEvents(this, FillInTheWall.getInstance());
-        spawnEnderman();
+        // todo untested failsafe
+        try {
+            spawnEnderman();
+        } catch (NoClassDefFoundError e) {
+            error = true;
+            field.endEvent();
+            e.printStackTrace();
+        }
     }
 
     @Override
     public void end() {
         super.end();
         currentSlide = -1;
+        if (error) field.sendTitleToPlayers(ChatColor.RED + "The tutorial failed to load!", "Please report this!", 10, 40, 20);
         field.sendTitleToPlayers("", "Good luck!", 10, 40, 20);
         if (enderman != null) {
             enderman.remove();
