@@ -45,6 +45,16 @@
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
+                <excludes>
+                    <exclude>**/*.nbs</exclude>  <!-- Exclude .nbs files from filtering -->
+                </excludes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>  <!-- NBS files are not to be filtered -->
+                <includes>
+                    <include>**/*.nbs</include>
+                </includes>
             </resource>
         </resources>
     </build>
@@ -57,6 +67,10 @@
         <repository>
             <id>sonatype</id>
             <url>https://oss.sonatype.org/content/groups/public/</url>
+        </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
         </repository>
     </repositories>
 
@@ -85,6 +99,11 @@
             <artifactId>mysql-connector-j</artifactId>
             <version>9.2.0</version>
         </dependency>
-
+        <dependency>
+            <groupId>com.github.koca2000</groupId>
+            <artifactId>NoteBlockAPI</artifactId>
+            <version>1.6.3</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 </project>

@@ -1,5 +1,6 @@
 package com.articreep.fillinthewall.multiplayer;
 
+import com.articreep.fillinthewall.NBSMusic;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.PlayingField;
@@ -9,6 +10,8 @@ import com.articreep.fillinthewall.display.ScoreboardEntryType;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.gamemode.GamemodeSettings;
 import com.articreep.fillinthewall.utils.Utils;
+import com.xxmicloxx.NoteBlockAPI.model.RepeatMode;
+import com.xxmicloxx.NoteBlockAPI.songplayer.PositionSongPlayer;
 import org.bukkit.Bukkit;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.World;
@@ -41,6 +44,8 @@ public class Pregame implements Listener {
 
     private final List<PlayingField> availablePlayingFields = new ArrayList<>();
 
+    private PositionSongPlayer songPlayer;
+
     public Pregame(World world, Gamemode gamemode, int minPlayers, int countdownMax) {
         this.world = world;
         this.gamemode = gamemode;
@@ -55,6 +60,7 @@ public class Pregame implements Listener {
     public void onPlayerLeaveWorld(PlayerChangedWorldEvent event) {
         if (event.getFrom().equals(world)) {
             Utils.resetScoreboard(event.getPlayer());
+            if (songPlayer != null) songPlayer.removePlayer(event.getPlayer());
         }
     }
 
@@ -70,6 +76,16 @@ public class Pregame implements Listener {
         if (task != null) {
             task.cancel();
         }
+        if (songPlayer != null) {
+            songPlayer.destroy();
+        }
+
+        if (NBSMusic.enabled && NBSMusic.getLobbyMusic() != null) {
+            songPlayer = new PositionSongPlayer(NBSMusic.getLobbyMusic());
+            songPlayer.setTargetLocation(NBSMusic.getLobbyMusicLocation());
+            songPlayer.setRepeatMode(RepeatMode.ALL);
+            songPlayer.setPlaying(true);
+        }
         task = tickLoop();
     }
 
@@ -78,6 +94,10 @@ public class Pregame implements Listener {
             // For some reason this doesn't call my version of the method, even though I overrided the cancel() method?
             task.cancel();
             task = null;
+        }
+        if (songPlayer != null) {
+            songPlayer.destroy();
+            songPlayer = null;
         }
         HandlerList.unregisterAll(this);
         countdown = -1;
@@ -222,6 +242,9 @@ public class Pregame implements Listener {
 
                 for (Player player : world.getPlayers()) {
                     player.setScoreboard(scoreboard);
+                    if (songPlayer != null && !songPlayer.getPlayerUUIDs().contains(player.getUniqueId())) {
+                        songPlayer.addPlayer(player);
+                    }
                 }
 
                 if (world.getPlayers().size() < minPlayers) {

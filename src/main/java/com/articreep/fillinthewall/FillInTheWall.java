@@ -68,6 +68,25 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
             Database.setOfflineMode(true);
         }
 
+        // Create directories
+        File customWallFolder = new File(getDataFolder(), "custom");
+        File musicFolder = new File(getDataFolder(), "music");
+        customWallFolder.mkdirs();
+        if (!musicFolder.exists()) {
+            musicFolder.mkdirs();
+            saveResource("fortress hill.nbs", false);
+            // move the default music file to the music folder
+            File defaultMusic = new File(getDataFolder(), "fortress hill.nbs");
+            defaultMusic.renameTo(new File(musicFolder, "fortress hill.nbs"));
+        }
+
+        if (getServer().getPluginManager().getPlugin("NoteBlockAPI") != null)
+            NBSMusic.loadConfig(getConfig());
+        else {
+            Bukkit.getLogger().info("NoteBlockAPI not found - note block music disabled");
+            NBSMusic.enabled = false;
+        }
+
         Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
             // todo temporary
             PlayingFieldManager.pregame = new Pregame(Bukkit.getWorld("multi"), Gamemode.MULTIPLAYER_SCORE_ATTACK,
