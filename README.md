@@ -2,6 +2,8 @@
 
 A modern remake of Hypixel's Hole in the Wall minigame
 
+[Technical Writeup/Blog Post](https://arti-dev.github.io/2024/08/08/fillinthewall.html)
+
 Originally for [HooHacks 2024](https://devpost.com/software/hole-in-the-wall-rush)
 
 # Video
