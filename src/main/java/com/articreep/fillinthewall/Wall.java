@@ -502,8 +502,7 @@ public class Wall {
         if (holes.size() >= length * height) return null;
         Random random = new Random();
         // Dump all existing holes into an arraylist, and shuffle
-        List<Pair<Integer, Integer>> holeList = new ArrayList<>();
-        holeList.addAll(holes);
+        List<Pair<Integer, Integer>> holeList = new ArrayList<>(holes);
 
         // todo review this
         boolean even = (length % 2 == 0);
@@ -850,5 +849,9 @@ public class Wall {
 
     public void setDoFlip(boolean doFlip) {
         this.doFlip = doFlip;
+    }
+
+    public boolean isEmpty() {
+        return holes.isEmpty();
     }
 }

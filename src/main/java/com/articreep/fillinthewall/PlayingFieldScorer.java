@@ -20,10 +20,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scoreboard.DisplaySlot;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.ScoreboardManager;
+import org.bukkit.scoreboard.*;
 import org.javatuples.Pair;
 
 import java.util.*;
@@ -226,7 +223,7 @@ public class PlayingFieldScorer {
             int i = 0;
             @Override
             public void run() {
-                float pitch = 2;
+                float pitch;
                 if (i == 0) pitch = CSHARP;
                 else if (i == 1) pitch = D;
                 else {
@@ -404,7 +401,7 @@ public class PlayingFieldScorer {
         // Check score
         int points = correctBlocks.size() - extraBlocks.size();
         if (points < 0) points = 0;
-        if (penalizeEmptyField && extraBlocks.isEmpty() && correctBlocks.isEmpty()) points = -1;
+        if (penalizeEmptyField && !wall.isEmpty() && extraBlocks.isEmpty() && correctBlocks.isEmpty()) points = -1;
         return points;
     }
 
@@ -551,7 +548,7 @@ public class PlayingFieldScorer {
     public void createScoreboard() {
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         scoreboard = manager.getNewScoreboard();
-        objective = scoreboard.registerNewObjective("fillinthewall", "dummy",
+        objective = scoreboard.registerNewObjective("fillinthewall", Criteria.DUMMY,
                 ChatColor.YELLOW + "" + ChatColor.BOLD + "Fill in the Wall");
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
 
