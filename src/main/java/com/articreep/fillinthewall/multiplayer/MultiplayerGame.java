@@ -273,6 +273,7 @@ public abstract class MultiplayerGame implements Listener {
     protected void deployEvent(ModifierEvent.Type type, boolean infinite) {
         PlayingField sampleField = playingFields.iterator().next();
         ModifierEvent event = type.createEvent();
+        if (event == null) return;
         event.additionalInit(sampleField.getLength(), sampleField.getHeight());
         for (PlayingField field : playingFields) {
             ModifierEvent copy = field.getScorer().activateEvent(event.copy());
@@ -287,6 +288,7 @@ public abstract class MultiplayerGame implements Listener {
     protected void deployEventWithSignals(ModifierEvent.Type type) {
         PlayingField sampleField = playingFields.iterator().next();
         ModifierEvent event = type.createEvent();
+        if (event == null) return;
         event.additionalInit(sampleField.getLength(), sampleField.getHeight());
 
         // Hold an event for each playing field until they're ready to be activated
