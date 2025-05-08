@@ -1442,7 +1442,7 @@ public class PlayingField implements Listener {
             public void run() {
                 for (Player player : playersToCelebrate) {
                     Firework firework = (Firework) player.getWorld().spawnEntity(player.getLocation(), EntityType.FIREWORK_ROCKET);
-                    firework.setMaxLife(20);
+                    firework.setTicksToDetonate(20);
                     FireworkMeta meta = firework.getFireworkMeta();
                     FireworkEffect effect = FireworkEffect.builder()
                             .withColor(wallMaterial.createBlockData().getMapColor())
