@@ -15,17 +15,11 @@ You'll need:
 - A MySQL Server (can be run without, but highly recommended)
 - SpigotMC BuildTools (https://www.spigotmc.org/wiki/buildtools/)
 
-Since this plugin uses some NMS, you'll need to use BuildTools to install remapped jars into your .m2 repository. If you don't do this, the plugin won't compile.
+*At the time of writing this, this plugin is for 1.21.5!*
 
-![image](https://github.com/user-attachments/assets/e377c175-10e3-4b2f-a92e-6d18a15e6366)
+Clone this repository onto your machine and build the Gradle project with `./gradlew build`. You can also open IntelliJ and do it from there.
 
-*At the time of writing this, this plugin is for 1.21.4!*
-
-Clone this repository onto your machine and build the Maven project with `mvn package`. You can also open IntelliJ and do it from there.
-
-![image](https://github.com/user-attachments/assets/2d49a7e4-8e6e-4fe7-bbd5-9aab6c9a2038)
-
-Grab the jar file from the /target/ folder and place it in your Spigot/Paper server's plugin folder.
+Grab the jar file from the /build/libs/ folder and place it in your Spigot/Paper server's plugin folder.
 
 If you try to load the plugin in this state, the plugin will load, but it will say that it failed to connect to a SQL database and that personal bests will not persist and leaderboards will not work.
 
