@@ -11,9 +11,8 @@ Originally for [HooHacks 2024](https://devpost.com/software/hole-in-the-wall-rus
 
 # Building
 You'll need:
-- A Spigot/Paper 1.21 server
-- A MySQL Server (can be run without, but highly recommended)
-- SpigotMC BuildTools (https://www.spigotmc.org/wiki/buildtools/)
+- A Paper server
+- A MySQL server (can be run without, but highly recommended)
 
 *At the time of writing this, this plugin is for 1.21.5!*
 
