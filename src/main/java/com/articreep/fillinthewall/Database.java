@@ -17,6 +17,10 @@ public class Database {
     private final static MysqlDataSource dataSource = new MysqlConnectionPoolDataSource();
     private static boolean offlineMode = false;
 
+    private Database() {
+        // prevent instantiation
+    }
+
     static {
         supportedGamemodes.add(Gamemode.SCORE_ATTACK);
         supportedGamemodes.add(Gamemode.RUSH_SCORE_ATTACK);
@@ -50,7 +54,7 @@ public class Database {
             return false;
         }
 
-        String sql1 = "CREATE TABLE IF NOT EXISTS scores(" +
+        String sqlScores = "CREATE TABLE IF NOT EXISTS scores(" +
                 "uuid CHAR(36) NOT NULL," +
                 "SCORE_ATTACK INT DEFAULT 0 NOT NULL," +
                 "RUSH_SCORE_ATTACK INT DEFAULT 0 NOT NULL," +
@@ -58,21 +62,22 @@ public class Database {
                 "SPRINT INT DEFAULT 12000 NOT NULL," +
                 "MEGA INT DEFAULT 12000 NOT NULL," +
                 "PRIMARY KEY (uuid));";
-        String sql2 = "CREATE TABLE IF NOT EXISTS hotbars(" +
+        String sqlHotbars = "CREATE TABLE IF NOT EXISTS hotbars(" +
                 "uuid CHAR(36) NOT NULL," +
                 "hotbar CHAR(9) DEFAULT ? NOT NULL," +
                 "FOREIGN KEY (uuid) REFERENCES scores(uuid) ON DELETE CASCADE);";
-        String sql3 = "CREATE TABLE IF NOT EXISTS playerInfo(" +
+        String sqlPlayerInfo = "CREATE TABLE IF NOT EXISTS playerInfo(" +
                 "uuid CHAR(36) NOT NULL," +
                 "newcomer BIT DEFAULT 1 NOT NULL," +
+                "xp INT DEFAULT 0 NOT NULL," +
                 "FOREIGN KEY (uuid) REFERENCES scores(uuid) ON DELETE CASCADE);";
         try (Connection conn = dataSource.getConnection()) {
-            PreparedStatement stmt = conn.prepareStatement(sql1);
+            PreparedStatement stmt = conn.prepareStatement(sqlScores);
             stmt.executeUpdate();
-            stmt = conn.prepareStatement(sql2);
+            stmt = conn.prepareStatement(sqlHotbars);
             stmt.setString(1, PlayingField.DEFAULT_HOTBAR);
             stmt.executeUpdate();
-            stmt = conn.prepareStatement(sql3);
+            stmt = conn.prepareStatement(sqlPlayerInfo);
             stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -222,11 +227,11 @@ public class Database {
         )) {
             stmt.setString(1, uuid.toString());
             ResultSet result = stmt.executeQuery();
-            if (result.next()){
+            if (result.next()) {
                 return result.getBoolean("newcomer");
             } else {
                 // If they didn't exist before, add them!
-                addNewcomer(uuid);
+                addPlayerInfo(uuid);
                 return true;
             }
         } catch (SQLException e) {
@@ -247,7 +252,7 @@ public class Database {
         }
     }
 
-    public static void addNewcomer(UUID uuid) {
+    public static void addPlayerInfo(UUID uuid) {
         try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "INSERT INTO playerInfo(uuid, newcomer) VALUES(?, ?)"
         )) {
@@ -259,7 +264,36 @@ public class Database {
         }
     }
 
+    public static int getXP(UUID uuid) throws SQLException {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "SELECT xp FROM playerInfo WHERE uuid = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return result.getInt("xp");
+            } else {
+                // If they didn't exist before, add them!
+                addPlayerInfo(uuid);
+                return 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error while getting user XP from database!");
+        }
+    }
 
+    public static void setXP(UUID uuid, int amount) {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "UPDATE playerInfo SET xp = ? WHERE uuid = ?"
+        )) {
+            stmt.setInt(1, amount);
+            stmt.setString(2, uuid.toString());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static boolean isSupported(Gamemode gamemode) {
         return supportedGamemodes.contains(gamemode);

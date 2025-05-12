@@ -1,7 +1,9 @@
 package com.articreep.fillinthewall;
 
 import com.articreep.fillinthewall.game.PlayingField;
+import com.articreep.fillinthewall.leveling.PlayerLevels;
 import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
@@ -95,5 +97,8 @@ public class GlobalListeners implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         if (event.getPlayer().isOp()) return;
         event.getPlayer().teleport(FillInTheWall.getInstance().getMultiplayerSpawn());
+        // load level in cache
+        Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(),
+                () -> PlayerLevels.getRawXP(event.getPlayer().getUniqueId()));
     }
 }
