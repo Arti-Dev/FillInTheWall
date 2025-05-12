@@ -7,6 +7,8 @@ import com.articreep.fillinthewall.multiplayer.Pregame;
 import com.articreep.fillinthewall.multiplayer.SettingsMenu;
 import com.mysql.cj.jdbc.MysqlConnectionPoolDataSource;
 import com.mysql.cj.jdbc.MysqlDataSource;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -34,8 +36,8 @@ import java.util.*;
 public final class FillInTheWall extends JavaPlugin implements Listener {
     private static FillInTheWall instance = null;
     private FileConfiguration playingFieldConfig;
-    private Set<Entity> displays = new HashSet<>();
-    private NamespacedKey interactionKey = new NamespacedKey(this, "singleplayerPortal");
+    private final Set<Entity> displays = new HashSet<>();
+    private final NamespacedKey interactionKey = new NamespacedKey(this, "singleplayerPortal");
     private Display singleplayerDisplay = null;
     private Display multiplayerDisplay = null;
     private Location multiplayerSpawn = null;
@@ -84,7 +86,7 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
             if (getServer().getPluginManager().getPlugin("NoteBlockAPI") != null)
                 NBSMusic.loadConfig(getConfig());
             else {
-                Bukkit.getLogger().info("NoteBlockAPI not found - note block music disabled");
+                getSLF4JLogger().info("NoteBlockAPI not found - note block music disabled");
                 NBSMusic.enabled = false;
             }
 
@@ -101,7 +103,7 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
             spectatorFinalsSpawn = getConfig().getLocation("spectator-finals-spawn");
         }, 1);
 
-        Bukkit.getLogger().info(ChatColor.BLUE + "FillInTheWall has been enabled!");
+        getSLF4JLogger().info(Component.text("FillInTheWall has been enabled!", NamedTextColor.BLUE).toString());
 
     }
 
@@ -149,7 +151,7 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
             itemDisplay.setBillboard(Display.Billboard.VERTICAL);
             TextDisplay textDisplay = (TextDisplay) singleplayerLocation.getWorld().spawnEntity(
                     singleplayerLocation.clone().add(0, size/2, 0), EntityType.TEXT_DISPLAY);
-            textDisplay.setText(singleplayerText);
+            textDisplay.text(Component.text(singleplayerText));
             textDisplay.setBillboard(Display.Billboard.VERTICAL);
             Interaction interaction = (Interaction) singleplayerLocation.getWorld().spawnEntity(
                     singleplayerLocation.clone().add(0, -size/2, 0), EntityType.INTERACTION);
@@ -174,7 +176,7 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
             itemDisplay.setBillboard(Display.Billboard.VERTICAL);
             TextDisplay textDisplay = (TextDisplay) multiplayerLocation.getWorld().spawnEntity(
                     multiplayerLocation.clone().add(0, size/2, 0), EntityType.TEXT_DISPLAY);
-            textDisplay.setText(multiplayerText);
+            textDisplay.text(Component.text(multiplayerText));
             textDisplay.setBillboard(Display.Billboard.VERTICAL);
             Interaction interaction = (Interaction) multiplayerLocation.getWorld().spawnEntity(
                     multiplayerLocation.clone().add(0, -size/2, 0), EntityType.INTERACTION);
@@ -259,7 +261,7 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
                 throw new SQLException("Could not establish database connection.");
             }
         } catch (SQLException e) {
-            Bukkit.getLogger().severe("FillInTheWall: Could not establish database connection. " +
+            getSLF4JLogger().error("FillInTheWall: Could not establish database connection. " +
                     "Please make sure you are using a MySQL server and that the config.yml is set up correctly." +
                     "\nThe plugin will still work, but leaderboards will be disabled, scores will not submit, and player-saved " +
                     "hotbars will not load");
