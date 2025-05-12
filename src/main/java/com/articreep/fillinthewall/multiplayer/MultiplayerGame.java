@@ -2,8 +2,8 @@ package com.articreep.fillinthewall.multiplayer;
 
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.FillInTheWall;
-import com.articreep.fillinthewall.PlayingField;
-import com.articreep.fillinthewall.PlayingFieldManager;
+import com.articreep.fillinthewall.game.PlayingField;
+import com.articreep.fillinthewall.game.PlayingFieldManager;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.gamemode.GamemodeSettings;
 import com.articreep.fillinthewall.modifiers.ModifierEvent;

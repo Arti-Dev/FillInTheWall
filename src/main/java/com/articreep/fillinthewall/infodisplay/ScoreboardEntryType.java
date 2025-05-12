@@ -1,4 +1,4 @@
-package com.articreep.fillinthewall.display;
+package com.articreep.fillinthewall.infodisplay;
 
 import net.md_5.bungee.api.ChatColor;
 

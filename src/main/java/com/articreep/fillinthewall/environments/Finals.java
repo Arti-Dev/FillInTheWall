@@ -1,7 +1,7 @@
 package com.articreep.fillinthewall.environments;
 
 import com.articreep.fillinthewall.FillInTheWall;
-import com.articreep.fillinthewall.PlayingField;
+import com.articreep.fillinthewall.game.PlayingField;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.BlockDisplay;

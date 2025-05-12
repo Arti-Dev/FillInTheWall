@@ -1,4 +1,4 @@
-package com.articreep.fillinthewall.display;
+package com.articreep.fillinthewall.infodisplay;
 
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;

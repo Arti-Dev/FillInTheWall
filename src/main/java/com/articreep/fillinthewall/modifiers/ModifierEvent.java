@@ -1,6 +1,6 @@
 package com.articreep.fillinthewall.modifiers;
 
-import com.articreep.fillinthewall.*;
+import com.articreep.fillinthewall.game.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;

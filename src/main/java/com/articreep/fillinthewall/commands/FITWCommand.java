@@ -1,5 +1,10 @@
-package com.articreep.fillinthewall;
+package com.articreep.fillinthewall.commands;
 
+import com.articreep.fillinthewall.FillInTheWall;
+import com.articreep.fillinthewall.game.PlayingField;
+import com.articreep.fillinthewall.game.PlayingFieldManager;
+import com.articreep.fillinthewall.game.Wall;
+import com.articreep.fillinthewall.game.WallBundle;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.modifiers.ModifierEvent;
 import net.md_5.bungee.api.ChatColor;

@@ -1,5 +1,6 @@
-package com.articreep.fillinthewall;
+package com.articreep.fillinthewall.game;
 
+import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.multiplayer.ScoreAttackGame;
 import com.articreep.fillinthewall.multiplayer.Pregame;
 import com.articreep.fillinthewall.multiplayer.VersusGame;

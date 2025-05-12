@@ -1,5 +1,6 @@
-package com.articreep.fillinthewall;
+package com.articreep.fillinthewall.game;
 
+import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.utils.Utils;
 import org.bukkit.*;
 import org.bukkit.block.Block;

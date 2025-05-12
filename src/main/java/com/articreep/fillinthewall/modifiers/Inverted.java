@@ -1,6 +1,6 @@
 package com.articreep.fillinthewall.modifiers;
 
-import com.articreep.fillinthewall.Wall;
+import com.articreep.fillinthewall.game.Wall;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;

@@ -1,5 +1,6 @@
 package com.articreep.fillinthewall;
 
+import com.articreep.fillinthewall.game.PlayingField;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 
 import java.sql.Connection;

@@ -1,6 +1,7 @@
-package com.articreep.fillinthewall;
+package com.articreep.fillinthewall.game;
 
-import com.articreep.fillinthewall.display.DisplayType;
+import com.articreep.fillinthewall.Database;
+import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.environments.Finals;
 import com.articreep.fillinthewall.environments.TheVoid;
 import com.articreep.fillinthewall.gamemode.Gamemode;

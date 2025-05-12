@@ -1,5 +1,6 @@
-package com.articreep.fillinthewall;
+package com.articreep.fillinthewall.infodisplay;
 
+import com.articreep.fillinthewall.Database;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.utils.Utils;
@@ -21,7 +22,7 @@ public class Leaderboards {
 
     private static final Map<TextDisplay, Gamemode> leaderboards = new HashMap<>();
 
-    protected static void spawnLeaderboards(FileConfiguration config) {
+    public static void spawnLeaderboards(FileConfiguration config) {
         removeLeaderboards();
 
         Location scoreAttackLocation = config.getLocation("leaderboards.score-attack");
@@ -68,14 +69,14 @@ public class Leaderboards {
         updateLeaderboards();
     }
 
-    protected static void removeLeaderboards() {
+    public static void removeLeaderboards() {
         for (TextDisplay display : leaderboards.keySet()) {
             display.remove();
         }
         leaderboards.clear();
     }
 
-    protected static void updateLeaderboards() {
+    public static void updateLeaderboards() {
         for (Map.Entry<TextDisplay, Gamemode> entry : leaderboards.entrySet()) {
             TextDisplay display = entry.getKey();
             Gamemode gamemode = entry.getValue();

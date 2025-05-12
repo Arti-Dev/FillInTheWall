@@ -2,7 +2,7 @@ package com.articreep.fillinthewall.multiplayer;
 
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.FillInTheWall;
-import com.articreep.fillinthewall.PlayingField;
+import com.articreep.fillinthewall.game.PlayingField;
 import com.articreep.fillinthewall.utils.Utils;
 import org.bukkit.Bukkit;
 import net.md_5.bungee.api.ChatColor;

@@ -1,6 +1,6 @@
 package com.articreep.fillinthewall.gamemode;
 
-import com.articreep.fillinthewall.display.DisplayType;
+import com.articreep.fillinthewall.game.DisplayType;
 import com.articreep.fillinthewall.modifiers.ModifierEvent;
 
 import java.util.HashMap;

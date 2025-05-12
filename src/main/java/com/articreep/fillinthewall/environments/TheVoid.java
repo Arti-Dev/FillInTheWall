@@ -1,8 +1,8 @@
 package com.articreep.fillinthewall.environments;
 
 import com.articreep.fillinthewall.FillInTheWall;
-import com.articreep.fillinthewall.Judgement;
-import com.articreep.fillinthewall.PlayingField;
+import com.articreep.fillinthewall.game.Judgement;
+import com.articreep.fillinthewall.game.PlayingField;
 import com.articreep.fillinthewall.modifiers.Rush;
 import org.bukkit.*;
 import org.bukkit.entity.BlockDisplay;

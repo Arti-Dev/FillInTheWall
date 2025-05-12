@@ -1,8 +1,8 @@
 package com.articreep.fillinthewall.multiplayer;
 
-import com.articreep.fillinthewall.Wall;
-import com.articreep.fillinthewall.WallBundle;
-import com.articreep.fillinthewall.WallQueue;
+import com.articreep.fillinthewall.game.Wall;
+import com.articreep.fillinthewall.game.WallBundle;
+import com.articreep.fillinthewall.game.WallQueue;
 import org.bukkit.Bukkit;
 
 import java.util.HashSet;

@@ -1,7 +1,7 @@
 package com.articreep.fillinthewall.modifiers;
 
 import com.articreep.fillinthewall.FillInTheWall;
-import com.articreep.fillinthewall.Wall;
+import com.articreep.fillinthewall.game.Wall;
 import com.articreep.fillinthewall.utils.CustomPathfinderGoal;
 import com.articreep.fillinthewall.utils.ToggleLookAtPlayerGoal;
 import com.articreep.fillinthewall.utils.Utils;

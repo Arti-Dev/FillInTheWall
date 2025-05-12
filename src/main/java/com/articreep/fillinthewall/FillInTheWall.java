@@ -1,15 +1,19 @@
 package com.articreep.fillinthewall;
 
+import com.articreep.fillinthewall.commands.FITWCommand;
+import com.articreep.fillinthewall.commands.RegisterPlayingField;
 import com.articreep.fillinthewall.environments.Finals;
 import com.articreep.fillinthewall.environments.TheVoid;
+import com.articreep.fillinthewall.game.PlayingField;
+import com.articreep.fillinthewall.game.PlayingFieldManager;
 import com.articreep.fillinthewall.gamemode.Gamemode;
+import com.articreep.fillinthewall.infodisplay.Leaderboards;
 import com.articreep.fillinthewall.multiplayer.Pregame;
-import com.articreep.fillinthewall.multiplayer.SettingsMenu;
+import com.articreep.fillinthewall.commands.SettingsMenu;
 import com.mysql.cj.jdbc.MysqlConnectionPoolDataSource;
 import com.mysql.cj.jdbc.MysqlDataSource;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;

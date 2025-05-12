@@ -1,5 +1,6 @@
-package com.articreep.fillinthewall;
+package com.articreep.fillinthewall.commands;
 
+import com.articreep.fillinthewall.FillInTheWall;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;

@@ -1,9 +1,8 @@
 package com.articreep.fillinthewall.modifiers;
 
 import com.articreep.fillinthewall.FillInTheWall;
-import com.articreep.fillinthewall.PlayingField;
-import com.articreep.fillinthewall.Wall;
-import com.articreep.fillinthewall.WallBundle;
+import com.articreep.fillinthewall.game.Wall;
+import com.articreep.fillinthewall.game.WallBundle;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;

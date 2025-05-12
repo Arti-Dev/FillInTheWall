@@ -1,11 +1,12 @@
-package com.articreep.fillinthewall.multiplayer;
+package com.articreep.fillinthewall.commands;
 
 import com.articreep.fillinthewall.FillInTheWall;
-import com.articreep.fillinthewall.PlayingFieldManager;
-import com.articreep.fillinthewall.display.DisplayType;
+import com.articreep.fillinthewall.game.PlayingFieldManager;
+import com.articreep.fillinthewall.game.DisplayType;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.gamemode.GamemodeSettings;
 import com.articreep.fillinthewall.modifiers.ModifierEvent;
+import com.articreep.fillinthewall.multiplayer.Pregame;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;

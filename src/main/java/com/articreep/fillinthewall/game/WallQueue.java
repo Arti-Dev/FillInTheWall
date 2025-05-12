@@ -1,7 +1,7 @@
-package com.articreep.fillinthewall;
+package com.articreep.fillinthewall.game;
 
+import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
-import com.articreep.fillinthewall.modifiers.Rush;
 import com.articreep.fillinthewall.multiplayer.WallGenerator;
 import com.articreep.fillinthewall.utils.Utils;
 import org.bukkit.Bukkit;

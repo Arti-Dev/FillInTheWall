@@ -1,8 +1,9 @@
-package com.articreep.fillinthewall;
+package com.articreep.fillinthewall.game;
 
-import com.articreep.fillinthewall.display.DisplayType;
-import com.articreep.fillinthewall.display.ScoreboardEntry;
-import com.articreep.fillinthewall.display.ScoreboardEntryType;
+import com.articreep.fillinthewall.Database;
+import com.articreep.fillinthewall.FillInTheWall;
+import com.articreep.fillinthewall.infodisplay.ScoreboardEntry;
+import com.articreep.fillinthewall.infodisplay.ScoreboardEntryType;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.gamemode.GamemodeSettings;

@@ -1,6 +1,6 @@
 package com.articreep.fillinthewall.modifiers;
 
-import com.articreep.fillinthewall.Wall;
+import com.articreep.fillinthewall.game.Wall;
 import com.articreep.fillinthewall.environments.TheVoid;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;

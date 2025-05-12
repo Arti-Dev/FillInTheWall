@@ -1,9 +1,9 @@
 package com.articreep.fillinthewall.modifiers;
 
-import com.articreep.fillinthewall.Judgement;
-import com.articreep.fillinthewall.PlayingField;
-import com.articreep.fillinthewall.PlayingFieldScorer;
-import com.articreep.fillinthewall.Wall;
+import com.articreep.fillinthewall.game.Judgement;
+import com.articreep.fillinthewall.game.PlayingField;
+import com.articreep.fillinthewall.game.PlayingFieldScorer;
+import com.articreep.fillinthewall.game.Wall;
 import com.articreep.fillinthewall.utils.Utils;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Sound;
