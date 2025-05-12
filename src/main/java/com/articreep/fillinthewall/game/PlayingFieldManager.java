@@ -110,7 +110,6 @@ public class PlayingFieldManager implements Listener {
         PlayingField field = activePlayingFields.get(player);
         if (field != null) {
             field.removePlayer(player, force);
-            field.getScorer().setIncompleteGame(true);
         }
     }
 

@@ -304,9 +304,10 @@ public class PlayingField implements Listener {
         if (multiplayerMode && !force) return false;
         saveHotbar(player);
 
-        // If this will be our last player, shut the game down
+        // If this will be our last player, shut the game down and mark the game as incomplete
         if (playerCount() == 1) {
             if (hasStarted()) {
+                scorer.setIncompleteGame(true);
                 stop();
             }
             else removeMenu();
