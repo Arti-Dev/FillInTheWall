@@ -102,8 +102,7 @@ public class PlayingFieldManager implements Listener {
     }
 
     /**
-     * Attempts to remove a player from their game.
-     * Returns true if the removal was successful, false if the player can't be removed or was never in one to begin with.
+     * Attempts to remove a player from their game and mark their game as incomplete.
      *
      * @param player Player to check
      */
@@ -111,6 +110,7 @@ public class PlayingFieldManager implements Listener {
         PlayingField field = activePlayingFields.get(player);
         if (field != null) {
             field.removePlayer(player, force);
+            field.getScorer().setIncompleteGame(true);
         }
     }
 

@@ -55,6 +55,7 @@ import java.util.*;
 public class PlayingField implements Listener {
     private final Set<Player> players = new HashSet<>();
     private final ArrayList<UUID> playerOrder = new ArrayList<>();
+    private final Set<Player> latePlayers = new HashSet<>();
     private final HashMap<Player, GameMode> previousGamemodes = new HashMap<>();
     private final HashMap<Player, Double> previousBlockReach = new HashMap<>();
     /**
@@ -279,6 +280,7 @@ public class PlayingField implements Listener {
             // Display a new menu
             createMenu();
         } else if (hasStarted()) {
+            latePlayers.add(player);
             formatInventory(player);
             player.setGameMode(GameMode.CREATIVE);
             setInfiniteReach(player);
@@ -308,9 +310,13 @@ public class PlayingField implements Listener {
                 stop();
             }
             else removeMenu();
+        } else if (hasStarted()) {
+            // If the player left mid-game, award XP
+            scorer.awardXP(player);
         }
 
         players.remove(player);
+        latePlayers.remove(player);
         playerOrder.remove(player.getUniqueId());
         // do not recover the player's gamemode if in spectator
         if (previousGamemodes.containsKey(player) && player.getGameMode() != GameMode.SPECTATOR) {
@@ -430,6 +436,9 @@ public class PlayingField implements Listener {
         }
         scorer.removeScoreboard();
         scorer.announceFinalScore();
+        for (Player player : getPlayers()) {
+            scorer.awardXP(player);
+        }
         if (showEndScreen) {
             endScreen = scorer.createEndScreen();
             endScreen.display();
@@ -1492,5 +1501,9 @@ public class PlayingField implements Listener {
         }
 
         Database.updateHotbar(player.getUniqueId(), hotbar.toString());
+    }
+
+    public boolean isLatePlayer(Player player) {
+        return latePlayers.contains(player);
     }
 }

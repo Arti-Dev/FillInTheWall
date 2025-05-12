@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class PlayerLevels {
-    private final static Component prefix = Component.text("Lv", NamedTextColor.DARK_GRAY);
+    private final static Component prefix = Component.text("Lv", NamedTextColor.GRAY);
     private final static NamedTextColor[] levelColors =
             {NamedTextColor.GRAY, NamedTextColor.DARK_RED, NamedTextColor.RED,
             NamedTextColor.GOLD, NamedTextColor.YELLOW, NamedTextColor.DARK_GREEN,

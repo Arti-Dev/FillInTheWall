@@ -7,11 +7,15 @@ import com.articreep.fillinthewall.infodisplay.ScoreboardEntryType;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.gamemode.GamemodeSettings;
+import com.articreep.fillinthewall.leveling.PlayerLevels;
 import com.articreep.fillinthewall.menu.EndScreen;
 import com.articreep.fillinthewall.modifiers.*;
 import com.articreep.fillinthewall.multiplayer.MultiplayerGame;
 import com.articreep.fillinthewall.multiplayer.ScoreAttackGame;
 import com.articreep.fillinthewall.utils.Utils;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.*;
 import org.bukkit.Bukkit;
 import net.md_5.bungee.api.ChatColor;
@@ -71,6 +75,8 @@ public class PlayingFieldScorer {
      * This only applies when the gamemode attribute DO_CLEARING_MODES is active
      */
     private boolean clearingMode = true;
+
+    private boolean incompleteGame = false;
 
     public PlayingFieldScorer(PlayingField field) {
         this.field = field;
@@ -436,17 +442,17 @@ public class PlayingFieldScorer {
         return score;
     }
 
-    public void reset() {
-        score = 0;
-        blocksPlaced = 0;
-        meter = 0;
-        perfectWallsCleared = 0;
-        time = 0;
-        gamemode = null;
-        settings = null;
-        level = 1;
-        doLevels = false;
-    }
+//    public void reset() {
+//        score = 0;
+//        blocksPlaced = 0;
+//        meter = 0;
+//        perfectWallsCleared = 0;
+//        time = 0;
+//        gamemode = null;
+//        settings = null;
+//        level = 1;
+//        doLevels = false;
+//    }
 
     public String getFormattedTime() {
         return Utils.getFormattedTime(time);
@@ -583,6 +589,60 @@ public class PlayingFieldScorer {
 
     public Scoreboard getScoreboard() {
         return scoreboard;
+    }
+
+    public void awardXP(Player player) {
+        if (player == null) return;
+        if (field.isLatePlayer(player)) return;
+        
+        // If the game is still running or was marked as incomplete, do not award a bonus
+        boolean participationBonus = incompleteGame || field.hasStarted();
+        int xp = getXp(participationBonus);
+
+        if (xp > 0) {
+            UUID uuid = player.getUniqueId();
+            int level = PlayerLevels.getLevel(uuid).getValue0();
+            player.sendActionBar(Component.text("+" + xp + " XP", NamedTextColor.AQUA));
+            PlayerLevels.addXP(player.getUniqueId(), xp);
+            if (level != PlayerLevels.getLevel(player.getUniqueId()).getValue0()) {
+                player.sendMessage(Component.text("You've leveled up to ", NamedTextColor.YELLOW)
+                        .append(PlayerLevels.getPrefix(uuid)));
+                player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+            }
+        }
+    }
+
+    private int getXp(boolean participationBonus) {
+        int xp = 0;
+        switch (gamemode) {
+            case INFINITE -> xp += perfectWallsCleared;
+            case SCORE_ATTACK -> {
+                if (participationBonus) xp += 20;
+                xp += score / 5;
+                xp = Math.min(xp, 50);
+            }
+            case SPRINT -> {
+                if (participationBonus) xp += 20;
+            }
+            case RUSH_SCORE_ATTACK -> {
+                if (participationBonus) xp += 20;
+                xp += score / 20;
+                xp = Math.min(xp, 50);
+            }
+            case MARATHON -> {
+                xp += score / 10;
+                xp = Math.min(xp, 150);
+            }
+            case MEGA -> {
+                if (participationBonus) xp += 100;
+            }
+            case MULTIPLAYER_SCORE_ATTACK -> {
+                if (participationBonus) xp += 50;
+                xp += score / 10;
+                xp = Math.min(xp, 150);
+            }
+        }
+        return xp;
     }
 
     public void announceFinalScore() {
@@ -870,5 +930,14 @@ public class PlayingFieldScorer {
 
     public void setPlayersOnGameStart(int playersOnGameStart) {
         this.playersOnGameStart = playersOnGameStart;
+    }
+
+    public boolean isIncompleteGame() {
+        return incompleteGame;
+    }
+
+    // Marks the game as incomplete and not eligible for participation XP
+    public void setIncompleteGame(boolean incompleteGame) {
+        this.incompleteGame = incompleteGame;
     }
 }
