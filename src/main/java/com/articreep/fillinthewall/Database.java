@@ -2,6 +2,9 @@ package com.articreep.fillinthewall;
 
 import com.articreep.fillinthewall.game.PlayingField;
 import com.articreep.fillinthewall.gamemode.Gamemode;
+import com.mysql.cj.jdbc.MysqlConnectionPoolDataSource;
+import com.mysql.cj.jdbc.MysqlDataSource;
+import org.bukkit.configuration.file.FileConfiguration;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -11,6 +14,7 @@ import java.util.*;
 
 public class Database {
     private static final HashSet<Gamemode> supportedGamemodes = new HashSet<>();
+    private final static MysqlDataSource dataSource = new MysqlConnectionPoolDataSource();
     private static boolean offlineMode = false;
 
     static {
@@ -19,6 +23,66 @@ public class Database {
         supportedGamemodes.add(Gamemode.MARATHON);
         supportedGamemodes.add(Gamemode.SPRINT);
         supportedGamemodes.add(Gamemode.MEGA);
+    }
+
+    public static boolean loadSQL() {
+        FileConfiguration config = FillInTheWall.getInstance().getConfig();
+        dataSource.setServerName(config.getString("database.host"));
+        dataSource.setPortNumber(config.getInt("database.port"));
+        dataSource.setDatabaseName(config.getString("database.database"));
+        dataSource.setUser(config.getString("database.username"));
+        dataSource.setPassword(config.getString("database.password"));
+
+
+        // Test the connection
+        try {
+            Connection conn = dataSource.getConnection();
+            if (!conn.isValid(1)) {
+                throw new SQLException("Could not establish database connection.");
+            }
+        } catch (SQLException e) {
+            FillInTheWall.getInstance().getSLF4JLogger().error("FillInTheWall: Could not establish database connection. " +
+                    "Please make sure you are using a MySQL server and that the config.yml is set up correctly." +
+                    "\nThe plugin will still work, but leaderboards will be disabled, scores will not submit, and player-saved " +
+                    "hotbars will not load");
+            e.printStackTrace();
+            offlineMode = true;
+            return false;
+        }
+
+        String sql1 = "CREATE TABLE IF NOT EXISTS scores(" +
+                "uuid CHAR(36) NOT NULL," +
+                "SCORE_ATTACK INT DEFAULT 0 NOT NULL," +
+                "RUSH_SCORE_ATTACK INT DEFAULT 0 NOT NULL," +
+                "MARATHON INT DEFAULT 0 NOT NULL," +
+                "SPRINT INT DEFAULT 12000 NOT NULL," +
+                "MEGA INT DEFAULT 12000 NOT NULL," +
+                "PRIMARY KEY (uuid));";
+        String sql2 = "CREATE TABLE IF NOT EXISTS hotbars(" +
+                "uuid CHAR(36) NOT NULL," +
+                "hotbar CHAR(9) DEFAULT ? NOT NULL," +
+                "FOREIGN KEY (uuid) REFERENCES scores(uuid) ON DELETE CASCADE);";
+        String sql3 = "CREATE TABLE IF NOT EXISTS playerInfo(" +
+                "uuid CHAR(36) NOT NULL," +
+                "newcomer BIT DEFAULT 1 NOT NULL," +
+                "FOREIGN KEY (uuid) REFERENCES scores(uuid) ON DELETE CASCADE);";
+        try (Connection conn = dataSource.getConnection()) {
+            PreparedStatement stmt = conn.prepareStatement(sql1);
+            stmt.executeUpdate();
+            stmt = conn.prepareStatement(sql2);
+            stmt.setString(1, PlayingField.DEFAULT_HOTBAR);
+            stmt.executeUpdate();
+            stmt = conn.prepareStatement(sql3);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        offlineMode = false;
+        return true;
+    }
+
+    public static Connection getSQLConnection() throws SQLException {
+        return dataSource.getConnection();
     }
 
     protected static void setOfflineMode(boolean boo) {
@@ -31,7 +95,7 @@ public class Database {
 
     private static void addPlayerToScores(UUID uuid) throws SQLException {
         // Adds a new UUID into the database
-        try (Connection connection = FillInTheWall.getSQLConnection();
+        try (Connection connection = getSQLConnection();
              PreparedStatement stmt1 = connection.prepareStatement(
                 "INSERT INTO scores(uuid) VALUES(?)"
         )) {
@@ -44,7 +108,7 @@ public class Database {
     }
 
     private static void addPlayerToHotbars(UUID uuid) throws SQLException {
-        try (Connection connection = FillInTheWall.getSQLConnection();
+        try (Connection connection = getSQLConnection();
              PreparedStatement stmt1 = connection.prepareStatement(
                      "INSERT INTO hotbars(uuid) VALUES(?)"
              )) {
@@ -59,7 +123,7 @@ public class Database {
     // The gamemode has to be concatenated into the SQL query, or else exceptions will be thrown:
     // https://www.spigotmc.org/threads/mysql-invalid-value-for-getint-mining.361748/
     public static int getRecord(UUID uuid, Gamemode gamemode) throws SQLException {
-        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "SELECT " + gamemode.toString() + " FROM scores WHERE uuid = ?"
         )) {
             stmt.setString(1, uuid.toString());
@@ -78,7 +142,7 @@ public class Database {
     }
 
     public static void updateRecord(UUID uuid, Gamemode gamemode, int score) {
-        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "UPDATE scores SET " + gamemode.toString() + " = ? WHERE uuid = ?"
         )) {
             stmt.setInt(1, score);
@@ -90,7 +154,7 @@ public class Database {
     }
 
     public static LinkedHashMap<UUID, Integer> getTopScores(Gamemode gamemode) throws SQLException {
-        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "SELECT uuid, " + gamemode.toString() + " FROM scores ORDER BY " + gamemode.toString() + " DESC LIMIT 10"
         )) {
             ResultSet result = stmt.executeQuery();
@@ -106,7 +170,7 @@ public class Database {
     }
 
     public static LinkedHashMap<UUID, Integer> getTopTimes(Gamemode gamemode) throws SQLException {
-        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "SELECT uuid, " + gamemode.toString() + " FROM scores ORDER BY " + gamemode.toString() + " ASC LIMIT 10"
         )) {
             ResultSet result = stmt.executeQuery();
@@ -122,7 +186,7 @@ public class Database {
     }
 
     public static void updateHotbar(UUID uuid, String hotbar) {
-        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "UPDATE hotbars SET hotbar = ? WHERE uuid = ?"
         )) {
             stmt.setString(1, hotbar);
@@ -134,7 +198,7 @@ public class Database {
     }
 
     public static String getHotbar(UUID uuid) throws SQLException {
-        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "SELECT hotbar FROM hotbars WHERE uuid = ?"
         )) {
             stmt.setString(1, uuid.toString());
@@ -153,7 +217,7 @@ public class Database {
     }
 
     public static boolean isNewcomer(UUID uuid) throws SQLException {
-        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "SELECT newcomer FROM playerInfo WHERE uuid = ?"
         )) {
             stmt.setString(1, uuid.toString());
@@ -172,7 +236,7 @@ public class Database {
     }
 
     public static void setNewcomer(UUID uuid, boolean newcomer) {
-        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "UPDATE playerInfo SET newcomer = ? WHERE uuid = ?"
         )) {
             stmt.setBoolean(1, newcomer);
@@ -184,7 +248,7 @@ public class Database {
     }
 
     public static void addNewcomer(UUID uuid) {
-        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "INSERT INTO playerInfo(uuid, newcomer) VALUES(?, ?)"
         )) {
             stmt.setString(1, uuid.toString());

@@ -10,8 +10,6 @@ import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.infodisplay.Leaderboards;
 import com.articreep.fillinthewall.multiplayer.Pregame;
 import com.articreep.fillinthewall.commands.SettingsMenu;
-import com.mysql.cj.jdbc.MysqlConnectionPoolDataSource;
-import com.mysql.cj.jdbc.MysqlDataSource;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.*;
@@ -32,9 +30,6 @@ import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.*;
 
 public final class FillInTheWall extends JavaPlugin implements Listener {
@@ -48,8 +43,6 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
     private Location spectatorFinalsSpawn = null;
 
     private BukkitTask leaderboardUpdateTask = null;
-
-    private final static MysqlDataSource dataSource = new MysqlConnectionPoolDataSource();
 
     @Override
     public void onEnable() {
@@ -83,9 +76,7 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
                 defaultMusic.renameTo(new File(musicFolder, "fortress hill.nbs"));
             }
 
-            if (!loadSQL()) {
-                Database.setOfflineMode(true);
-            }
+            Database.loadSQL();
 
             if (getServer().getPluginManager().getPlugin("NoteBlockAPI") != null)
                 NBSMusic.loadConfig(getConfig());
@@ -107,7 +98,7 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
             spectatorFinalsSpawn = getConfig().getLocation("spectator-finals-spawn");
         }, 1);
 
-        getSLF4JLogger().info(Component.text("FillInTheWall has been enabled!", NamedTextColor.BLUE).toString());
+        getSLF4JLogger().info("FillInTheWall has been enabled!");
 
     }
 
@@ -229,7 +220,6 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
         }
         displays.clear();
         NBSMusic.loadConfig(getConfig());
-        Database.setOfflineMode(!loadSQL());
         spawnPortals();
         Leaderboards.spawnLeaderboards(getConfig());
         leaderboardUpdateTask = Bukkit.getScheduler().runTaskTimer(this, Leaderboards::updateLeaderboards, 0, 20 * 30);
@@ -247,64 +237,6 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
             saveResource("playingfields.yml", false);
         }
         playingFieldConfig = YamlConfiguration.loadConfiguration(playingFieldFile);
-    }
-
-    private boolean loadSQL() {
-        FileConfiguration config = getConfig();
-        dataSource.setServerName(config.getString("database.host"));
-        dataSource.setPortNumber(config.getInt("database.port"));
-        dataSource.setDatabaseName(config.getString("database.database"));
-        dataSource.setUser(config.getString("database.username"));
-        dataSource.setPassword(config.getString("database.password"));
-
-
-        // Test the connection
-        try {
-            Connection conn = dataSource.getConnection();
-            if (!conn.isValid(1)) {
-                throw new SQLException("Could not establish database connection.");
-            }
-        } catch (SQLException e) {
-            getSLF4JLogger().error("FillInTheWall: Could not establish database connection. " +
-                    "Please make sure you are using a MySQL server and that the config.yml is set up correctly." +
-                    "\nThe plugin will still work, but leaderboards will be disabled, scores will not submit, and player-saved " +
-                    "hotbars will not load");
-            e.printStackTrace();
-            return false;
-        }
-
-        String sql1 = "CREATE TABLE IF NOT EXISTS scores(" +
-                "uuid CHAR(36) NOT NULL," +
-                "SCORE_ATTACK INT DEFAULT 0 NOT NULL," +
-                "RUSH_SCORE_ATTACK INT DEFAULT 0 NOT NULL," +
-                "MARATHON INT DEFAULT 0 NOT NULL," +
-                "SPRINT INT DEFAULT 12000 NOT NULL," +
-                "MEGA INT DEFAULT 12000 NOT NULL," +
-                "PRIMARY KEY (uuid));";
-        String sql2 = "CREATE TABLE IF NOT EXISTS hotbars(" +
-                "uuid CHAR(36) NOT NULL," +
-                "hotbar CHAR(9) DEFAULT ? NOT NULL," +
-                "FOREIGN KEY (uuid) REFERENCES scores(uuid) ON DELETE CASCADE);";
-        String sql3 = "CREATE TABLE IF NOT EXISTS playerInfo(" +
-                "uuid CHAR(36) NOT NULL," +
-                "newcomer BIT DEFAULT 1 NOT NULL," +
-                "FOREIGN KEY (uuid) REFERENCES scores(uuid) ON DELETE CASCADE);";
-        try (Connection conn = dataSource.getConnection()) {
-            PreparedStatement stmt = conn.prepareStatement(sql1);
-            stmt.executeUpdate();
-            stmt = conn.prepareStatement(sql2);
-            stmt.setString(1, PlayingField.DEFAULT_HOTBAR);
-            stmt.executeUpdate();
-            stmt = conn.prepareStatement(sql3);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return true;
-    }
-
-    public static Connection getSQLConnection() throws SQLException {
-        return dataSource.getConnection();
     }
 
     public Location getMultiplayerSpawn() {
