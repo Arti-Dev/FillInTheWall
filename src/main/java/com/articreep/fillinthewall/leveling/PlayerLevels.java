@@ -15,22 +15,21 @@ import java.util.UUID;
 public class PlayerLevels {
     private final static Component prefix = Component.text("Lv", NamedTextColor.GRAY);
     private final static NamedTextColor[] levelColors =
-            {NamedTextColor.GRAY, NamedTextColor.DARK_RED, NamedTextColor.RED,
+            {NamedTextColor.GRAY, NamedTextColor.RED,
             NamedTextColor.GOLD, NamedTextColor.YELLOW, NamedTextColor.DARK_GREEN,
             NamedTextColor.GREEN, NamedTextColor.DARK_AQUA, NamedTextColor.AQUA,
-            NamedTextColor.DARK_PURPLE, NamedTextColor.LIGHT_PURPLE};
+            NamedTextColor.DARK_PURPLE, NamedTextColor.DARK_RED, NamedTextColor.LIGHT_PURPLE};
 
     private final static Map<UUID, Integer> xpCache = new HashMap<>();
 
     // Brackets are 10 levels per (0-9, 10-19, etc)
     private final static int[] levelBracketXP = {50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 100};
 
-    // todo guard for race conditions idk
-    public static synchronized int addXP(UUID uuid, int amount) {
+    // todo this doesn't guard for race conditions idk
+    public static synchronized void addXP(UUID uuid, int amount) {
         int newXP = getRawXP(uuid) + amount;
         xpCache.put(uuid, newXP);
         Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> Database.setXP(uuid, newXP));
-        return newXP;
     }
 
     public static synchronized void resetXP(UUID uuid) {
