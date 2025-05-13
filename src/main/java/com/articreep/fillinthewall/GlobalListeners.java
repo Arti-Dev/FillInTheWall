@@ -1,7 +1,7 @@
 package com.articreep.fillinthewall;
 
 import com.articreep.fillinthewall.game.PlayingField;
-import com.articreep.fillinthewall.leveling.PlayerLevels;
+import com.articreep.fillinthewall.playerinfo.PlayerLevels;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;

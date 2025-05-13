@@ -1,11 +1,10 @@
-package com.articreep.fillinthewall.leveling;
+package com.articreep.fillinthewall.playerinfo;
 
 import com.articreep.fillinthewall.Database;
 import com.articreep.fillinthewall.FillInTheWall;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 import org.javatuples.Pair;
 
 import java.sql.SQLException;
