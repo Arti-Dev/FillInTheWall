@@ -190,6 +190,22 @@ public class Database {
         }
     }
 
+    public static LinkedHashMap<UUID, Integer> getTopXP() throws SQLException {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "SELECT uuid, xp FROM playerInfo ORDER BY xp DESC LIMIT 10"
+        )) {
+            ResultSet result = stmt.executeQuery();
+            LinkedHashMap<UUID, Integer> topScoresOrdered = new LinkedHashMap<>();
+            while (result.next()) {
+                topScoresOrdered.put(UUID.fromString(result.getString("uuid")), result.getInt("xp"));
+            }
+            return topScoresOrdered;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error while getting top XP from database!");
+        }
+    }
+
     public static void updateHotbar(UUID uuid, String hotbar) {
         try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "UPDATE hotbars SET hotbar = ? WHERE uuid = ?"

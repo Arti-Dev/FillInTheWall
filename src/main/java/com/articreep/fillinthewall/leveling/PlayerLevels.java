@@ -5,6 +5,7 @@ import com.articreep.fillinthewall.FillInTheWall;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.javatuples.Pair;
 
 import java.sql.SQLException;
@@ -40,6 +41,10 @@ public class PlayerLevels {
 
     public static Pair<Integer, Integer> getLevel(UUID uuid) {
         int xp = getRawXP(uuid);
+        return getLevel(xp);
+    }
+
+    public static Pair<Integer, Integer> getLevel(int xp) {
         int level = 0;
         int levelBracket = 0;
         while (xp >= levelBracketXP[levelBracket]) {
@@ -63,6 +68,13 @@ public class PlayerLevels {
 
     public static Component getPrefix(UUID uuid) {
         Pair<Integer, Integer> level = getLevel(uuid);
+        int levelNum = level.getValue0();
+        int levelBracket = Math.min(levelNum / 10, 11);
+        return prefix.append(Component.text(levelNum, levelColors[levelBracket]));
+    }
+
+    public static Component getPrefix(int xp) {
+        Pair<Integer, Integer> level = getLevel(xp);
         int levelNum = level.getValue0();
         int levelBracket = Math.min(levelNum / 10, 11);
         return prefix.append(Component.text(levelNum, levelColors[levelBracket]));

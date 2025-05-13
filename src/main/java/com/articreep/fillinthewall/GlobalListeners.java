@@ -2,6 +2,9 @@ package com.articreep.fillinthewall;
 
 import com.articreep.fillinthewall.game.PlayingField;
 import com.articreep.fillinthewall.leveling.PlayerLevels;
+import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -100,5 +103,17 @@ public class GlobalListeners implements Listener {
         // load level in cache
         Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(),
                 () -> PlayerLevels.getRawXP(event.getPlayer().getUniqueId()));
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onChat(AsyncChatEvent event) {
+        event.setCancelled(true);
+        Player player = event.getPlayer();
+        Bukkit.broadcast(Component.text("<")
+                .append(PlayerLevels.getPrefix(player.getUniqueId()))
+                .append(Component.text(" "))
+                .append(Component.text(player.getName(), NamedTextColor.WHITE))
+                .append(Component.text("> ", NamedTextColor.WHITE))
+                .append(event.message()).color(NamedTextColor.WHITE));
     }
 }
