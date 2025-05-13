@@ -34,6 +34,7 @@ public abstract class MultiplayerGame implements Listener {
     protected Set<Player> spectators = new HashSet<>();
     protected int ticksBetweenSignals = 20;
     protected int signalCount = 3;
+    protected boolean incompleteGame = false;
 
     public MultiplayerGame(List<PlayingField> fields, GamemodeSettings settings) {
         if (fields.isEmpty()) {
@@ -333,6 +334,14 @@ public abstract class MultiplayerGame implements Listener {
             player.setGameMode(GameMode.ADVENTURE);
             spectators.remove(player);
         }
+    }
+
+    public boolean isIncompleteGame() {
+        return incompleteGame;
+    }
+
+    public void setIncompleteGame(boolean incompleteGame) {
+        this.incompleteGame = incompleteGame;
     }
 
 }

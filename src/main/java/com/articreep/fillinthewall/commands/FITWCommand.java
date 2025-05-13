@@ -34,6 +34,7 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
             } else if (args[0].equalsIgnoreCase("abort") && sender.isOp()) {
                 // todo everything from this line forth is temporary
                 if (PlayingFieldManager.game != null) {
+                    PlayingFieldManager.game.setIncompleteGame(true);
                     PlayingFieldManager.game.stop();
                     PlayingFieldManager.game = null;
                     sender.sendMessage("Score attack game aborted");
@@ -42,6 +43,7 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                 }
 
                 if (PlayingFieldManager.vsGame != null) {
+                    PlayingFieldManager.vsGame.setIncompleteGame(true);
                     PlayingFieldManager.vsGame.stop();
                     PlayingFieldManager.vsGame = null;
                     sender.sendMessage("Versus game aborted");

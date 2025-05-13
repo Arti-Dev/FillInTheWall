@@ -27,6 +27,7 @@ public class PlayerLevels {
 
     // todo this doesn't guard for race conditions idk
     public static synchronized void addXP(UUID uuid, int amount) {
+        if (amount <= 0) return;
         int newXP = getRawXP(uuid) + amount;
         xpCache.put(uuid, newXP);
         Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> Database.setXP(uuid, newXP));

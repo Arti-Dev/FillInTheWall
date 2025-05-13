@@ -596,7 +596,9 @@ public class PlayingFieldScorer {
         if (field.isLatePlayer(player)) return;
         
         // If the game is still running or was marked as incomplete, do not award a bonus
-        boolean participationBonus = !(incompleteGame || field.hasStarted());
+        boolean participationBonus = !(incompleteGame ||
+                (multiplayerGame != null && multiplayerGame.isIncompleteGame()) ||
+                field.hasStarted());
         int xp = getXp(participationBonus);
 
         if (xp > 0) {
