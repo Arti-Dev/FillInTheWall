@@ -7,6 +7,10 @@ import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.gamemode.GamemodeSettings;
 import com.articreep.fillinthewall.modifiers.ModifierEvent;
 import com.articreep.fillinthewall.multiplayer.Pregame;
+import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.*;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -17,7 +21,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -25,22 +28,23 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.javatuples.Pair;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class SettingsMenu implements CommandExecutor, Listener {
+public class PregameSettingsMenu implements CommandExecutor, Listener {
     private final Map<Inventory, Pregame> inventories = new HashMap<>();
     private final Map<Inventory, Pregame> subMenus = new HashMap<>();
     private final NamespacedKey typeKey = new NamespacedKey(FillInTheWall.getInstance(), "attributeType");
     private final Map<Player, Pair<Pregame, GamemodeAttribute>> pendingIntegerInput = new HashMap<>();
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String @NotNull [] args) {
         if (sender instanceof Player player) {
             if (!sender.isOp()) {
-                sender.sendMessage(net.md_5.bungee.api.ChatColor.RED + "You don't have permission to do that.");
+                sender.sendMessage(MiniMessage.miniMessage().deserialize("<red>You don't have permission to do that."));
                 return true;
             }
             Pregame pregame = getPregame(player);
@@ -58,14 +62,14 @@ public class SettingsMenu implements CommandExecutor, Listener {
 
     private Inventory createSettingsInventory(Pregame pregame) {
         GamemodeSettings settings = pregame.getSettings();
-        Inventory inventory = Bukkit.createInventory(null, 54, "Pregame Settings");
+        Inventory inventory = Bukkit.createInventory(null, 54, Component.text("Pregame Settings"));
         for (GamemodeAttribute attribute : GamemodeAttribute.values()) {
             inventory.addItem(createSettingItem(settings, attribute));
         }
         if (inventory.getContents()[inventory.getSize() - 1] == null) {
             ItemStack reset = new ItemStack(Material.BARRIER);
             ItemMeta meta = reset.getItemMeta();
-            meta.setDisplayName(ChatColor.RED + "Reset to defaults");
+            meta.displayName(MiniMessage.miniMessage().deserialize("<red>Reset to defaults"));
             meta.getPersistentDataContainer().set(typeKey, PersistentDataType.STRING, "reset");
             reset.setItemMeta(meta);
             inventory.setItem(inventory.getSize() - 1, reset);
@@ -137,7 +141,7 @@ public class SettingsMenu implements CommandExecutor, Listener {
                     }
                     player.closeInventory();
                     player.playSound(player.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 1, 1);
-                    player.sendMessage(ChatColor.RED + "Settings reset!");
+                    player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Settings reset!"));
                 }
             }
         } else if (subMenus.containsKey(inventory)) {
@@ -179,13 +183,14 @@ public class SettingsMenu implements CommandExecutor, Listener {
     }
 
     @EventHandler
-    public void onPlayerChat(AsyncPlayerChatEvent event) {
+    public void onPlayerChat(AsyncChatEvent event) {
         if (!pendingIntegerInput.containsKey(event.getPlayer())) return;
         event.setCancelled(true);
         Player player = event.getPlayer();
         Pair<Pregame, GamemodeAttribute> pair = pendingIntegerInput.get(player);
+        String message = ((TextComponent)event.message()).content();
         try {
-            int value = Integer.parseInt(event.getMessage());
+            int value = Integer.parseInt(message);
             pair.getValue0().getSettings().setAttribute(pair.getValue1(), value);
             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
             player.sendMessage("Value set to " + value);
@@ -203,26 +208,27 @@ public class SettingsMenu implements CommandExecutor, Listener {
     private ItemStack createSettingItem(GamemodeSettings settings, GamemodeAttribute attribute) {
         ItemStack item = new ItemStack(Material.PAPER);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(attribute.toString());
-        meta.setLore(List.of("Value: " + settings.getAttribute(attribute)));
+        meta.displayName(Component.text(attribute.toString()));
+        meta.lore(List.of(MiniMessage.miniMessage().deserialize(
+                "Value: " + settings.getAttribute(attribute))));
         PersistentDataContainer container = meta.getPersistentDataContainer();
 
         if (attribute.getType() == Boolean.class) {
             container.set(typeKey, PersistentDataType.STRING, "boolean");
             if (settings.getBooleanAttribute(attribute)) {
-                item.setType(Material.LIME_DYE);
+                item = new ItemStack(Material.LIME_DYE);
             } else {
-                item.setType(Material.RED_DYE);
+                item = new ItemStack(Material.RED_DYE);
             }
         } else if (attribute.getType() == Integer.class) {
             container.set(typeKey, PersistentDataType.STRING, "integer");
-            item.setType(Material.CLOCK);
+            item = new ItemStack(Material.CLOCK);
         } else if (attribute.getType() == DisplayType.class) {
             container.set(typeKey, PersistentDataType.STRING, "displayType");
-            item.setType(Material.PAINTING);
+            item = new ItemStack(Material.PAINTING);
         } else if (attribute.getType() == ModifierEvent.Type.class) {
             container.set(typeKey, PersistentDataType.STRING, "modifierEvent");
-            item.setType(Material.BLAZE_POWDER);
+            item = new ItemStack(Material.BLAZE_POWDER);
         }
 
 
@@ -238,11 +244,11 @@ public class SettingsMenu implements CommandExecutor, Listener {
 
     private void displayTypeUserInput(Player player, Pregame pregame, GamemodeAttribute attribute) {
         player.closeInventory();
-        Inventory inventory = Bukkit.createInventory(null, 27, attribute.toString());
+        Inventory inventory = Bukkit.createInventory(null, 27, Component.text(attribute.toString()));
         for (DisplayType displayType : DisplayType.values()) {
             ItemStack item = new ItemStack(Material.PAINTING);
             ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName(displayType.toString());
+            meta.displayName(Component.text(displayType.toString()));
             meta.getPersistentDataContainer().set(typeKey, PersistentDataType.STRING, "displayType");
             item.setItemMeta(meta);
             inventory.addItem(item);
@@ -253,11 +259,11 @@ public class SettingsMenu implements CommandExecutor, Listener {
 
     private void modifierTypeUserInput(Player player, Pregame pregame, GamemodeAttribute attribute) {
         player.closeInventory();
-        Inventory inventory = Bukkit.createInventory(null, 27, attribute.toString());
+        Inventory inventory = Bukkit.createInventory(null, 27, Component.text(attribute.toString()));
         for (ModifierEvent.Type type : ModifierEvent.Type.values()) {
             ItemStack item = new ItemStack(Material.BLAZE_POWDER);
             ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName(type.toString());
+            meta.displayName(Component.text(type.toString()));
             meta.getPersistentDataContainer().set(typeKey, PersistentDataType.STRING, "modifierEvent");
             item.setItemMeta(meta);
             inventory.addItem(item);

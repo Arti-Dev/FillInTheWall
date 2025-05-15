@@ -1,8 +1,9 @@
 package com.articreep.fillinthewall.commands;
 
 import com.articreep.fillinthewall.FillInTheWall;
-import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Location;
+import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.command.Command;
@@ -12,7 +13,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,9 +22,10 @@ public class RegisterPlayingField implements CommandExecutor, Listener {
     private static final HashMap<Player, Session> activeSessions = new HashMap<>();
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public boolean onCommand(CommandSender sender, @NotNull Command command, @NotNull String label, String @NotNull [] args) {
+        MiniMessage miniMessage = MiniMessage.miniMessage();
         if (!sender.isOp()) {
-            sender.sendMessage(ChatColor.RED + "You don't have permission to do that.");
+            sender.sendMessage(miniMessage.deserialize("<red>You don't have permission to do that."));
             return true;
         }
         if (!(sender instanceof Player player)) return false;
@@ -39,17 +41,17 @@ public class RegisterPlayingField implements CommandExecutor, Listener {
             if (activeSessions.containsKey(player)) {
                 activeSessions.get(player).onCommandRun(args[0]);
             } else {
-                player.sendMessage(ChatColor.RED + "I'm not sure what you're trying to do.");
+                player.sendMessage(miniMessage.deserialize("<red>I'm not sure what you're trying to do."));
             }
         }
         return true;
     }
 
     @EventHandler
-    public void onChatMessage(AsyncPlayerChatEvent event) {
+    public void onChatMessage(AsyncChatEvent event) {
         if (activeSessions.containsKey(event.getPlayer())) {
             event.setCancelled(true);
-            activeSessions.get(event.getPlayer()).parseData(event.getMessage());
+            activeSessions.get(event.getPlayer()).parseData(event.message());
         }
     }
 
@@ -80,11 +82,12 @@ public class RegisterPlayingField implements CommandExecutor, Listener {
         // Player's building material (hold item)
 
         public void sendInstructions() {
+            MiniMessage miniMessage = MiniMessage.miniMessage();
             switch (stage) {
                 case 0 -> {
                     player.sendMessage("You've activated the playing field registration wizard!");
-                    player.sendMessage(ChatColor.YELLOW + "To leave, run /registerplayingfield cancel");
-                    player.sendMessage(ChatColor.DARK_GRAY + "enjoy the GitHub Copilot generated instructions lmao");
+                    player.sendMessage(miniMessage.deserialize("<yellow>To leave, run /registerplayingfield cancel"));
+                    player.sendMessage(miniMessage.deserialize("<dark_gray>enjoy the GitHub Copilot generated instructions lmao"));
                     player.sendMessage("");
                     player.sendMessage("Please input the name of this playing field.");
                 }
@@ -106,6 +109,7 @@ public class RegisterPlayingField implements CommandExecutor, Listener {
         }
 
         public void onCommandRun(String arg) {
+            MiniMessage miniMessage = MiniMessage.miniMessage();
             if (stage == 1) {
                 parseData(player.getTargetBlock(null, 5).getLocation());
             } else if (stage >= 2 && stage <= 6 && arg.equalsIgnoreCase("standard")) {
@@ -115,15 +119,18 @@ public class RegisterPlayingField implements CommandExecutor, Listener {
                 parseData(player.getInventory().getItemInMainHand().getType());
             } else if (arg.equalsIgnoreCase("cancel")) {
                 activeSessions.remove(player);
-                player.sendMessage(ChatColor.RED + "Cancelled playing field registration.");
+                player.sendMessage(miniMessage.deserialize("<red>Cancelled playing field registration."));
             } else {
-                player.sendMessage(ChatColor.RED + "I'm not sure what you're trying to do.");
+                player.sendMessage(miniMessage.deserialize("<red>I'm not sure what you're trying to do."));
                 player.sendMessage("To leave, run /registerplayingfield cancel");
             }
         }
 
-        // todo is this scuffed? probably
-        public void parseData(Object data) {
+        // is this scuffed? probably
+        private void parseData(Object data) {
+            if (data instanceof TextComponent component) {
+                data = component.content();
+            }
             try {
                 switch (stage) {
                     case 0 -> {
@@ -131,7 +138,7 @@ public class RegisterPlayingField implements CommandExecutor, Listener {
                         stage++;
                     }
                     case 1 -> {
-                        this.data.put("location", (Location) data);
+                        this.data.put("location", data);
                         stage++;
                     }
                     case 2 -> {
@@ -159,7 +166,7 @@ public class RegisterPlayingField implements CommandExecutor, Listener {
                         stage++;
                     }
                     case 6 -> {
-                        this.data.put("environment", (String) data);
+                        this.data.put("environment", data);
                         stage++;
                     }
                     case 7 -> {
@@ -221,7 +228,7 @@ public class RegisterPlayingField implements CommandExecutor, Listener {
         }
 
         public void incorrectData() {
-            player.sendMessage(ChatColor.RED + "Wrong data type, try again?");
+            player.sendMessage(MiniMessage.miniMessage().deserialize("<red>Wrong data type, try again?"));
             sendInstructions();
         }
 

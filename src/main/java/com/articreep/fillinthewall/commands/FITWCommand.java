@@ -7,7 +7,7 @@ import com.articreep.fillinthewall.game.Wall;
 import com.articreep.fillinthewall.game.WallBundle;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.modifiers.ModifierEvent;
-import net.md_5.bungee.api.ChatColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.minecraft.network.protocol.game.ClientboundGameEventPacket;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -18,6 +18,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,14 +26,14 @@ import java.util.List;
 public class FITWCommand implements CommandExecutor, TabCompleter {
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
+        MiniMessage miniMessage = MiniMessage.miniMessage();
         if (args.length >= 1) {
             if (args[0].equalsIgnoreCase("reload") && sender.isOp()) {
                 FillInTheWall.getInstance().reload();
-                sender.sendMessage(ChatColor.GREEN + "Config reloaded!");
+                sender.sendMessage(miniMessage.deserialize("<green>Config reloaded!"));
                 return true;
             } else if (args[0].equalsIgnoreCase("abort") && sender.isOp()) {
-                // todo everything from this line forth is temporary
                 if (PlayingFieldManager.game != null) {
                     PlayingFieldManager.game.setIncompleteGame(true);
                     PlayingFieldManager.game.stop();
@@ -98,16 +99,16 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                     if (field.getScorer().getGamemode() == Gamemode.CUSTOM) {
                         WallBundle bundle = WallBundle.getWallBundle(args[1]);
                         if (bundle.size() == 0) {
-                            sender.sendMessage(ChatColor.RED + "Something went wrong loading custom walls!");
+                            sender.sendMessage(miniMessage.deserialize("<red>Something went wrong loading custom walls!"));
                         } else {
                             List<Wall> walls = bundle.getWalls();
                             field.getQueue().clearAllWalls();
                             walls.forEach(field.getQueue()::addWall);
-                            sender.sendMessage(ChatColor.GREEN + "Imported " + walls.size() + " walls");
+                            sender.sendMessage(miniMessage.deserialize("<green>Imported " + walls.size() + " walls"));
                             field.getScorer().setHasImportedCustomWalls(true);
                         }
                     } else {
-                        sender.sendMessage(ChatColor.RED + "You can only use this command in custom mode");
+                        sender.sendMessage(miniMessage.deserialize("<red>You can only use this command in custom mode."));
                     }
                 } else {
                     sender.sendMessage("Wrong syntax... I won't tell you how though! >:)");
@@ -131,7 +132,7 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                         event = ModifierEvent.Type.valueOf(args[2].toUpperCase()).createEvent();
                         if (event == null) return true;
                     } catch (IllegalArgumentException e) {
-                        sender.sendMessage(ChatColor.RED + "Unknown modifier");
+                        sender.sendMessage(miniMessage.deserialize("<red>Unknown modifier"));
                         return true;
                     }
 
@@ -185,11 +186,11 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
 
                     WallBundle bundle = WallBundle.getWallBundle(args[2]);
                     if (bundle.size() == 0) {
-                        sender.sendMessage(ChatColor.RED + "Something went wrong loading custom walls!");
+                        sender.sendMessage(miniMessage.deserialize("<red>Something went wrong loading custom walls!"));
                     } else {
                         List<Wall> walls = bundle.getWalls();
                         walls.forEach(field.getQueue()::addPriorityWall);
-                        sender.sendMessage(ChatColor.GREEN + "Imported " + walls.size() + " walls");
+                        sender.sendMessage(miniMessage.deserialize("<green>Imported " + walls.size() + " walls"));
                     }
                 } else {
                     sender.sendMessage("/fitw bundle <player> <bundlename>");
@@ -246,7 +247,7 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args) {
         List<String> completions = new ArrayList<>();
         ArrayList<String> strings = new ArrayList<>();
         if (args.length == 1) {

@@ -11,7 +11,7 @@ import com.articreep.fillinthewall.infodisplay.Leaderboards;
 import com.articreep.fillinthewall.lobby.LobbyItems;
 import com.articreep.fillinthewall.lobby.NBSMusic;
 import com.articreep.fillinthewall.multiplayer.Pregame;
-import com.articreep.fillinthewall.commands.SettingsMenu;
+import com.articreep.fillinthewall.commands.PregameSettingsMenu;
 import com.articreep.fillinthewall.playerinfo.InventoryMenus;
 import net.kyori.adventure.text.Component;
 import org.bukkit.*;
@@ -50,7 +50,7 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
     public void onEnable() {
         instance = this;
         RegisterPlayingField registerPlayingField = new RegisterPlayingField();
-        SettingsMenu settingsMenu = new SettingsMenu();
+        PregameSettingsMenu settingsMenu = new PregameSettingsMenu();
         getCommand("fillinthewall").setExecutor(new FITWCommand());
         getCommand("registerplayingfield").setExecutor(registerPlayingField);
         getCommand("settingsmenu").setExecutor(settingsMenu);
