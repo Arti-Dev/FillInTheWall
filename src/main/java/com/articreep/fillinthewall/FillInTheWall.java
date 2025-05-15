@@ -8,10 +8,12 @@ import com.articreep.fillinthewall.game.PlayingField;
 import com.articreep.fillinthewall.game.PlayingFieldManager;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.infodisplay.Leaderboards;
+import com.articreep.fillinthewall.lobby.LobbyItems;
+import com.articreep.fillinthewall.lobby.NBSMusic;
 import com.articreep.fillinthewall.multiplayer.Pregame;
 import com.articreep.fillinthewall.commands.SettingsMenu;
+import com.articreep.fillinthewall.playerinfo.InventoryMenus;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -59,6 +61,8 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(settingsMenu, this);
         getServer().getPluginManager().registerEvents(new GlobalListeners(), this);
+        getServer().getPluginManager().registerEvents(new InventoryMenus(), this);
+        getServer().getPluginManager().registerEvents(new LobbyItems(), this);
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
             loadPlayingFieldConfig();

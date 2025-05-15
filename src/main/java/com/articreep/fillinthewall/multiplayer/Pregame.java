@@ -1,6 +1,6 @@
 package com.articreep.fillinthewall.multiplayer;
 
-import com.articreep.fillinthewall.NBSMusic;
+import com.articreep.fillinthewall.lobby.NBSMusic;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.game.PlayingField;

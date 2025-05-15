@@ -1,6 +1,7 @@
 package com.articreep.fillinthewall;
 
 import com.articreep.fillinthewall.game.PlayingField;
+import com.articreep.fillinthewall.lobby.LobbyItems;
 import com.articreep.fillinthewall.playerinfo.PlayerLevels;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
@@ -100,14 +101,15 @@ public class GlobalListeners implements Listener {
 
     @EventHandler(priority = EventPriority.LOW)
     public void onPlayerJoin(PlayerJoinEvent event) {
-        if (event.getPlayer().isOp()) return;
-        event.getPlayer().teleport(FillInTheWall.getInstance().getMultiplayerSpawn());
+        if (!event.getPlayer().isOp()) event.getPlayer().teleport(FillInTheWall.getInstance().getMultiplayerSpawn());
+        if (!LobbyItems.checkInventoryForItem(event.getPlayer(), "PROFILE_LOBBY_ITEM"))
+            LobbyItems.giveProfileMenuItem(event.getPlayer());
         // load level in cache
         Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> {
             try {
                 PlayerLevels.getRawXP(event.getPlayer().getUniqueId());
             } catch (SQLException e) {
-                FillInTheWall.getInstance().getSLF4JLogger().error("Failed to cache player level for " + event.getPlayer().getName());
+                FillInTheWall.getInstance().getSLF4JLogger().error("Failed to cache player level for {}", event.getPlayer().getName());
                 e.printStackTrace();
             }
         });
@@ -117,7 +119,7 @@ public class GlobalListeners implements Listener {
     public void onChat(AsyncChatEvent event) {
         event.setCancelled(true);
         Player player = event.getPlayer();
-        Component prefix = null;
+        Component prefix;
         try {
             prefix = PlayerLevels.getPrefix(player.getUniqueId());
         } catch (SQLException e) {
