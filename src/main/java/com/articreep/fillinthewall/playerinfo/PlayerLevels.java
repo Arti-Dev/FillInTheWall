@@ -26,7 +26,7 @@ public class PlayerLevels {
     private final static int[] levelBracketXP = {50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 100};
 
     // todo this doesn't guard for race conditions idk
-    public static synchronized void addXP(UUID uuid, int amount) {
+    public static synchronized void addXP(UUID uuid, int amount) throws SQLException {
         if (amount <= 0) return;
         int newXP = getRawXP(uuid) + amount;
         xpCache.put(uuid, newXP);
@@ -38,11 +38,21 @@ public class PlayerLevels {
         Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> Database.setXP(uuid, 0));
     }
 
-    public static Pair<Integer, Integer> getLevel(UUID uuid) {
+    /**
+     * Returns the level and the amount of XP to the next level.
+     * @param uuid The UUID of the player
+     * @return A pair of the level and the amount of XP in that level
+     */
+    public static Pair<Integer, Integer> getLevel(UUID uuid) throws SQLException {
         int xp = getRawXP(uuid);
         return getLevel(xp);
     }
 
+    /**
+     * Returns the level and the amount of XP to the next level.
+     * @param xp The XP of the player
+     * @return A pair of the level and the amount of XP in that level
+     */
     public static Pair<Integer, Integer> getLevel(int xp) {
         int level = 0;
         int levelBracket = 0;
@@ -54,18 +64,14 @@ public class PlayerLevels {
         return Pair.with(level, xp);
     }
 
-    public static int getRawXP(UUID uuid) {
+    public static int getRawXP(UUID uuid) throws SQLException {
         if (!xpCache.containsKey(uuid)) {
-            try {
-                xpCache.put(uuid, Database.getXP(uuid));
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            xpCache.put(uuid, Database.getXP(uuid));
         }
         return xpCache.get(uuid);
     }
 
-    public static Component getPrefix(UUID uuid) {
+    public static Component getPrefix(UUID uuid) throws SQLException {
         Pair<Integer, Integer> level = getLevel(uuid);
         int levelNum = level.getValue0();
         int levelBracket = Math.min(levelNum / 10, 11);
@@ -77,5 +83,10 @@ public class PlayerLevels {
         int levelNum = level.getValue0();
         int levelBracket = Math.min(levelNum / 10, 11);
         return prefix.append(Component.text(levelNum, levelColors[levelBracket]));
+    }
+
+    public static int getBracketXP(int level) {
+        int levelBracket = Math.min(level / 10, 11);
+        return levelBracketXP[levelBracket];
     }
 }

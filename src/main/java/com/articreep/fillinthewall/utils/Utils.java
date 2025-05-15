@@ -1,13 +1,17 @@
 package com.articreep.fillinthewall.utils;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
@@ -96,5 +100,21 @@ public class Utils {
         } else {
             return material;
         }
+    }
+
+    // Nice little method to create a gui item with a custom name, and description
+    public static ItemStack createGuiItem(final Material material, final Component name, final Component... lore) {
+        final ItemStack item = new ItemStack(material, 1);
+        final ItemMeta meta = item.getItemMeta();
+
+        // Set the name of the item
+        meta.displayName(name);
+
+        // Set the lore of the item
+        meta.lore(Arrays.asList(lore));
+
+        item.setItemMeta(meta);
+
+        return item;
     }
 }

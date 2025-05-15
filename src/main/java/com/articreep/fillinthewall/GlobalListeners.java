@@ -24,6 +24,8 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.sql.SQLException;
+
 public class GlobalListeners implements Listener {
 
     @EventHandler(priority = EventPriority.LOW)
@@ -101,16 +103,29 @@ public class GlobalListeners implements Listener {
         if (event.getPlayer().isOp()) return;
         event.getPlayer().teleport(FillInTheWall.getInstance().getMultiplayerSpawn());
         // load level in cache
-        Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(),
-                () -> PlayerLevels.getRawXP(event.getPlayer().getUniqueId()));
+        Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> {
+            try {
+                PlayerLevels.getRawXP(event.getPlayer().getUniqueId());
+            } catch (SQLException e) {
+                FillInTheWall.getInstance().getSLF4JLogger().error("Failed to cache player level for " + event.getPlayer().getName());
+                e.printStackTrace();
+            }
+        });
     }
 
     @EventHandler(priority = EventPriority.LOW)
     public void onChat(AsyncChatEvent event) {
         event.setCancelled(true);
         Player player = event.getPlayer();
+        Component prefix = null;
+        try {
+            prefix = PlayerLevels.getPrefix(player.getUniqueId());
+        } catch (SQLException e) {
+            event.setCancelled(false);
+            return;
+        }
         Bukkit.broadcast(Component.text("<")
-                .append(PlayerLevels.getPrefix(player.getUniqueId()))
+                .append(prefix)
                 .append(Component.text(" "))
                 .append(Component.text(player.getName(), NamedTextColor.WHITE))
                 .append(Component.text("> ", NamedTextColor.WHITE))

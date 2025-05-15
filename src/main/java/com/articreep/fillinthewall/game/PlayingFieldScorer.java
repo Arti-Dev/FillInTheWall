@@ -27,6 +27,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.*;
 import org.javatuples.Pair;
 
+import java.sql.SQLException;
 import java.util.*;
 
 public class PlayingFieldScorer {
@@ -602,13 +603,18 @@ public class PlayingFieldScorer {
 
         if (xp > 0) {
             UUID uuid = player.getUniqueId();
-            int level = PlayerLevels.getLevel(uuid).getValue0();
-            player.sendActionBar(Component.text("+" + xp + " XP", NamedTextColor.AQUA));
-            PlayerLevels.addXP(player.getUniqueId(), xp);
-            if (level != PlayerLevels.getLevel(player.getUniqueId()).getValue0()) {
-                player.sendMessage(Component.text("You've leveled up to ", NamedTextColor.YELLOW)
-                        .append(PlayerLevels.getPrefix(uuid)));
-                player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+            try {
+                int level = PlayerLevels.getLevel(uuid).getValue0();
+                player.sendActionBar(Component.text("+" + xp + " XP", NamedTextColor.AQUA));
+                PlayerLevels.addXP(player.getUniqueId(), xp);
+                if (level != PlayerLevels.getLevel(player.getUniqueId()).getValue0()) {
+                    player.sendMessage(Component.text("You've leveled up to ", NamedTextColor.YELLOW)
+                            .append(PlayerLevels.getPrefix(uuid)));
+                    player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+                player.sendActionBar(Component.text("Error while awarding XP", NamedTextColor.RED));
             }
         }
     }
