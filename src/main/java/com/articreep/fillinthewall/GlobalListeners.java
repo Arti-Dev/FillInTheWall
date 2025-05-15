@@ -115,8 +115,9 @@ public class GlobalListeners implements Listener {
         });
     }
 
-    @EventHandler(priority = EventPriority.LOW)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onChat(AsyncChatEvent event) {
+        if (event.isCancelled()) return;
         event.setCancelled(true);
         Player player = event.getPlayer();
         Component prefix;
