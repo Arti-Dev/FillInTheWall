@@ -7,6 +7,7 @@ import com.articreep.fillinthewall.environments.TheVoid;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.gamemode.GamemodeSettings;
+import com.articreep.fillinthewall.lobby.LobbyItems;
 import com.articreep.fillinthewall.menu.EndScreen;
 import com.articreep.fillinthewall.menu.Menu;
 import com.articreep.fillinthewall.modifiers.ModifierEvent;
@@ -319,11 +320,12 @@ public class PlayingField implements Listener {
         players.remove(player);
         latePlayers.remove(player);
         playerOrder.remove(player.getUniqueId());
-        // do not recover the player's gamemode if in spectator
+        // things not to do if the player was a spectator
         if (previousGamemodes.containsKey(player) && player.getGameMode() != GameMode.SPECTATOR) {
             GameMode previousGamemode = previousGamemodes.get(player);
             if (previousGamemode != null) player.setGameMode(previousGamemode);
             if (previousGamemode != GameMode.CREATIVE) player.setAllowFlight(false);
+            LobbyItems.giveProfileMenuItem(player);
         }
         previousGamemodes.remove(player);
         resetReach(player);
