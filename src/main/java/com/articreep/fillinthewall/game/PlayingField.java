@@ -325,7 +325,9 @@ public class PlayingField implements Listener {
             GameMode previousGamemode = previousGamemodes.get(player);
             if (previousGamemode != null) player.setGameMode(previousGamemode);
             if (previousGamemode != GameMode.CREATIVE) player.setAllowFlight(false);
-            LobbyItems.giveProfileMenuItem(player);
+            if (!LobbyItems.checkInventoryForItem(player, "PROFILE_LOBBY_ITEM")) {
+                LobbyItems.giveProfileMenuItem(player);
+            }
         }
         previousGamemodes.remove(player);
         resetReach(player);
