@@ -116,21 +116,25 @@ public class PregameSettingsMenu implements CommandExecutor, Listener {
             switch (type) {
                 case "boolean" -> {
                     GamemodeSettings settings = inventories.get(inventory).getSettings();
-                    GamemodeAttribute attribute = GamemodeAttribute.valueOf(item.getItemMeta().getDisplayName());
+                    TextComponent name = (TextComponent) item.getItemMeta().customName();
+                    GamemodeAttribute attribute = GamemodeAttribute.valueOf(name.content());
                     settings.setAttribute(attribute, !settings.getBooleanAttribute(attribute));
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                     inventory.setItem(event.getSlot(), createSettingItem(settings, attribute));
                 }
                 case "integer" -> {
-                    GamemodeAttribute attribute = GamemodeAttribute.valueOf(item.getItemMeta().getDisplayName());
+                    TextComponent name = (TextComponent) item.getItemMeta().customName();
+                    GamemodeAttribute attribute = GamemodeAttribute.valueOf(name.content());
                     integerUserInput(player, inventories.get(inventory), attribute);
                 }
                 case "displayType" -> {
-                    GamemodeAttribute attribute = GamemodeAttribute.valueOf(item.getItemMeta().getDisplayName());
+                    TextComponent name = (TextComponent) item.getItemMeta().customName();
+                    GamemodeAttribute attribute = GamemodeAttribute.valueOf(name.content());
                     displayTypeUserInput(player, inventories.get(inventory), attribute);
                 }
                 case "modifierEvent" -> {
-                    GamemodeAttribute attribute = GamemodeAttribute.valueOf(item.getItemMeta().getDisplayName());
+                    TextComponent name = (TextComponent) item.getItemMeta().customName();
+                    GamemodeAttribute attribute = GamemodeAttribute.valueOf(name.content());
                     modifierTypeUserInput(player, inventories.get(inventory), attribute);
                 }
                 case "reset" -> {
@@ -148,19 +152,22 @@ public class PregameSettingsMenu implements CommandExecutor, Listener {
             event.setCancelled(true);
             Pregame pregame = subMenus.get(inventory);
             GamemodeSettings settings = pregame.getSettings();
-            GamemodeAttribute attribute = GamemodeAttribute.valueOf(event.getView().getTitle());
+            TextComponent title = (TextComponent) event.getView().title();
+            GamemodeAttribute attribute = GamemodeAttribute.valueOf(title.content());
             PersistentDataContainer container = item.getItemMeta().getPersistentDataContainer();
             String type = container.getOrDefault(typeKey, PersistentDataType.STRING, "");
             switch (type) {
                 case "displayType" -> {
-                    DisplayType displayType = DisplayType.valueOf(item.getItemMeta().getDisplayName());
+                    TextComponent name = (TextComponent) item.getItemMeta().customName();
+                    DisplayType displayType = DisplayType.valueOf(name.content());
                     settings.setAttribute(attribute, displayType);
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                     player.closeInventory();
                     openSettingsInventory(player, pregame);
                 }
                 case "modifierEvent" -> {
-                    ModifierEvent.Type modifierType = ModifierEvent.Type.valueOf(item.getItemMeta().getDisplayName());
+                    TextComponent name = (TextComponent) item.getItemMeta().customName();
+                    ModifierEvent.Type modifierType = ModifierEvent.Type.valueOf(name.content());
                     settings.setAttribute(attribute, modifierType);
                     player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1, 1);
                     player.closeInventory();
