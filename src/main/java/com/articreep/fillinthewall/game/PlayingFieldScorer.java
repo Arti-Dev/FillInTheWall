@@ -15,6 +15,7 @@ import com.articreep.fillinthewall.multiplayer.ScoreAttackGame;
 import com.articreep.fillinthewall.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.title.Title;
 import net.md_5.bungee.api.chat.*;
 import org.bukkit.Bukkit;
 import net.md_5.bungee.api.ChatColor;
@@ -28,6 +29,7 @@ import org.bukkit.scoreboard.*;
 import org.javatuples.Pair;
 
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.*;
 
 public class PlayingFieldScorer {
@@ -383,10 +385,14 @@ public class PlayingFieldScorer {
     }
 
     public void displayScoreTitle(Judgement judgement, int score, Map<BonusType, Integer> bonusMap) {
-        field.sendTitleToPlayers(
-                judgement.getColor() + judgement.getText(),
-                judgement.getColor() + "" + (score + bonusMap.get(BonusType.PERFECT)) + " points",
-                0, 10, 5);
+        Title title = Title.title(judgement.getFormattedText(),
+                Component.text(score + bonusMap.get(BonusType.PERFECT) + " points", judgement.getColor()),
+                getScoreTitleTimes());
+        field.sendTitleToPlayers(title);
+    }
+
+    public static Title.Times getScoreTitleTimes() {
+        return Title.Times.times(Duration.ZERO, Duration.ofMillis(500), Duration.ofMillis(250));
     }
 
     public boolean isMeterFilledEnough(double percent) {
@@ -708,7 +714,8 @@ public class PlayingFieldScorer {
     public EndScreen createEndScreen() {
         EndScreen endScreen = new EndScreen(field.getCenter(true, false).add(0, 1, 0));
         endScreen.addLine(Utils.playersToString(field.getPlayers()));
-        endScreen.addLine(gamemode.getTitle());
+        // todo missing color for now
+        endScreen.addLine(((net.kyori.adventure.text.TextComponent)gamemode.getTitle()).content());
         endScreen.addLine("");
         endScreen.addLine(ChatColor.GREEN + "Final score: " + ChatColor.BOLD + score);
         if (settings.getBooleanAttribute(GamemodeAttribute.MULTIPLAYER) && multiplayerGame != null) {

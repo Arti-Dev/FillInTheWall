@@ -2,20 +2,22 @@ package com.articreep.fillinthewall.gamemode;
 
 import com.articreep.fillinthewall.game.DisplayType;
 import com.articreep.fillinthewall.modifiers.*;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.md_5.bungee.api.ChatColor;
 
 public enum Gamemode {
 
-    TUTORIAL("Tutorial", ChatColor.GRAY + "Learn how to play!"),
-    INFINITE(ChatColor.LIGHT_PURPLE + "Infinite", ChatColor.GRAY + "Step off the playing field to stop playing."),
-    SCORE_ATTACK(ChatColor.GOLD + "Score Attack", ChatColor.GRAY + "Score as much as you can in 2 minutes!"),
-    RUSH_SCORE_ATTACK(ChatColor.RED + "Rush Score Attack", ChatColor.GRAY + "Use Rush Attacks to score as much as you can!"),
-    SPRINT(ChatColor.AQUA + "Sprint", ChatColor.GRAY + "Perfect clear 20 walls as fast as you can!"),
-    MULTIPLAYER_SCORE_ATTACK(ChatColor.AQUA + "Multiplayer Score Attack", ChatColor.GRAY + "Hypixel-style game"),
-    MARATHON(ChatColor.GRAY + "Marathon", ChatColor.GRAY + "Survive as long as you can!"),
-    VERSUS(ChatColor.BLUE + "2-player Versus", ChatColor.GRAY + "Experimental versus system with garbage walls"),
-    CUSTOM(ChatColor.GREEN + "Custom Walls", ChatColor.GRAY + "Load a custom wall pack"),
-    MEGA(ChatColor.DARK_AQUA + "Mega", ChatColor.GRAY + "Work with others to fill 200 holes!");
+    TUTORIAL("Tutorial", "<gray>Learn how to play!"),
+    INFINITE("<light_purple>Infinite", "<gray>Step off the playing field to stop playing."),
+    SCORE_ATTACK("<gold>Score Attack", "<gray>Score as much as you can in 2 minutes!"),
+    RUSH_SCORE_ATTACK("<red>Rush Score Attack", "<gray>Use Rush Attacks to score as much as you can!"),
+    SPRINT("<aqua>Sprint", "<gray>Perfect clear 20 walls as fast as you can!"),
+    MULTIPLAYER_SCORE_ATTACK("<aqua>Multiplayer Score Attack", "<gray>Hypixel-style game"),
+    MARATHON("<gray>Marathon", "<gray>Survive as long as you can!"),
+    VERSUS("<blue>2-player Versus", "<gray>Experimental versus system with garbage walls"),
+    CUSTOM("<green>Custom Walls", "<gray>Load a custom wall pack"),
+    MEGA("<dark_aqua>Mega", "<gray>Work with others to fill 200 holes!");
 
     static {
         INFINITE.addAttribute(GamemodeAttribute.CONSISTENT_HOLE_COUNT, false);
@@ -144,10 +146,11 @@ public enum Gamemode {
         this.description = description;
     }
 
-    public String getTitle() {
-        return title;
+    public Component getTitle() {
+        return MiniMessage.miniMessage().deserialize(title);
     }
 
+    // todo use minimessage
     public String getDescription() {
         return description;
     }

@@ -16,6 +16,8 @@ import com.articreep.fillinthewall.modifiers.Rush;
 import com.articreep.fillinthewall.multiplayer.WallGenerator;
 import com.articreep.fillinthewall.utils.Utils;
 import com.articreep.fillinthewall.utils.WorldBoundingBox;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.title.Title;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -1047,9 +1049,9 @@ public class PlayingField implements Listener {
                 }
             }
             if (data instanceof ArrayList<?> list) {
-                textDisplays[i].setText(type.getFormattedText(list));
+                textDisplays[i].text(type.getFormattedText(list));
             } else {
-                textDisplays[i].setText(type.getFormattedText(data));
+                textDisplays[i].text(type.getFormattedText(data));
             }
         }
     }
@@ -1241,6 +1243,12 @@ public class PlayingField implements Listener {
         }
     }
 
+    public void sendTitleToPlayers(Title title) {
+        for (Player player : players) {
+            player.showTitle(title);
+        }
+    }
+
     public void sendActionBarToPlayers(BaseComponent component) {
         for (Player player : players) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, component);
@@ -1290,7 +1298,8 @@ public class PlayingField implements Listener {
                     cancel();
                     return;
                 }
-                String text = DisplayType.SCORE.getFormattedText(scorer.getScore());
+                Component component = DisplayType.SCORE.getFormattedText(scorer.getScore());
+                String text = ((net.kyori.adventure.text.TextComponent) component).content();
                 text = flashTextFormat(text, cover, flash, primary, accent);
                 modifyOverridenDisplayText(DisplayType.SCORE, text);
 
@@ -1320,7 +1329,8 @@ public class PlayingField implements Listener {
                     cancel();
                     return;
                 }
-                String text = DisplayType.LEVEL.getFormattedText(scorer.getLevel());
+                Component component = DisplayType.SCORE.getFormattedText(scorer.getScore());
+                String text = ((net.kyori.adventure.text.TextComponent) component).content();
                 text = flashTextFormat(text, cover, flash, primary, accent);
                 modifyOverridenDisplayText(DisplayType.LEVEL, text);
 
@@ -1335,6 +1345,7 @@ public class PlayingField implements Listener {
         }.runTaskTimer(FillInTheWall.getInstance(), 10, rate);
     }
 
+    // todo update to use kyori adventure
     private String flashTextFormat(String text, int cover, int flash, ChatColor primary, ChatColor accent) {
         text = ChatColor.stripColor(text);
         // Flash takes priority

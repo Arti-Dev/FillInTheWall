@@ -3,6 +3,9 @@ package com.articreep.fillinthewall.modifiers;
 import com.articreep.fillinthewall.game.Judgement;
 import com.articreep.fillinthewall.game.PlayingFieldScorer;
 import com.articreep.fillinthewall.game.Wall;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.title.Title;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -53,11 +56,12 @@ public class PlayerInTheWall extends ModifierEvent {
     @Override
     public void displayScoreTitle(Judgement judgement, int score, HashMap<PlayingFieldScorer.BonusType, Integer> bonus) {
         int playerBonus = bonus.get(PlayingFieldScorer.BonusType.PLAYER);
-        field.sendTitleToPlayers(
-                judgement.getColor() + judgement.getText(),
-                judgement.getColor() + "" + (score + bonus.get(PlayingFieldScorer.BonusType.PERFECT)) +
-                        ChatColor.AQUA + "+" + playerBonus + judgement.getColor() + " points",
-                0, 10, 5);
+        Title title = Title.title(judgement.getFormattedText(),
+                Component.text(score + bonus.get(PlayingFieldScorer.BonusType.PERFECT), judgement.getColor())
+                        .append(Component.text("+" + playerBonus, NamedTextColor.AQUA))
+                        .append(Component.text(" points", judgement.getColor())),
+                PlayingFieldScorer.getScoreTitleTimes());
+        field.sendTitleToPlayers(title);
     }
 
     private int countPlayerBlocksInHoles(Wall wall) {

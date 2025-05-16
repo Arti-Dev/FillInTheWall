@@ -98,7 +98,7 @@ public class Leaderboards {
         for (Map.Entry<TextDisplay, Gamemode> entry : scoreLeaderboards.entrySet()) {
             TextDisplay display = entry.getKey();
             Gamemode gamemode = entry.getValue();
-            StringBuilder stringBuilder = new StringBuilder(gamemode.getTitle());
+            StringBuilder stringBuilder = new StringBuilder(((TextComponent)gamemode.getTitle()).content());
             stringBuilder.append("\n").append(ChatColor.GRAY).append("Top Scores\n");
 
             if (Database.isOfflineMode()) {

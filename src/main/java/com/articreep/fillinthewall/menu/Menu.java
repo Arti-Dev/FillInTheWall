@@ -5,6 +5,7 @@ import com.articreep.fillinthewall.game.PlayingField;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.utils.Utils;
+import net.kyori.adventure.text.TextComponent;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.entity.Display;
@@ -107,8 +108,9 @@ public class Menu implements Listener {
     }
 
     private void setMenuGamemode(Gamemode mode) {
+        // todo fix color later
         String string = "Select a gamemode\n" +
-                mode.getTitle() + "\n" + mode.getDescription() + "\n";
+                ((TextComponent)mode.getTitle()).content() + "\n" + mode.getDescription() + "\n";
         if (personalBests.containsKey(mode)) {
             if (mode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.SCORE_BY_TIME)) {
                 string += ChatColor.AQUA + "Personal best: " + ChatColor.BOLD +

@@ -5,6 +5,9 @@ import com.articreep.fillinthewall.game.PlayingField;
 import com.articreep.fillinthewall.game.PlayingFieldScorer;
 import com.articreep.fillinthewall.game.Wall;
 import com.articreep.fillinthewall.utils.Utils;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.title.Title;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
@@ -58,11 +61,12 @@ public class Stripes extends ModifierEvent {
     @Override
     public void displayScoreTitle(Judgement judgement, int score, HashMap<PlayingFieldScorer.BonusType, Integer> bonus) {
         int stripeBonus = bonus.get(PlayingFieldScorer.BonusType.STRIPE);
-        field.sendTitleToPlayers(
-                judgement.getColor() + judgement.getText(),
-                judgement.getColor() + "" + (score + bonus.get(PlayingFieldScorer.BonusType.PERFECT)) +
-                        ChatColor.DARK_PURPLE + "+" + stripeBonus + judgement.getColor() + " points",
-                0, 10, 5);
+        Title title = Title.title(judgement.getFormattedText(),
+                Component.text(score + bonus.get(PlayingFieldScorer.BonusType.PERFECT), judgement.getColor())
+                        .append(Component.text("+" + stripeBonus, NamedTextColor.DARK_PURPLE))
+                        .append(Component.text(" points", judgement.getColor())),
+                PlayingFieldScorer.getScoreTitleTimes());
+        field.sendTitleToPlayers(title);
     }
 
     @Override

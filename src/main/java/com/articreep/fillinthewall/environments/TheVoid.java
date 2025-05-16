@@ -43,8 +43,8 @@ public class TheVoid implements Listener {
 
         new BukkitRunnable() {
             double t = Math.PI / 3;
-            double tMax = Math.PI * 2;
-            double tIncrement = Math.PI / 3;
+            final double tMax = Math.PI * 2;
+            final double tIncrement = Math.PI / 3;
 
             @Override
             public void run() {
