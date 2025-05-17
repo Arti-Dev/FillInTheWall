@@ -15,6 +15,7 @@ import com.articreep.fillinthewall.multiplayer.ScoreAttackGame;
 import com.articreep.fillinthewall.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.title.Title;
 import net.md_5.bungee.api.chat.*;
 import org.bukkit.Bukkit;
@@ -34,6 +35,7 @@ import java.util.*;
 
 public class PlayingFieldScorer {
     PlayingField field;
+    private static final MiniMessage miniMessage = MiniMessage.miniMessage();
     private int score = 0;
     private double meter = 0;
     private int perfectWallsCleared = 0;
@@ -155,7 +157,7 @@ public class PlayingFieldScorer {
 
         // Custom walls tip display
         if (gamemode == Gamemode.CUSTOM && !hasImportedCustomWalls) {
-            field.setTipDisplay(ChatColor.YELLOW + "You can import custom walls with /fitw custom <name>");
+            field.setTipDisplay(miniMessage.deserialize("<yellow>You can import custom walls with /fitw custom <name>"));
         }
 
         return judgement;
@@ -198,10 +200,10 @@ public class PlayingFieldScorer {
                 ModifierEvent.Type abilityEvent = settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT);
                 if (abilityEvent != ModifierEvent.Type.NONE && !hasUsedMeter && wallsClearedWithMeterFull >= 4) {
                     if (abilityEvent == ModifierEvent.Type.FREEZE) {
-                        field.setTipDisplay(ChatColor.GRAY + "Tip: " + ChatColor.YELLOW + "Press your drop key to" +
-                                ChatColor.AQUA + " freeze " + ChatColor.YELLOW + "all active walls!");
+                        field.setTipDisplay(miniMessage.deserialize(
+                                "<gray>Tip: <yellow>Press your drop key to <aqua>freeze <yellow>all active walls!"));
                     } else {
-                        field.setTipDisplay(ChatColor.GRAY + "Tip: " + ChatColor.YELLOW + "Press your drop key to activate a special ability!");
+                        field.setTipDisplay(miniMessage.deserialize("<gray>Tip: <yellow>Press your drop key to activate a special ability!"));
                     }
                 }
             }

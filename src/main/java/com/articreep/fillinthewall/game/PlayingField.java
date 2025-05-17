@@ -17,6 +17,7 @@ import com.articreep.fillinthewall.multiplayer.WallGenerator;
 import com.articreep.fillinthewall.utils.Utils;
 import com.articreep.fillinthewall.utils.WorldBoundingBox;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.title.Title;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -53,9 +54,11 @@ import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.*;
 
 public class PlayingField implements Listener {
+    private static final MiniMessage miniMessage = MiniMessage.miniMessage();
     private final Set<Player> players = new HashSet<>();
     private final ArrayList<UUID> playerOrder = new ArrayList<>();
     private final Set<Player> latePlayers = new HashSet<>();
@@ -95,21 +98,21 @@ public class PlayingField implements Listener {
     private final int displaySlotsLength = 6;
     private final DisplayType[] displaySlots = new DisplayType[displaySlotsLength];
     private final TextDisplay[] textDisplays = new TextDisplay[displaySlotsLength];
-    private Set<DisplayType> displayOverrides = new HashSet<>();
+    private final Set<DisplayType> displayOverrides = new HashSet<>();
 
     // Tip statistics
     private int ticksSinceFlying = 0;
     private boolean hasFlownBefore = false;
     private int ticksSinceOffhandSubmit = 0;
     private boolean hasSubmittedUsingOffhand = false;
-    private Set<TextDisplay> tipDisplays = new HashSet<>();
+    private final Set<TextDisplay> tipDisplays = new HashSet<>();
 
     private PlayingFieldScorer scorer;
     private ModifierEvent event = null;
 
     private WallQueue queue;
-    private Material wallMaterial;
-    private boolean hideBottomBorder;
+    private final Material wallMaterial;
+    private final boolean hideBottomBorder;
 
     /** The scorer and queue should be reset before each game starts. */
     private boolean resetRecently = false;
@@ -179,26 +182,31 @@ public class PlayingField implements Listener {
         menu.display();
     }
 
+    private static final Title.Times titleTimes = Title.Times.times(
+            Duration.ZERO, Duration.ofSeconds(1), Duration.ZERO);
+
     public void countdownStart(Gamemode mode) {
         countdown = new BukkitRunnable() {
             int i = 3;
             @Override
             public void run() {
                 if (i == 3) {
-                    sendTitleToPlayers(ChatColor.GREEN + "③", "", 0, 20, 0);
+                    sendTitleToPlayers(Title.title(miniMessage.deserialize("<green>③"), Component.empty(), titleTimes));
                     playSoundToPlayers(Sound.BLOCK_NOTE_BLOCK_BELL, 1);
                 } else if (i == 2) {
-                    sendTitleToPlayers(ChatColor.YELLOW + "②", "", 0, 20, 0);
+                    sendTitleToPlayers(Title.title(miniMessage.deserialize("<yellow>②"), Component.empty(), titleTimes));
                     playSoundToPlayers(Sound.BLOCK_NOTE_BLOCK_BELL, 1);
                 } else if (i == 1) {
-                    sendTitleToPlayers(ChatColor.RED + "①", "", 0, 20, 0);
+                    sendTitleToPlayers(Title.title(miniMessage.deserialize("<red>①"), Component.empty(), titleTimes));
                     playSoundToPlayers(Sound.BLOCK_NOTE_BLOCK_BELL, 1);
                 } else if (i == 0) {
                     // It's important that the countdown reference is removed before we start the game
                     // so that hasStarted() returns false
                     countdown = null;
                     start(mode);
-                    sendTitleToPlayers(ChatColor.GREEN + "GO!", "", 0, 5, 3);
+                    Title.Times goTimes = Title.Times.times(
+                            Duration.ZERO, Duration.ofMillis(250), Duration.ofMillis(150));
+                    sendTitleToPlayers(Title.title(miniMessage.deserialize("<green>GO!"), Component.empty(), goTimes));
                     playSoundToPlayers(Sound.BLOCK_BELL_USE, 0.5f);
                     cancel();
                 }
@@ -221,7 +229,7 @@ public class PlayingField implements Listener {
     public void start(Gamemode mode, GamemodeSettings settings) {
         // Log fail if this is already running
         if (hasStarted()) {
-            Bukkit.getLogger().severe("Tried to start game that's already been started");
+            FillInTheWall.getInstance().getSLF4JLogger().error("Tried to start game that's already been started");
             return;
         }
         if (players.isEmpty()) {
@@ -245,14 +253,17 @@ public class PlayingField implements Listener {
             setInfiniteReach(player);
             try {
                 if (!Database.isOfflineMode() && Database.isNewcomer(player.getUniqueId())) {
-                    if (mode != Gamemode.TUTORIAL) Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () ->
-                            player.sendTitle(ChatColor.AQUA + "Place glass blocks", ChatColor.DARK_AQUA + "such that they" +
-                            ChatColor.AQUA + " fill in the " + ChatColor.DARK_AQUA + "incoming" + ChatColor.AQUA + " wall!",
-                                    10, 200, 20), 40);
+                    if (mode != Gamemode.TUTORIAL) Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> {
+                        Title.Times times = Title.Times.times(
+                                Duration.ofMillis(500), Duration.ofMillis(2000), Duration.ofMillis(1000));
+                        player.showTitle(Title.title(miniMessage.deserialize("<aqua>Place glass blocks"),
+                                miniMessage.deserialize("<dark_aqua>such that they <aqua>fill in the <dark_aqua>incoming <aqua>wall!"),
+                                times));
+                    }, 40);
                     Database.setNewcomer(player.getUniqueId(), false);
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                FillInTheWall.getInstance().getSLF4JLogger().error("Something went wrong while trying to fetch newcomer status.");
             }
         }
         task = tickLoop();
@@ -265,7 +276,7 @@ public class PlayingField implements Listener {
     /**
      * Adds a player to the game. If locked is true, locks this playing field after the player is added.
      * @param player Player to add
-     * @return
+     * @return Whether the player was added successfully
      */
     public boolean addPlayer(Player player, AddReason reason) {
         if (multiplayerMode && reason != AddReason.MULTIPLAYER) return false;
@@ -359,6 +370,7 @@ public class PlayingField implements Listener {
             if (Database.isOfflineMode()) hotbar = DEFAULT_HOTBAR;
             else hotbar = Database.getHotbar(player.getUniqueId());
         } catch (SQLException e) {
+            FillInTheWall.getInstance().getSLF4JLogger().error("Something went wrong while trying to fetch saved hotbar.");
             e.printStackTrace();
             hotbar = DEFAULT_HOTBAR;
 
@@ -415,7 +427,7 @@ public class PlayingField implements Listener {
 
     public void stop(boolean submitFinalWall, boolean showEndScreen) {
         if (!hasStarted()) {
-            Bukkit.getLogger().severe("Tried to stop game that's already been stopped");
+            FillInTheWall.getInstance().getSLF4JLogger().error("Tried to stop game that's already been stopped");
             return;
         }
 
@@ -493,7 +505,7 @@ public class PlayingField implements Listener {
         Player player = event.getPlayer();
         if (!isInField(event.getBlock().getLocation())) {
             event.setCancelled(true);
-            player.sendMessage(ChatColor.RED + "Can't place blocks here!");
+            player.sendMessage(miniMessage.deserialize("<red>Can't place blocks here!"));
             return;
         } else {
             event.setCancelled(false);
@@ -524,7 +536,7 @@ public class PlayingField implements Listener {
         Block block = event.getBlock();
         if (!isInField(block.getLocation())) {
             event.setCancelled(true);
-            player.sendMessage(ChatColor.RED + "Can't break blocks here!");
+            player.sendMessage(miniMessage.deserialize("<red>Can't break blocks here!"));
         } else {
             event.setCancelled(false);
             if (incorrectBlockHighlights.containsKey(block)) {
@@ -840,10 +852,10 @@ public class PlayingField implements Listener {
                 if (ticksSinceFlying % (20*20) == 0 && !hasFlownBefore) {
                     // one exception
                     if (!eventActive() || !(event instanceof PlayerInTheWall)) {
-                        setTipDisplay(ChatColor.GRAY + "Tip: " + ChatColor.YELLOW + "You can fly!");
+                        setTipDisplay(miniMessage.deserialize("<gray>Tip: <yellow>You can fly!"));
                     }
                 } else if (ticksSinceOffhandSubmit % (30*20) == 0 && !hasSubmittedUsingOffhand) {
-                    setTipDisplay(ChatColor.GRAY + "Tip: " + ChatColor.YELLOW + "Submit walls by pressing offhand (usually [F])!");
+                    setTipDisplay(miniMessage.deserialize("<gray>Tip: <yellow>Submit walls by pressing offhand (usually [F])!"));
                 }
 
                 if (eventActive() && event.actionBarOverride() != null) {
@@ -1383,7 +1395,7 @@ public class PlayingField implements Listener {
     }
 
     // todo maybe the display could slide across the floor?
-    public void setTipDisplay(String tip) {
+    public void setTipDisplay(Component tip) {
         if (!tipDisplays.isEmpty()) clearTipDisplays();
         Location bottomLocation = getCenter(true, false)
                 .subtract(0, 0.45, 0)
@@ -1396,26 +1408,24 @@ public class PlayingField implements Listener {
                 .add(0, height-0.1, 0);
         topLocation.setPitch(90);
 
-        TextDisplay bottomDisplay = (TextDisplay) getWorld().spawnEntity(bottomLocation, EntityType.TEXT_DISPLAY);
-        bottomDisplay.setText(tip);
-        bottomDisplay.setTransformation(new Transformation(
-                new Vector3f(0, 0, 0),
-                new AxisAngle4f(0, 0, 0, 1),
-                new Vector3f(1.3f, 1.3f, 1.3f),
-                new AxisAngle4f(0, 0, 0, 1)));
-
-        TextDisplay topDisplay = (TextDisplay) getWorld().spawnEntity(topLocation, EntityType.TEXT_DISPLAY);
-        topDisplay.setText(tip);
-        topDisplay.setTransformation(new Transformation(
-                new Vector3f(0, 0, 0),
-                new AxisAngle4f(0, 0, 0, 1),
-                new Vector3f(1.3f, 1.3f, 1.3f),
-                new AxisAngle4f(0, 0, 0, 1)));
+        TextDisplay bottomDisplay = tipSetTextandTransform(tip, bottomLocation);
+        TextDisplay topDisplay = tipSetTextandTransform(tip, topLocation);
 
         tipDisplays.add(bottomDisplay);
         tipDisplays.add(topDisplay);
 
         Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), this::clearTipDisplays, 20*10);
+    }
+
+    private TextDisplay tipSetTextandTransform(Component tip, Location location) {
+        TextDisplay display = (TextDisplay) getWorld().spawnEntity(location, EntityType.TEXT_DISPLAY);
+        display.text(tip);
+        display.setTransformation(new Transformation(
+                new Vector3f(0, 0, 0),
+                new AxisAngle4f(0, 0, 0, 1),
+                new Vector3f(1.3f, 1.3f, 1.3f),
+                new AxisAngle4f(0, 0, 0, 1)));
+        return display;
     }
 
     public void clearTipDisplays() {

@@ -215,7 +215,7 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                         tip.append(" ");
                     }
 
-                    field.setTipDisplay(tip.toString());
+                    field.setTipDisplay(MiniMessage.miniMessage().deserialize(tip.toString()));
                 }
             } else if (args[0].equalsIgnoreCase("demomode") && sender.isOp()) {
                 if (args.length >= 2) {
