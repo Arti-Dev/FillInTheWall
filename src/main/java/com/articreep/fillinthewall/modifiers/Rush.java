@@ -2,6 +2,10 @@ package com.articreep.fillinthewall.modifiers;
 
 import com.articreep.fillinthewall.game.Wall;
 import com.articreep.fillinthewall.environments.TheVoid;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -128,21 +132,22 @@ public class Rush extends ModifierEvent {
     }
 
     @Override
-    public String actionBarOverride() {
-        ChatColor color;
+    public Component actionBarOverride() {
+        TextColor color;
         int cleared = boardsCleared;
         if (cleared <= 3) {
-            color = ChatColor.GRAY;
+            color = NamedTextColor.GRAY;
         } else if (cleared <= 7) {
-            color = ChatColor.YELLOW;
+            color = NamedTextColor.YELLOW;
         } else {
-            color = ChatColor.GREEN;
+            color = NamedTextColor.GREEN;
         }
 
-        ChatColor timerColor = ChatColor.GOLD;
-        if (ticksRemaining < 100) timerColor = ChatColor.RED;
+        TextColor timerColor = NamedTextColor.GOLD;
+        if (ticksRemaining < 100) timerColor = NamedTextColor.RED;
 
-        return color + "" + ChatColor.BOLD + "Walls Cleared: " + cleared + " " + timerColor + ticksRemaining / 20 + "s left";
+        return MiniMessage.miniMessage().deserialize(
+                "<" + color + "><bold>Walls Cleared: " + cleared + " <" + timerColor + ">" + ticksRemaining / 20 + "s left");
     }
 
     @Override

@@ -1,5 +1,7 @@
 package com.articreep.fillinthewall.modifiers;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -44,8 +46,8 @@ public class Freeze extends ModifierEvent {
     }
 
     @Override
-    public String actionBarOverride() {
-        return ChatColor.AQUA + "" + ChatColor.BOLD + "Frozen for " + ticksRemaining/20 + " seconds";
+    public Component actionBarOverride() {
+        return MiniMessage.miniMessage().deserialize("<aqua><bold>Frozen for " + ticksRemaining / 20 + " seconds");
     }
 
     public Freeze copy() {

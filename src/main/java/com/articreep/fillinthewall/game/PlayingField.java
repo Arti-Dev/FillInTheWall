@@ -17,12 +17,12 @@ import com.articreep.fillinthewall.multiplayer.WallGenerator;
 import com.articreep.fillinthewall.utils.Utils;
 import com.articreep.fillinthewall.utils.WorldBoundingBox;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.title.Title;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -676,11 +676,6 @@ public class PlayingField implements Listener {
         return players;
     }
 
-    public void setQueue(WallQueue queue) {
-        // todo this method might be used for swapping two players' queues in the future
-        this.queue = queue;
-    }
-
     public WallQueue getQueue() {
         return queue;
     }
@@ -859,7 +854,7 @@ public class PlayingField implements Listener {
                 }
 
                 if (eventActive() && event.actionBarOverride() != null) {
-                    sendActionBarToPlayers(new TextComponent(event.actionBarOverride()));
+                    sendActionBarToPlayers(event.actionBarOverride());
                 } else {
                     sendActionBarToPlayers(scorer.getFormattedMeter());
                 }
@@ -929,7 +924,6 @@ public class PlayingField implements Listener {
     public void setEvent(ModifierEvent newEvent) {
         if (event != null && newEvent != null) {
             if (newEvent.shelveEvent) {
-                Bukkit.getLogger().info("Shelving event " + event);
                 newEvent.setShelvedEvent(event);
                 event.end();
             } else {
@@ -1008,7 +1002,7 @@ public class PlayingField implements Listener {
                     new AxisAngle4f(0, 0, 0, 1),
                     new Vector3f(size, size, size),
                     new AxisAngle4f(0, 0, 0, 1)));
-            textDisplays[i].setText(ChatColor.DARK_GRAY + "Loading...");
+            textDisplays[i].text(miniMessage.deserialize("<gray>Loading..."));
         }
     }
 
@@ -1092,11 +1086,11 @@ public class PlayingField implements Listener {
      * @param ticks Amount of ticks to override
      * @param message Message to display
      */
-    public void overrideDisplay(DisplayType type, int ticks, String message) {
+    public void overrideDisplay(DisplayType type, int ticks, Component message) {
         displayOverrides.add(type);
         for (int i = 0; i < displaySlotsLength; i++) {
             if (displaySlots[i] == type) {
-                textDisplays[i].setText(message);
+                textDisplays[i].text(message);
             }
         }
         Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> displayOverrides.remove(type), ticks);
@@ -1108,11 +1102,11 @@ public class PlayingField implements Listener {
      * @param type DisplayType to affect
      * @param message Message to display
      */
-    public void modifyOverridenDisplayText(DisplayType type, String message) {
+    public void modifyOverridenDisplayText(DisplayType type, Component message) {
         if (!displayOverrides.contains(type)) return;
         for (int i = 0; i < displaySlotsLength; i++) {
             if (displaySlots[i] == type) {
-                textDisplays[i].setText(message);
+                textDisplays[i].text(message);
             }
         }
     }
@@ -1186,7 +1180,8 @@ public class PlayingField implements Listener {
     public static ItemStack buildingItem(Material material) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        meta.setLore(Collections.singletonList(ChatColor.GRAY + "Fill the holes in the incoming wall with this!"));
+        meta.lore(Collections.singletonList(miniMessage.deserialize(
+                "<gray>Fill the holes in the incoming wall with this!")));
         meta.getPersistentDataContainer().set(gameKey, PersistentDataType.BOOLEAN, true);
         item.setItemMeta(meta);
         return item;
@@ -1195,11 +1190,11 @@ public class PlayingField implements Listener {
     public static ItemStack stoneSupportItem() {
         ItemStack item = new ItemStack(Material.CRACKED_STONE_BRICKS);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.GRAY + "Stone Support Block");
-        meta.setLore(Arrays.asList(ChatColor.GRAY + "- place this block on the field",
-                ChatColor.GRAY + "- place another block against this block",
-                ChatColor.YELLOW + "" + ChatColor.BOLD + "- ???",
-                ChatColor.AQUA + "- floating block"));
+        meta.displayName(miniMessage.deserialize("<gray>Stone Support Block"));
+        meta.lore(Arrays.asList(miniMessage.deserialize("<gray>- place this block on the field"),
+                miniMessage.deserialize("<gray>- place another block against this block"),
+                miniMessage.deserialize("<yellow><bold>- ???"),
+                miniMessage.deserialize("<aqua>- floating block")));
         meta.getPersistentDataContainer().set(gameKey, PersistentDataType.BOOLEAN, true);
         item.setItemMeta(meta);
         return item;
@@ -1208,11 +1203,11 @@ public class PlayingField implements Listener {
     public static ItemStack copperSupportItem() {
         ItemStack item = new ItemStack(Material.WAXED_COPPER_GRATE);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.of(new java.awt.Color(154, 95, 74)) + "Copper Support Block");
-        meta.setLore(Arrays.asList(ChatColor.GRAY + "- place this block on the field",
-                ChatColor.GRAY + "- block breaks right before wall is submitted",
-                ChatColor.YELLOW + "" + ChatColor.BOLD + "- ???",
-                ChatColor.AQUA + "- no left clicks required"));
+        meta.displayName(miniMessage.deserialize("<color:#9A5F4A>Copper Support Block"));
+        meta.lore(Arrays.asList(miniMessage.deserialize("<gray>- place this block on the field"),
+                miniMessage.deserialize("<gray>- block breaks right before wall is submitted"),
+                miniMessage.deserialize("<yellow><bold>- ???"),
+                miniMessage.deserialize("<aqua>- no left clicks required")));
         meta.getPersistentDataContainer().set(gameKey, PersistentDataType.BOOLEAN, true);
         item.setItemMeta(meta);
         return item;
@@ -1221,9 +1216,9 @@ public class PlayingField implements Listener {
     public static ItemStack meterItem() {
         ItemStack item = new ItemStack(Material.FIREWORK_ROCKET);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "Special Ability");
-        meta.setLore(Arrays.asList(ChatColor.GRAY + "When your meter is full enough, hold this item",
-                ChatColor.GRAY + "and click to activate a" + ChatColor.GOLD + " special ability" + ChatColor.GRAY + "!"));
+        meta.displayName(miniMessage.deserialize("<gold><bold>Special Ability"));
+        meta.lore(Arrays.asList(miniMessage.deserialize("<gray>When your meter is full enough, hold this item"),
+                miniMessage.deserialize("<gray>and click to activate a <gold>special ability</gold>!")));
         meta.getPersistentDataContainer().set(meterKey, PersistentDataType.BOOLEAN, true);
         meta.getPersistentDataContainer().set(gameKey, PersistentDataType.BOOLEAN, true);
         item.setItemMeta(meta);
@@ -1233,9 +1228,9 @@ public class PlayingField implements Listener {
     public static ItemStack variableItem() {
         ItemStack item = new ItemStack(Material.GRAY_DYE);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.WHITE + "Variable Item");
-        meta.setLore(Arrays.asList(ChatColor.GRAY + "This is replaced with special items during specific events!",
-                ChatColor.DARK_GRAY + "Feel free to move this anywhere in your inventory!"));
+        meta.displayName(Component.text("Variable Item"));
+        meta.lore(Arrays.asList(miniMessage.deserialize("<gray>This is replaced with special items during specific events!"),
+                miniMessage.deserialize("<dark_gray>Feel free to move this anywhere in your inventory!")));
         meta.getPersistentDataContainer().set(variableKey, PersistentDataType.BOOLEAN, true);
         meta.getPersistentDataContainer().set(gameKey, PersistentDataType.BOOLEAN, true);
         item.setItemMeta(meta);
@@ -1249,6 +1244,7 @@ public class PlayingField implements Listener {
         }
     }
 
+    @Deprecated
     public void sendTitleToPlayers(String title, String subtitle, int fadeIn, int stay, int fadeOut) {
         for (Player player : players) {
             player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
@@ -1261,9 +1257,16 @@ public class PlayingField implements Listener {
         }
     }
 
+    @Deprecated
     public void sendActionBarToPlayers(BaseComponent component) {
         for (Player player : players) {
             player.spigot().sendMessage(ChatMessageType.ACTION_BAR, component);
+        }
+    }
+
+    public void sendActionBarToPlayers(Component component) {
+        for (Player player : players) {
+            player.sendActionBar(component);
         }
     }
 
@@ -1296,14 +1299,14 @@ public class PlayingField implements Listener {
     }
 
     public void flashScore(int ticks) {
-        overrideDisplay(DisplayType.SCORE, ticks, "");
+        overrideDisplay(DisplayType.SCORE, ticks, Component.empty());
         final int rate = 4;
         new BukkitRunnable() {
             int elapsed = 0;
             int cover = 0;
             int flash = 5;
-            final ChatColor primary = ChatColor.AQUA;
-            final ChatColor accent = ChatColor.DARK_AQUA;
+            final TextColor primary = NamedTextColor.AQUA;
+            final TextColor accent = NamedTextColor.DARK_AQUA;
             @Override
             public void run() {
                 if (elapsed >= ticks) {
@@ -1312,8 +1315,8 @@ public class PlayingField implements Listener {
                 }
                 Component component = DisplayType.SCORE.getFormattedText(scorer.getScore());
                 String text = ((net.kyori.adventure.text.TextComponent) component).content();
-                text = flashTextFormat(text, cover, flash, primary, accent);
-                modifyOverridenDisplayText(DisplayType.SCORE, text);
+                Component formattedComponent = flashTextFormat(text, cover, flash, primary, accent);
+                modifyOverridenDisplayText(DisplayType.SCORE, formattedComponent);
 
                 if (flash == 0) cover++;
                 else flash--;
@@ -1327,14 +1330,14 @@ public class PlayingField implements Listener {
     }
 
     public void flashLevel(int ticks) {
-        overrideDisplay(DisplayType.LEVEL, ticks, "");
+        overrideDisplay(DisplayType.LEVEL, ticks, Component.empty());
         final int rate = 4;
         new BukkitRunnable() {
             int elapsed = 0;
             int cover = 0;
             int flash = 5;
-            final ChatColor primary = ChatColor.AQUA;
-            final ChatColor accent = ChatColor.DARK_AQUA;
+            final TextColor primary = NamedTextColor.AQUA;
+            final TextColor accent = NamedTextColor.DARK_AQUA;
             @Override
             public void run() {
                 if (elapsed >= ticks) {
@@ -1343,8 +1346,8 @@ public class PlayingField implements Listener {
                 }
                 Component component = DisplayType.SCORE.getFormattedText(scorer.getScore());
                 String text = ((net.kyori.adventure.text.TextComponent) component).content();
-                text = flashTextFormat(text, cover, flash, primary, accent);
-                modifyOverridenDisplayText(DisplayType.LEVEL, text);
+                Component formattedComponent = flashTextFormat(text, cover, flash, primary, accent);
+                modifyOverridenDisplayText(DisplayType.LEVEL, formattedComponent);
 
                 if (flash == 0) cover++;
                 else flash--;
@@ -1357,20 +1360,19 @@ public class PlayingField implements Listener {
         }.runTaskTimer(FillInTheWall.getInstance(), 10, rate);
     }
 
-    // todo update to use kyori adventure
-    private String flashTextFormat(String text, int cover, int flash, ChatColor primary, ChatColor accent) {
-        text = ChatColor.stripColor(text);
+    private Component flashTextFormat(String text, int cover, int flash, TextColor primary, TextColor accent) {
+        Component finalText;
         // Flash takes priority
         if (flash > 0) {
-            if (flash % 2 == 0) text = accent + text;
-            else text = primary + "" + ChatColor.BOLD + text;
+            if (flash % 2 == 0) finalText = Component.text(text, accent);
+            else finalText = miniMessage.deserialize("<" + primary + "><bold>" + text);
         } else {
             cover = Integer.min(cover, text.length() - 1);
             String front = text.substring(0, cover);
             String back = text.substring(cover);
-            text = primary + front + accent + back;
+            finalText = miniMessage.deserialize("<" + primary + ">" + front + "<" + accent + ">" + back);
         }
-        return text;
+        return finalText;
     }
 
     public Material getWallMaterial() {
@@ -1494,8 +1496,7 @@ public class PlayingField implements Listener {
 
     public void saveHotbar(Player player) {
         if (Database.isOfflineMode()) {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(
-                    ChatColor.GRAY + "Database is down - your hotbar will not be saved"));
+            player.sendActionBar(miniMessage.deserialize("<gray>Database is down - your hotbar will not be saved"));
             return;
         }
         StringBuilder hotbar = new StringBuilder();

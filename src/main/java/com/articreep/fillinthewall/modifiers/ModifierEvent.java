@@ -1,6 +1,7 @@
 package com.articreep.fillinthewall.modifiers;
 
 import com.articreep.fillinthewall.game.*;
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -129,7 +130,7 @@ public abstract class ModifierEvent {
     }
 
     /** If returns null, the default action bar will be used. */
-    public String actionBarOverride() {
+    public Component actionBarOverride() {
         return null;
     }
 

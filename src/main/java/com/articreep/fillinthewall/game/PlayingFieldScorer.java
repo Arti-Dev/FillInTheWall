@@ -15,6 +15,7 @@ import com.articreep.fillinthewall.multiplayer.ScoreAttackGame;
 import com.articreep.fillinthewall.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.title.Title;
 import net.md_5.bungee.api.chat.*;
@@ -424,7 +425,7 @@ public class PlayingFieldScorer {
         if (event instanceof Rush rush) {
             // (x/2)^2
             int rushResults = (int) Math.pow(((double) rush.getBoardsCleared() / 2), 2);
-            field.overrideDisplay(DisplayType.SCORE, 80, ChatColor.RED + "+" + ChatColor.BOLD + rushResults + " points from Rush!!!");
+            field.overrideDisplay(DisplayType.SCORE, 80, miniMessage.deserialize("<red>+<bold>" + rushResults + " points from Rush!!!"));
             score += rushResults;
         }
     }
@@ -797,26 +798,25 @@ public class PlayingFieldScorer {
         this.meterMax = meterMax;
     }
 
-    public BaseComponent getFormattedMeter() {
+    public Component getFormattedMeter() {
         double percentFilled = meter / meterMax;
 
-        ChatColor color;
+        TextColor color;
         String modifier = "";
         ModifierEvent.Type type = settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT);
-        if (type != ModifierEvent.Type.NONE && type != null) modifier = type.getClazz().getSimpleName() + " ";
+        if (type != ModifierEvent.Type.NONE && type != null) modifier = type.getClazz().getSimpleName();
         if (percentFilled <= 0.3) {
-            color = ChatColor.GRAY;
+            color = NamedTextColor.GRAY;
         } else if (percentFilled <= 0.7) {
-            color = ChatColor.YELLOW;
+            color = NamedTextColor.YELLOW;
         } else {
-            color = ChatColor.GREEN;
+            color = NamedTextColor.GREEN;
         }
-        ComponentBuilder builder = new ComponentBuilder(color + modifier + "Meter: " + String.format("%.2f", meter) + "/" + meterMax);
+        Component message = Component.text(modifier + " Meter: " + String.format("%.2f", meter) + "/" + meterMax, color);
         if (isMeterFilledEnough(percentFilled)) {
-            builder.append(" " + ChatColor.BLUE + ChatColor.BOLD + "Ready! Press ")
-                    .append(new KeybindComponent(Keybinds.DROP)).color(ChatColor.BLUE).bold(true);
+            return message.append(miniMessage.deserialize("<blue><bold>Ready! Press <key.drop>"));
         }
-        return builder.build();
+        return message;
     }
 
     public void setLevel(int level) {

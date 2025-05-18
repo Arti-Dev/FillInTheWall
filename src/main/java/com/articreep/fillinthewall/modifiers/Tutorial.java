@@ -5,6 +5,10 @@ import com.articreep.fillinthewall.game.Wall;
 import com.articreep.fillinthewall.utils.CustomPathfinderGoal;
 import com.articreep.fillinthewall.utils.ToggleLookAtPlayerGoal;
 import com.articreep.fillinthewall.utils.Utils;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.minecraft.world.entity.ai.goal.GoalSelector;
 import net.minecraft.world.entity.monster.EnderMan;
 import org.bukkit.*;
@@ -75,9 +79,9 @@ public class Tutorial extends ModifierEvent implements Listener {
     }
 
     @Override
-    public String actionBarOverride() {
+    public Component actionBarOverride() {
         if (currentSlide >= 11) return getFormattedFakeMeter();
-        return ChatColor.BOLD + "Press F to insta-send walls";
+        return MiniMessage.miniMessage().deserialize("<bold>Press F to insta-send walls");
     }
 
     @Override
@@ -342,17 +346,18 @@ public class Tutorial extends ModifierEvent implements Listener {
         }
     }
 
-    private String getFormattedFakeMeter() {
+    private Component getFormattedFakeMeter() {
         double percentFilled = fakeMeter / fakeMeterMax;
-        ChatColor color;
+        TextColor color;
         if (percentFilled <= 0.3) {
-            color = ChatColor.GRAY;
+            color = NamedTextColor.GRAY;
         } else if (percentFilled <= 0.7) {
-            color = ChatColor.YELLOW;
+            color = NamedTextColor.YELLOW;
         } else {
-            color = ChatColor.GREEN;
+            color = NamedTextColor.GREEN;
         }
-        return color + "Freeze Meter: " + String.format("%.2f", fakeMeter) + "/" + fakeMeterMax;
+        return MiniMessage.miniMessage().deserialize("<" + color + ">" +
+                "<bold>Freeze Meter: " + String.format("%.2f", fakeMeter) + "/" + fakeMeterMax);
     }
 
     public Tutorial copy() {
