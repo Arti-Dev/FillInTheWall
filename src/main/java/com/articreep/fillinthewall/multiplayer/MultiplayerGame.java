@@ -7,10 +7,11 @@ import com.articreep.fillinthewall.game.PlayingFieldManager;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.gamemode.GamemodeSettings;
 import com.articreep.fillinthewall.modifiers.ModifierEvent;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -35,10 +36,11 @@ public abstract class MultiplayerGame implements Listener {
     protected int ticksBetweenSignals = 20;
     protected int signalCount = 3;
     protected boolean incompleteGame = false;
+    private final static MiniMessage miniMessage = MiniMessage.miniMessage();
 
     public MultiplayerGame(List<PlayingField> fields, GamemodeSettings settings) {
         if (fields.isEmpty()) {
-            Bukkit.getLogger().severe("Tried to create multiplayer game with no playing fields");
+            FillInTheWall.getInstance().getSLF4JLogger().error("Tried to create multiplayer game with no playing fields");
         }
         this.settings = settings;
         playingFields.addAll(fields);
@@ -60,12 +62,12 @@ public abstract class MultiplayerGame implements Listener {
 
     public void start() {
         if (playingFields.isEmpty()) {
-            Bukkit.getLogger().severe("Tried to start multiplayer game with no playing fields");
+            FillInTheWall.getInstance().getSLF4JLogger().error("Tried to start multiplayer game with no playing fields");
             return;
         }
 
         if (!verifyFieldDimensions()) {
-            Bukkit.getLogger().severe("Not all playing fields have the same dimensions!");
+            FillInTheWall.getInstance().getSLF4JLogger().error("Not all playing fields have the same dimensions!");
             return;
         }
 
@@ -85,13 +87,16 @@ public abstract class MultiplayerGame implements Listener {
             public void run() {
                 for (PlayingField field : playingFields) {
                     if (i == 3) {
-                        field.sendTitleToPlayers(ChatColor.BLUE + "\uD83D\uDC65", ChatColor.GREEN + "Multiplayer game starting in 3", 0, 30, 0);
+                        field.sendTitleToPlayers(miniMessage.deserialize("<blue>\uD83D\uDC65"),
+                                miniMessage.deserialize("<green>Multiplayer game starting in 3"), 0, 30, 0);
                     } else if (i == 2) {
-                        field.sendTitleToPlayers(ChatColor.BLUE + "\uD83D\uDC65", ChatColor.YELLOW + "Multiplayer game starting in 2", 0, 30, 0);
+                        field.sendTitleToPlayers(miniMessage.deserialize("<blue>\uD83D\uDC65"),
+                                miniMessage.deserialize("<yellow>Multiplayer game starting in 2"), 0, 30, 0);
                     } else if (i == 1) {
-                        field.sendTitleToPlayers(ChatColor.BLUE + "\uD83D\uDC65", ChatColor.RED + "Multiplayer game starting in 1", 0, 30, 0);
+                        field.sendTitleToPlayers(miniMessage.deserialize("<blue>\uD83D\uDC65"),
+                                miniMessage.deserialize("<red>Multiplayer game starting in 1"), 0, 30, 0);
                     } else if (i == 0) {
-                        field.sendTitleToPlayers(ChatColor.GREEN + "GO!", "", 0, 5, 3);
+                        field.sendTitleToPlayers(miniMessage.deserialize("<green>GO!"), Component.empty(), 0, 5, 3);
                         field.playSoundToPlayers(Sound.BLOCK_BELL_USE, 0.5f);
                     }
                 }
@@ -121,7 +126,7 @@ public abstract class MultiplayerGame implements Listener {
 
     protected void startGame() {
         if (mainTask != null) {
-            Bukkit.getLogger().severe("Tried to start multiplayer game that's already been started");
+            FillInTheWall.getInstance().getSLF4JLogger().error("Tried to start multiplayer game that's already been started");
             return;
         }
         for (PlayingField field : playingFields) {
@@ -243,8 +248,7 @@ public abstract class MultiplayerGame implements Listener {
                 while (it.hasNext()) {
                     Player player = it.next();
                     if (player.getGameMode() != GameMode.SPECTATOR) it.remove();
-                    else player.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                            new TextComponent(ChatColor.YELLOW + "To stop spectating, run /fitw spawn"));
+                    else player.sendActionBar(miniMessage.deserialize("<yellow>To stop spectating, run <green>/fitw spawn"));
                 }
             }
         }.runTaskTimer(FillInTheWall.getInstance(), 0, 20);
@@ -305,15 +309,16 @@ public abstract class MultiplayerGame implements Listener {
             @Override
             public void run() {
                 if (signals < signalCount) {
-                    ChatColor color = ChatColor.YELLOW;
+                    TextColor color = NamedTextColor.YELLOW;
                     if (signals == signalCount - 1) {
-                        color = ChatColor.RED;
+                        color = NamedTextColor.RED;
                     }
 
                     for (ModifierEvent event : events) {
                         if (signals == 0) event.playActivateSound();
                         else event.getPlayingField().playSoundToPlayers(Sound.BLOCK_NOTE_BLOCK_HAT, 1);
-                        event.getPlayingField().sendTitleToPlayers(color + "⚠", "", 0, 5, 10);
+                        event.getPlayingField().sendTitleToPlayers(
+                                miniMessage.deserialize("<" + color + ">" + "⚠"), Component.empty(), 0, 5, 10);
                     }
                     signals++;
                 } else {

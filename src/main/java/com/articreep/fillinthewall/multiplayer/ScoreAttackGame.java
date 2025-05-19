@@ -11,14 +11,15 @@ import com.articreep.fillinthewall.modifiers.ModifierEvent;
 import com.articreep.fillinthewall.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.time.Duration;
 import java.util.*;
 
 public class ScoreAttackGame extends MultiplayerGame {
@@ -32,6 +33,7 @@ public class ScoreAttackGame extends MultiplayerGame {
     Sound.MUSIC_DISC_STAL, Sound.MUSIC_DISC_WAIT};
     private final Sound[] possibleFinalsMusic = {Sound.MUSIC_DISC_PRECIPICE};
     private final WallBundle customWallBundle = WallBundle.getWallBundle("finals");
+    private final static MiniMessage miniMessage = MiniMessage.miniMessage();
 
     public ScoreAttackGame(List<PlayingField> fields, ArrayList<PlayingField> finalStageBoards, GamemodeSettings settings) {
         super(fields, settings);
@@ -132,7 +134,7 @@ public class ScoreAttackGame extends MultiplayerGame {
 
             stage = Stage.FINALS;
             for (PlayingField field : playingFields) {
-                field.sendTitleToPlayers(ChatColor.AQUA + "Qualifications over!", "Next up: Finals", 0, 60, 20);
+                field.sendTitleToPlayers(miniMessage.deserialize("<aqua>Qualifications over!"), miniMessage.deserialize("Next up: Finals"), 0, 60, 20);
             }
 
             playingFields.clear();
@@ -163,7 +165,9 @@ public class ScoreAttackGame extends MultiplayerGame {
                         // Spawn location
                         for (Player player : field.getPlayers()) {
                             player.teleport(field.getSpawnLocation());
-                            player.sendTitle(ChatColor.YELLOW + "Welcome to the Finals!", "Bigger board, bigger competition!", 10, 60, 20);
+                            Title.Times times = Title.Times.times(Duration.ZERO, Duration.ofMillis(3000), Duration.ofMillis(1000));
+                            player.showTitle(Title.title(miniMessage.deserialize("<yellow>Welcome to the Finals!"),
+                                    miniMessage.deserialize("Bigger board, bigger competition!"), times));
                         }
                     }
                     for (Set<Player> set : eliminatedPlayers) {
@@ -171,7 +175,9 @@ public class ScoreAttackGame extends MultiplayerGame {
                             player.setGameMode(GameMode.SPECTATOR);
                             spectators.add(player);
                             player.teleport(FillInTheWall.getInstance().getSpectatorFinalsSpawn());
-                            player.sendTitle(ChatColor.YELLOW + "Welcome to the Finals!", "Bigger board, bigger competition!", 10, 60, 20);
+                            Title.Times times = Title.Times.times(Duration.ZERO, Duration.ofMillis(3000), Duration.ofMillis(1000));
+                            player.showTitle(Title.title(miniMessage.deserialize("<yellow>Welcome to the Finals!"),
+                                    miniMessage.deserialize("Bigger board, bigger competition!"), times));
                         }
                     }
                 }
@@ -209,14 +215,14 @@ public class ScoreAttackGame extends MultiplayerGame {
 
     @Override
     protected void broadcastResults() {
-        Bukkit.broadcastMessage(ChatColor.AQUA + "Fill In The Wall - " + stage.toString());
-        Bukkit.broadcastMessage("");
+        Bukkit.broadcast(miniMessage.deserialize("<aqua>Fill In The Wall - " + stage.toString()));
+        Bukkit.broadcast(Component.empty());
         for (int i = 0; i < rankings.size(); i++) {
             if (i == 0) rankings.get(i).fireworks();
-            Bukkit.broadcastMessage("#" + (i+1) + " - " + ChatColor.GREEN + Utils.playersToString(rankings.get(i).getPlayers()) + " with " + rankings.get(i).getScorer().getScore() + " points");
+            Bukkit.broadcast(miniMessage.deserialize("#" + (i+1) + " - <green>" + Utils.playersToString(rankings.get(i).getPlayers()) + " with " + rankings.get(i).getScorer().getScore() + " points"));
         }
-        Bukkit.broadcastMessage("");
-        Bukkit.broadcastMessage("---");
+        Bukkit.broadcast(Component.empty());
+        Bukkit.broadcast(Component.text("---"));
     }
 
     public Stage getStage() {

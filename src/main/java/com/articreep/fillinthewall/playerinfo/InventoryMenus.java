@@ -1,16 +1,12 @@
 package com.articreep.fillinthewall.playerinfo;
 
-import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.lobby.LobbyItems;
 import com.articreep.fillinthewall.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

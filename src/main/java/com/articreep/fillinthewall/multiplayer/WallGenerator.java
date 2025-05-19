@@ -1,9 +1,9 @@
 package com.articreep.fillinthewall.multiplayer;
 
+import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.game.Wall;
 import com.articreep.fillinthewall.game.WallBundle;
 import com.articreep.fillinthewall.game.WallQueue;
-import org.bukkit.Bukkit;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -54,7 +54,7 @@ public class WallGenerator {
         else wall.generateHoles(randomHoleCount, connectedHoleCount, randomizeFurther);
         wall.setTimeRemaining(wallActiveTime);
         if (queues.isEmpty()) {
-            Bukkit.getLogger().warning("No queues to add walls to..?");
+            FillInTheWall.getInstance().getSLF4JLogger().warn("No queues to add walls to..?");
         } else {
             wallCount++;
             if (wallCount % 3 == 0 && customWallBundle != null) {

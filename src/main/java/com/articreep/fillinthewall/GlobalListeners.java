@@ -6,7 +6,7 @@ import com.articreep.fillinthewall.playerinfo.PlayerLevels;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.md_5.bungee.api.ChatColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.ItemFrame;
@@ -79,9 +79,10 @@ public class GlobalListeners implements Listener {
         if (clickedItem != null && clickedItem.getType() != Material.AIR) {
             if (!clickedItem.getItemMeta().getPersistentDataContainer().has(PlayingField.gameKey, PersistentDataType.BOOLEAN)) {
                 event.setCancelled(true);
-                clickedItem.setType(Material.AIR);
+                // delete the item
+//                clickedItem.setType(Material.AIR);
                 clickedItem.setAmount(0);
-                event.getWhoClicked().sendMessage(ChatColor.DARK_GRAY + "Can't use this item!");
+                event.getWhoClicked().sendMessage(MiniMessage.miniMessage().deserialize("<gray>Can't use this item!"));
             }
         }
     }
@@ -95,7 +96,7 @@ public class GlobalListeners implements Listener {
         if (item.getType() == Material.AIR) return;
         if (!item.getItemMeta().getPersistentDataContainer().has(PlayingField.gameKey, PersistentDataType.BOOLEAN)) {
             player.getInventory().setItem(event.getNewSlot(), new ItemStack(Material.AIR));
-            player.sendMessage(ChatColor.DARK_GRAY + "Can't use this item!");
+            player.sendMessage(MiniMessage.miniMessage().deserialize("<gray>Can't use this item!"));
         }
     }
 

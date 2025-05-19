@@ -15,7 +15,6 @@ import com.xxmicloxx.NoteBlockAPI.songplayer.PositionSongPlayer;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -108,7 +107,7 @@ public class Pregame implements Listener {
      */
     public void startGame() {
         if (PlayingFieldManager.game != null) {
-            Bukkit.getLogger().severe("Tried to start game while another game is running");
+            FillInTheWall.getInstance().getSLF4JLogger().error("Tried to start game while another game is running");
             return;
         }
 
@@ -156,7 +155,7 @@ public class Pregame implements Listener {
         // while true statement with iterator.hasNext checks
         while (true) {
             if (currentPlayingField.playerCount() != 0) {
-                Bukkit.getLogger().info("Field is not empty - skipping");
+                FillInTheWall.getInstance().getSLF4JLogger().info("Field is not empty - skipping");
                 if (fieldIterator.hasNext()) {
                     currentPlayingField = fieldIterator.next();
                 } else {
@@ -170,13 +169,13 @@ public class Pregame implements Listener {
             while (playerIterator.hasNext()) {
                 Player player = playerIterator.next();
                 if (PlayingFieldManager.isInGame(player)) {
-                    Bukkit.getLogger().info(player.getName() + " is already in a game - skipping (remove them first!)");
+                    FillInTheWall.getInstance().getSLF4JLogger().info(player.getName() + " is already in a game - skipping (remove them first!)");
                     playerIterator.remove();
                 }
             }
 
             if (currentPlayerSet.isEmpty()) {
-                Bukkit.getLogger().info("No players left to add to field - skipping");
+                FillInTheWall.getInstance().getSLF4JLogger().info("No players left to add to field - skipping");
                 if (playerSetIterator.hasNext()) {
                     currentPlayerSet = playerSetIterator.next();
                 } else {
