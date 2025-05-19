@@ -21,8 +21,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.title.Title;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
@@ -1246,13 +1244,6 @@ public class PlayingField implements Listener {
         }
     }
 
-    @Deprecated
-    public void sendTitleToPlayers(String title, String subtitle, int fadeIn, int stay, int fadeOut) {
-        for (Player player : players) {
-            player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
-        }
-    }
-
     public void sendTitleToPlayers(Title title) {
         for (Player player : players) {
             player.showTitle(title);
@@ -1273,13 +1264,6 @@ public class PlayingField implements Listener {
                     Duration.ofMillis(fadeIn * 50L),
                     Duration.ofMillis(stay * 50L),
                     Duration.ofMillis(fadeOut * 50L))));
-        }
-    }
-
-    @Deprecated
-    public void sendActionBarToPlayers(BaseComponent component) {
-        for (Player player : players) {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, component);
         }
     }
 

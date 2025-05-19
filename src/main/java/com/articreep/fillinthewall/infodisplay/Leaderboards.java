@@ -8,7 +8,7 @@ import com.articreep.fillinthewall.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.md_5.bungee.api.ChatColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -26,6 +26,7 @@ public class Leaderboards {
 
     private static final Map<TextDisplay, Gamemode> scoreLeaderboards = new HashMap<>();
     private static TextDisplay levelLeaderboard = null;
+    private static final MiniMessage miniMessage = MiniMessage.miniMessage();
 
     public static void spawnLeaderboards(FileConfiguration config) {
         removeLeaderboards();
@@ -40,35 +41,35 @@ public class Leaderboards {
         if (scoreAttackLocation != null) {
             TextDisplay scoreAttackDisplay = (TextDisplay) scoreAttackLocation.getWorld().spawnEntity(
                     scoreAttackLocation, EntityType.TEXT_DISPLAY);
-            scoreAttackDisplay.setText("Score Attack Leaderboard");
+            scoreAttackDisplay.text(Component.text("Score Attack Leaderboard"));
             scoreAttackDisplay.setBillboard(Display.Billboard.VERTICAL);
             scoreLeaderboards.put(scoreAttackDisplay, Gamemode.SCORE_ATTACK);
         }
         if (rushScoreAttackLocation != null) {
             TextDisplay rushScoreAttackDisplay = (TextDisplay) rushScoreAttackLocation.getWorld().spawnEntity(
                     rushScoreAttackLocation, EntityType.TEXT_DISPLAY);
-            rushScoreAttackDisplay.setText("Rush Score Attack Leaderboard");
+            rushScoreAttackDisplay.text(Component.text("Rush Score Attack Leaderboard"));
             rushScoreAttackDisplay.setBillboard(Display.Billboard.VERTICAL);
             scoreLeaderboards.put(rushScoreAttackDisplay, Gamemode.RUSH_SCORE_ATTACK);
         }
         if (marathonLocation != null) {
             TextDisplay marathonDisplay = (TextDisplay) marathonLocation.getWorld().spawnEntity(
                     marathonLocation, EntityType.TEXT_DISPLAY);
-            marathonDisplay.setText("Marathon Leaderboard");
+            marathonDisplay.text(Component.text("Marathon Leaderboard"));
             marathonDisplay.setBillboard(Display.Billboard.VERTICAL);
             scoreLeaderboards.put(marathonDisplay, Gamemode.MARATHON);
         }
         if (sprintLocation != null) {
             TextDisplay sprintDisplay = (TextDisplay) sprintLocation.getWorld().spawnEntity(
                     sprintLocation, EntityType.TEXT_DISPLAY);
-            sprintDisplay.setText("Sprint Leaderboard");
+            sprintDisplay.text(Component.text("Sprint Leaderboard"));
             sprintDisplay.setBillboard(Display.Billboard.VERTICAL);
             scoreLeaderboards.put(sprintDisplay, Gamemode.SPRINT);
         }
         if (megaLocation != null) {
             TextDisplay megaDisplay = (TextDisplay) megaLocation.getWorld().spawnEntity(
                     megaLocation, EntityType.TEXT_DISPLAY);
-            megaDisplay.setText("Mega Leaderboard");
+            megaDisplay.text(Component.text("Mega Leaderboard"));
             megaDisplay.setBillboard(Display.Billboard.VERTICAL);
             scoreLeaderboards.put(megaDisplay, Gamemode.MEGA);
         }
@@ -76,7 +77,7 @@ public class Leaderboards {
         if (levelLocation != null) {
             levelLeaderboard = (TextDisplay) levelLocation.getWorld().spawnEntity(
                     levelLocation, EntityType.TEXT_DISPLAY);
-            levelLeaderboard.setText("Level Leaderboard");
+            levelLeaderboard.text(Component.text("Level Leaderboard"));
             levelLeaderboard.setBillboard(Display.Billboard.VERTICAL);
         }
         updateLeaderboards();
@@ -98,12 +99,12 @@ public class Leaderboards {
         for (Map.Entry<TextDisplay, Gamemode> entry : scoreLeaderboards.entrySet()) {
             TextDisplay display = entry.getKey();
             Gamemode gamemode = entry.getValue();
-            StringBuilder stringBuilder = new StringBuilder(((TextComponent)gamemode.getTitle()).content());
-            stringBuilder.append("\n").append(ChatColor.GRAY).append("Top Scores\n");
+            StringBuilder stringBuilder = new StringBuilder(miniMessage.serialize(gamemode.getTitle()));
+            stringBuilder.append("\n<gray>Top Scores</gray>\n");
 
             if (Database.isOfflineMode()) {
-                stringBuilder.append(ChatColor.GRAY).append("\nDatabase is currently offline.\nPlease check back later.");
-                display.setText(stringBuilder.toString());
+                stringBuilder.append("\n<gray>Database is currently offline.\nPlease check back later.</gray>");
+                display.text(miniMessage.deserialize(stringBuilder.toString()));
                 continue;
             }
 
@@ -117,8 +118,7 @@ public class Leaderboards {
                 }
                 int i = 1;
                 for (Map.Entry<UUID, Integer> score : topScores.entrySet()) {
-                    stringBuilder.append("\n")
-                            .append(ChatColor.YELLOW)
+                    stringBuilder.append("\n<yellow>")
                             .append("#").append(i).append(" ")
                             .append(Bukkit.getOfflinePlayer(score.getKey()).getName()).append(": ");
                     if (scoreByTime) {
@@ -126,14 +126,15 @@ public class Leaderboards {
                     } else {
                         stringBuilder.append(score.getValue());
                     }
+                    stringBuilder.append("</yellow>");
                     i++;
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
-                stringBuilder.append("\n").append(ChatColor.RED).append("Error loading scores");
+                stringBuilder.append("\n").append("<red>Error loading scores</red>");
             } finally {
-                stringBuilder.append("\n\n").append(ChatColor.GRAY).append("Updates every 30 seconds");
-                display.setText(stringBuilder.toString());
+                stringBuilder.append("\n\n").append("<gray>Updates every 30 seconds</gray>");
+                display.text(miniMessage.deserialize(stringBuilder.toString()));
             }
         }
 

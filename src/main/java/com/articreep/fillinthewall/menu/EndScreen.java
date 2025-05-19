@@ -59,11 +59,6 @@ public class EndScreen {
         Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), this::despawn, 20 * 60);
     }
 
-    @Deprecated
-    public void addLine(String string) {
-        lines.add(string);
-    }
-
     public void addLine(Component component) {
         lines.add(miniMessage.serialize(component));
     }

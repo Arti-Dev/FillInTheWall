@@ -69,7 +69,7 @@ public class RegisterPlayingField implements CommandExecutor, Listener {
         // Ask for, in order
 
         // Name of this playing field
-        // Playing field reference point
+        // reference point
         // Queue length
         // Field width
         // Field height
