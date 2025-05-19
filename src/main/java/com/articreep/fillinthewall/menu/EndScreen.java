@@ -1,6 +1,8 @@
 package com.articreep.fillinthewall.menu;
 
 import com.articreep.fillinthewall.FillInTheWall;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.EntityType;
@@ -14,11 +16,13 @@ public class EndScreen {
     private final Location location;
     private TextDisplay display;
     private final List<String> lines = new ArrayList<>();
+    private final static MiniMessage miniMessage = MiniMessage.miniMessage();
 
     public EndScreen(Location location) {
         this.location = location;
     }
 
+    // todo fix the animation displaying the tags used to make colors...
     public void display() {
         display = (TextDisplay) location.getWorld().spawnEntity(location, EntityType.TEXT_DISPLAY);
         display.setBillboard(org.bukkit.entity.Display.Billboard.CENTER);
@@ -37,7 +41,7 @@ public class EndScreen {
                 }
                 string.append(lines.get(i), 0, lineLength);
 
-                display.setText(string.toString());
+                display.text(miniMessage.deserialize(string.toString()));
 
                 if (lineLength < lines.get(i).length()) {
                     lineLength++;
@@ -55,8 +59,13 @@ public class EndScreen {
         Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), this::despawn, 20 * 60);
     }
 
+    @Deprecated
     public void addLine(String string) {
         lines.add(string);
+    }
+
+    public void addLine(Component component) {
+        lines.add(miniMessage.serialize(component));
     }
 
     public void despawn() {

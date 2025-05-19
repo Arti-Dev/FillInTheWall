@@ -18,9 +18,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.title.Title;
-import net.md_5.bungee.api.chat.*;
 import org.bukkit.Bukkit;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
@@ -324,13 +322,13 @@ public class PlayingFieldScorer {
 
         if (!clearingMode) {
             clearingMode = true;
-            player.sendMessage(ChatColor.GREEN + "Switched to attack mode!");
+            player.sendMessage(miniMessage.deserialize("<green>Switched to attack mode!"));
         } else {
             if (percent < 0.25) {
-                player.sendMessage(ChatColor.RED + "Your meter isn't full enough!");
+                player.sendMessage(miniMessage.deserialize("<red>Your meter isn't full enough!"));
             } else {
                 clearingMode = false;
-                player.sendMessage(ChatColor.GREEN + "Switched to defense mode!");
+                player.sendMessage(miniMessage.deserialize("<green>Switched to defense mode!"));
 
             }
         }
@@ -343,7 +341,7 @@ public class PlayingFieldScorer {
         }
 
         if (settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT).createEvent() == null) {
-            player.sendMessage(ChatColor.RED + "No event to activate!");
+            player.sendMessage(miniMessage.deserialize("<red>No event to activate!"));
             return;
         }
         if (isMeterFilledEnough(meter / meterMax)) {
@@ -351,7 +349,7 @@ public class PlayingFieldScorer {
             newEvent.allowMeterAccumulation = false;
             hasUsedMeter = true;
         } else {
-            player.sendMessage(ChatColor.RED + "Your meter isn't full enough!");
+            player.sendMessage(miniMessage.deserialize("<red>Your meter isn't full enough!"));
         }
     }
 
@@ -463,12 +461,12 @@ public class PlayingFieldScorer {
 //        doLevels = false;
 //    }
 
-    public String getFormattedTime() {
-        return Utils.getFormattedTime(time);
+    public Component getFormattedTime() {
+        return Component.text(Utils.getFormattedTime(time));
     }
 
-    public String getPreciseFormattedTime() {
-        return Utils.getPreciseFormattedTime(time);
+    public Component getPreciseFormattedTime() {
+        return Component.text(Utils.getPreciseFormattedTime(time));
     }
 
     public int getAbsoluteTimeElapsed() {
@@ -486,26 +484,43 @@ public class PlayingFieldScorer {
         else time++;
 
         if (settings.getIntAttribute(GamemodeAttribute.TIME_LIMIT) > 0) {
+            Title.Times warningTimes = Title.Times.times(Duration.ZERO, Duration.ofMillis(2000), Duration.ofMillis(250));
+            Title.Times finalCountdownTimes = Title.Times.times(Duration.ZERO, Duration.ofMillis(1000), Duration.ofMillis(250));
             if ((int) settings.getAttribute(GamemodeAttribute.TIME_LIMIT) >= 120 * 20) {
                 if (time <= 0) {
-                    field.sendMessageToPlayers(ChatColor.RED + "Time's up!");
+                    field.sendMessageToPlayers(miniMessage.deserialize("<red>Time's up!"));
                     field.stop();
                 } else if (time == 20 * 60) {
-                    field.sendTitleToPlayers("", ChatColor.YELLOW + "1 minute remaining!", 0, 40, 5);
+                    field.sendTitleToPlayers(Title.title(
+                            Component.empty(),
+                            miniMessage.deserialize("<yellow>1 minute remaining!"),
+                            warningTimes));
                 } else if (time == 20 * 30) {
-                    field.sendTitleToPlayers("", ChatColor.YELLOW + "30 seconds remaining!", 0, 40, 5);
+                    field.sendTitleToPlayers(Title.title(
+                            Component.empty(),
+                            miniMessage.deserialize("<yellow>30 seconds remaining!"),
+                            warningTimes));
                 } else if (time <= 20 * 10 && time % 20 == 0) {
-                    field.sendTitleToPlayers("", ChatColor.RED + String.valueOf(time / 20), 0, 20, 5);
+                    field.sendTitleToPlayers(Title.title(
+                            Component.empty(),
+                            miniMessage.deserialize("<red>" + time / 20),
+                            finalCountdownTimes));
                 }
             } else {
                 if (time <= 0) {
-                    field.sendMessageToPlayers(ChatColor.RED + "Time's up!");
+                    field.sendMessageToPlayers(miniMessage.deserialize("<red>Time's up!"));
                     field.stop();
                 }
                 if (time == 20 * 20) {
-                    field.sendTitleToPlayers("", ChatColor.YELLOW + "20 seconds remaining!", 0, 40, 5);
+                    field.sendTitleToPlayers(Title.title(
+                            Component.empty(),
+                            miniMessage.deserialize("<yellow>20 seconds remaining!"),
+                            warningTimes));
                 } else if (time <= 20 * 10 && time % 20 == 0) {
-                    field.sendTitleToPlayers("", ChatColor.RED + String.valueOf(time / 20), 0, 20, 5);
+                    field.sendTitleToPlayers(Title.title(
+                            Component.empty(),
+                            miniMessage.deserialize("<red>" + time / 20),
+                            finalCountdownTimes));
                 }
             }
         }
@@ -521,23 +536,23 @@ public class PlayingFieldScorer {
         if (scoreboard == null) return;
         for (ScoreboardEntry entry : scoreboardEntries) {
             switch (entry.getType()) {
-                case SCORE -> entry.update(scoreboard, objective, score);
+                case SCORE -> entry.update(scoreboard, objective, miniMessage.deserialize("" + score));
                 case STAGE -> {
                     if (multiplayerGame != null && multiplayerGame instanceof ScoreAttackGame game) {
-                        entry.update(scoreboard, objective, game.getStage().getString());
+                        entry.update(scoreboard, objective, game.getStage().getComponent());
                     }
                 }
                 case TIME -> entry.update(scoreboard, objective, getFormattedTime());
                 case POSITION -> {
                     if (multiplayerGame == null) {
-                        entry.update(scoreboard, objective, ChatColor.GOLD + "Singleplayer game!");
+                        entry.update(scoreboard, objective, miniMessage.deserialize("<gold>Singleplayer game!"));
                         break;
                     }
                     int position = multiplayerGame.getRank(field);
                     if (position == 1) {
-                        entry.update(scoreboard, objective, ChatColor.GOLD + "1");
+                        entry.update(scoreboard, objective, miniMessage.deserialize("<gold>1"));
                     } else {
-                        entry.update(scoreboard, objective, position);
+                        entry.update(scoreboard, objective, Component.text(position));
                     }
                 }
                 case EMPTY -> entry.update(scoreboard, objective);
@@ -545,12 +560,14 @@ public class PlayingFieldScorer {
                     int position = multiplayerGame.getRank(field);
                     int pointsBehind = multiplayerGame.getPointsBehindNextRank(field);
                     if (position == 1) {
-                        entry.forceUpdate(scoreboard, objective, ChatColor.GOLD + "You're in the lead!");
+                        entry.forceUpdate(scoreboard, objective, miniMessage.deserialize("<gold>You're in the lead!"));
                     } else {
-                        entry.update(scoreboard, objective, pointsBehind, position-1);
+                        entry.update(scoreboard, objective, Component.text(pointsBehind),
+                                Component.text(position-1));
                     }
                 }
-                case PLAYERS -> entry.update(scoreboard, objective, multiplayerGame.getPlayerCount());
+                case PLAYERS -> entry.update(scoreboard, objective,
+                        Component.text(multiplayerGame.getPlayerCount()));
             }
         }
 
@@ -565,7 +582,7 @@ public class PlayingFieldScorer {
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         scoreboard = manager.getNewScoreboard();
         objective = scoreboard.registerNewObjective("fillinthewall", Criteria.DUMMY,
-                ChatColor.YELLOW + "" + ChatColor.BOLD + "Fill in the Wall");
+                miniMessage.deserialize("<yellow><bold>Fill in the Wall"));
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
 
         addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.EMPTY, 1));
@@ -666,9 +683,10 @@ public class PlayingFieldScorer {
         boolean teamEffort = gamemode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.TEAM_EFFORT);
         boolean solo = field.getPlayers().size() == 1 && playersOnGameStart == 1;
         if (scoreByTime) {
-            field.sendMessageToPlayers(ChatColor.AQUA + "Your final time is " + ChatColor.BOLD + Utils.getPreciseFormattedTime(time));
+            field.sendMessageToPlayers(miniMessage.deserialize("<aqua>Your final time is <bold>" +
+                    Utils.getPreciseFormattedTime(time)));
         } else {
-            field.sendMessageToPlayers(ChatColor.GREEN + "Your final score is " + ChatColor.BOLD + score);
+            field.sendMessageToPlayers(miniMessage.deserialize("<green>Your final score is <bold>" + score));
         }
         if (!Database.isOfflineMode() && Database.isSupported(gamemode) && (teamEffort || solo)) {
             ArrayList<Player> players = new ArrayList<>();
@@ -693,22 +711,26 @@ public class PlayingFieldScorer {
                         } else {
                             Database.updateRecord(player.getUniqueId(), gamemode, score);
                         }
-                        player.sendMessage(ChatColor.GOLD + "New personal best!");
+                        player.sendMessage(miniMessage.deserialize("<gold>New personal best!"));
                         player.getWorld().spawnParticle(Particle.TRIAL_SPAWNER_DETECTION_OMINOUS, player.getLocation(), 200, 0, 0, 0, 0.2);
                         player.playSound(player, Sound.UI_TOAST_CHALLENGE_COMPLETE, 1, 1);
-                        player.sendTitle(ChatColor.AQUA + "PERSONAL BEST", "", 0, 60, 20);
+                        Title.Times times = Title.Times.times(Duration.ZERO, Duration.ofMillis(3000), Duration.ofMillis(1000));
+                        player.showTitle(Title.title(
+                                miniMessage.deserialize("<aqua>PERSONAL BEST"), Component.empty(),
+                                times));
                     } else {
                         if (scoreByTime) {
-                            player.sendMessage(ChatColor.AQUA + "Personal best: " + ChatColor.BOLD + Utils.getPreciseFormattedTime(record));
+                            player.sendMessage(miniMessage.deserialize(
+                                    "<aqua>Personal best: <bold>" + Utils.getPreciseFormattedTime(record)));
                         } else {
-                            player.sendMessage(ChatColor.AQUA + "Personal best: " + ChatColor.BOLD + record);
+                            player.sendMessage(miniMessage.deserialize("<aqua>Personal best: <bold>" + record));
                         }
                         player.getWorld().spawnParticle(Particle.TRIAL_SPAWNER_DETECTION, player.getLocation(), 200, 0, 0, 0, 0.2);
                         player.playSound(player, Sound.BLOCK_VAULT_OPEN_SHUTTER, 1, 1);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    player.sendMessage(ChatColor.RED + "Error while updating time!");
+                    player.sendMessage(miniMessage.deserialize("<red>Error while updating time!"));
                 }
             }
         }
@@ -716,21 +738,23 @@ public class PlayingFieldScorer {
 
     public EndScreen createEndScreen() {
         EndScreen endScreen = new EndScreen(field.getCenter(true, false).add(0, 1, 0));
-        endScreen.addLine(Utils.playersToString(field.getPlayers()));
+        endScreen.addLine(Component.text(Utils.playersToString(field.getPlayers())));
         // todo missing color for now
-        endScreen.addLine(((net.kyori.adventure.text.TextComponent)gamemode.getTitle()).content());
-        endScreen.addLine("");
-        endScreen.addLine(ChatColor.GREEN + "Final score: " + ChatColor.BOLD + score);
+        endScreen.addLine(gamemode.getTitle());
+        endScreen.addLine(Component.empty());
+        endScreen.addLine(miniMessage.deserialize("<green>Final score: <bold>" + score + "</bold>"));
         if (settings.getBooleanAttribute(GamemodeAttribute.MULTIPLAYER) && multiplayerGame != null) {
             if (gamemode == Gamemode.MULTIPLAYER_SCORE_ATTACK) {
-                endScreen.addLine(ChatColor.WHITE + "Position: No. " + multiplayerGame.getRank(field));
+                endScreen.addLine(miniMessage.deserialize("<white>Position: No. " + multiplayerGame.getRank(field)));
             }
         }
         if (settings.getIntAttribute(GamemodeAttribute.TIME_LIMIT) <= 0) {
-            endScreen.addLine(ChatColor.AQUA + "Time: " + ChatColor.BOLD + getPreciseFormattedTime());
+            endScreen.addLine(miniMessage.deserialize("<aqua>Time: <bold>")
+                    .append(getPreciseFormattedTime())
+                    .append(miniMessage.deserialize("</bold>")));
         }
-        endScreen.addLine(ChatColor.GOLD + "Perfect Walls cleared: " + ChatColor.BOLD + perfectWallsCleared);
-        endScreen.addLine(ChatColor.RED + getFormattedBlocksPerSecond() + " blocks per second");
+        endScreen.addLine(miniMessage.deserialize("<gold>Perfect Walls cleared: <bold>" + perfectWallsCleared + "</bold>"));
+        endScreen.addLine(miniMessage.deserialize("<red>" + getFormattedBlocksPerSecond() + " blocks per second"));
         return endScreen;
     }
 
@@ -776,7 +800,7 @@ public class PlayingFieldScorer {
             WallBundle bundle = WallBundle.getWallBundle("amogus");
             // todo hardcoded dimension check
             if (bundle.size() == 0 || field.getLength() != 7 || field.getHeight() != 4) {
-                field.sendMessageToPlayers(ChatColor.RED + "Loading custom walls failed");
+                field.sendMessageToPlayers(miniMessage.deserialize("<red>Loading custom walls failed"));
             } else {
                 List<Wall> walls = bundle.getWalls();
                 field.getQueue().clearAllWalls();
@@ -814,7 +838,7 @@ public class PlayingFieldScorer {
         }
         Component message = Component.text(modifier + " Meter: " + String.format("%.2f", meter) + "/" + meterMax, color);
         if (isMeterFilledEnough(percentFilled)) {
-            return message.append(miniMessage.deserialize("<blue><bold>Ready! Press <key.drop>"));
+            return message.append(miniMessage.deserialize(" <blue><bold>Ready! Press <key:key.drop>"));
         }
         return message;
     }

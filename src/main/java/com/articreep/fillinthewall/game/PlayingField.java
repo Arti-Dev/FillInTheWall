@@ -1009,55 +1009,51 @@ public class PlayingField implements Listener {
     public void updateTextDisplays() {
         // todo in theory we don't need to tick the gamemode/name displays, but we can for now
         for (int i = 0; i < displaySlotsLength; i++) {
-            // todo we definitely need to refactor this
-            Object data = null;
+            Component component = null;
+            ArrayList<Component> compArray = new ArrayList<>();
             DisplayType type = displaySlots[i];
             if (displayOverrides.contains(type)) continue;
             switch (type) {
-                case NONE -> data = "";
-                case SCORE -> data = scorer.getScore();
-                case ACCURACY -> data = "null";
-                case SPEED -> data = scorer.getFormattedBlocksPerSecond();
+                case NONE -> component = Component.empty();
+                case SCORE -> component = Component.text(scorer.getScore());
+                case ACCURACY -> component = Component.text("null");
+                case SPEED -> component = Component.text(scorer.getFormattedBlocksPerSecond());
                 case PERFECT_WALLS -> {
-                    ArrayList<Object> array = new ArrayList<>();
-                    array.add(scorer.getPerfectWallsCleared());
+                    compArray.add(Component.text(scorer.getPerfectWallsCleared()));
                     if (scorer.getSettings().getIntAttribute(GamemodeAttribute.PERFECT_WALL_CAP) > 0) {
-                        array.add("/" + scorer.getSettings().getAttribute(GamemodeAttribute.PERFECT_WALL_CAP));
+                        compArray.add(miniMessage.deserialize(
+                                "/" + scorer.getSettings().getAttribute(GamemodeAttribute.PERFECT_WALL_CAP)));
                     } else {
-                        array.add("");
+                        compArray.add(Component.empty());
                     }
-                    data = array;
                 }
-                case TIME -> data = scorer.getFormattedTime();
-                case LEVEL -> data = scorer.getLevel();
+                case TIME -> component = scorer.getFormattedTime();
+                case LEVEL -> component = Component.text(scorer.getLevel());
                 case POSITION -> {
-                    ArrayList<Object> array = new ArrayList<>();
                     if (scorer.getPointsBehind() == -1) {
-                        array.add("Way to go!");
-                        array.add("");
+                        compArray.add(Component.text("Way to go!"));
+                        compArray.add(Component.empty());
                     } else {
-                        array.add(scorer.getPointsBehind());
-                        array.add("#" + (scorer.getPosition() - 1));
+                        compArray.add(Component.text(scorer.getPointsBehind()));
+                        compArray.add(miniMessage.deserialize("#" + (scorer.getPosition() - 1)));
                     }
-                    data = array;
                 }
-                case NAME -> data = Utils.playersToString(players);
-                case GAMEMODE -> data = scorer.getGamemode().getTitle();
+                case NAME -> component = Component.text(Utils.playersToString(players));
+                case GAMEMODE -> component = scorer.getGamemode().getTitle();
                 case EVENTS -> {
-                    ArrayList<Object> array = new ArrayList<>();
-                    array.add(scorer.getEventCount());
+                    compArray.add(Component.text(scorer.getEventCount()));
                     if (scorer.getSettings().getIntAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP) > 0) {
-                        array.add("/" + scorer.getSettings().getAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP));
+                        compArray.add(miniMessage.deserialize(
+                                "/" + scorer.getSettings().getAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP)));
                     } else {
-                        array.add("");
+                        compArray.add(Component.empty());
                     }
-                    data = array;
                 }
             }
-            if (data instanceof ArrayList<?> list) {
-                textDisplays[i].text(type.getFormattedText(list));
+            if (!compArray.isEmpty()) {
+                textDisplays[i].text(type.getFormattedText(compArray));
             } else {
-                textDisplays[i].text(type.getFormattedText(data));
+                textDisplays[i].text(type.getFormattedText(component));
             }
         }
     }
@@ -1244,6 +1240,12 @@ public class PlayingField implements Listener {
         }
     }
 
+    public void sendMessageToPlayers(Component message) {
+        for (Player player : players) {
+            player.sendMessage(message);
+        }
+    }
+
     @Deprecated
     public void sendTitleToPlayers(String title, String subtitle, int fadeIn, int stay, int fadeOut) {
         for (Player player : players) {
@@ -1313,7 +1315,7 @@ public class PlayingField implements Listener {
                     cancel();
                     return;
                 }
-                Component component = DisplayType.SCORE.getFormattedText(scorer.getScore());
+                Component component = DisplayType.SCORE.getFormattedText(Component.text(scorer.getScore()));
                 String text = ((net.kyori.adventure.text.TextComponent) component).content();
                 Component formattedComponent = flashTextFormat(text, cover, flash, primary, accent);
                 modifyOverridenDisplayText(DisplayType.SCORE, formattedComponent);
@@ -1344,7 +1346,7 @@ public class PlayingField implements Listener {
                     cancel();
                     return;
                 }
-                Component component = DisplayType.SCORE.getFormattedText(scorer.getScore());
+                Component component = DisplayType.SCORE.getFormattedText(Component.text(scorer.getScore()));
                 String text = ((net.kyori.adventure.text.TextComponent) component).content();
                 Component formattedComponent = flashTextFormat(text, cover, flash, primary, accent);
                 modifyOverridenDisplayText(DisplayType.LEVEL, formattedComponent);

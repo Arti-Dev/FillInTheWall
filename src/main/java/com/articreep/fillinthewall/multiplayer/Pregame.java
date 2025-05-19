@@ -12,6 +12,8 @@ import com.articreep.fillinthewall.gamemode.GamemodeSettings;
 import com.articreep.fillinthewall.utils.Utils;
 import com.xxmicloxx.NoteBlockAPI.model.RepeatMode;
 import com.xxmicloxx.NoteBlockAPI.songplayer.PositionSongPlayer;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.World;
@@ -22,10 +24,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.scoreboard.DisplaySlot;
-import org.bukkit.scoreboard.Objective;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.ScoreboardManager;
+import org.bukkit.scoreboard.*;
 
 import java.util.*;
 
@@ -36,7 +35,7 @@ public class Pregame implements Listener {
     private final int countdownMax;
     private BukkitTask task = null;
     private final Gamemode gamemode;
-    private GamemodeSettings settings;
+    private final GamemodeSettings settings;
 
     private Scoreboard scoreboard;
     private Objective objective;
@@ -263,8 +262,8 @@ public class Pregame implements Listener {
         Bukkit.getPluginManager().registerEvents(this, FillInTheWall.getInstance());
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         scoreboard = manager.getNewScoreboard();
-        objective = scoreboard.registerNewObjective("fillinthewall", "dummy",
-                ChatColor.YELLOW + "" + ChatColor.BOLD + "Fill in the Wall");
+        objective = scoreboard.registerNewObjective("fillinthewall", Criteria.DUMMY,
+                MiniMessage.miniMessage().deserialize("<yellow><bold>Fill in the Wall"));
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
 
         addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.EMPTY, 1));
@@ -289,12 +288,12 @@ public class Pregame implements Listener {
             switch (entry.getType()) {
                 case START_TIMER -> {
                     if (countdown == -1) {
-                        entry.forceUpdate(scoreboard, objective, "Waiting for players...");
+                        entry.forceUpdate(scoreboard, objective, Component.text("Waiting for players..."));
                     } else {
-                        entry.update(scoreboard, objective, countdown);
+                        entry.update(scoreboard, objective, Component.text(countdown));
                     }
                 }
-                case PREGAME_PLAYERCOUNT -> entry.update(scoreboard, objective, world.getPlayers().size());
+                case PREGAME_PLAYERCOUNT -> entry.update(scoreboard, objective, Component.text(world.getPlayers().size()));
             }
         }
 

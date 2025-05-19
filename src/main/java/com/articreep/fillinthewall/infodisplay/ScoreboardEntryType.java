@@ -1,32 +1,40 @@
 package com.articreep.fillinthewall.infodisplay;
 
-import net.md_5.bungee.api.ChatColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.Component;
 
 public enum ScoreboardEntryType {
-    SCORE(ChatColor.YELLOW + "Score: %s"),
+    SCORE("<yellow>Score: %s"),
     STAGE( "%s"),
-    TIME(ChatColor.GREEN + "Time Left: %s"),
+    TIME("<green>Time Left: %s"),
     POSITION("Position: No. %s"),
-    POINTS_BEHIND(ChatColor.GRAY + "%s points behind No. %s"),
-    PLAYERS(ChatColor.DARK_GRAY + "%s-board game"),
+    POINTS_BEHIND("<gray>%s points behind No. %s"),
+    PLAYERS("<dark_gray>%s-board game"),
     EMPTY(""),
-    START_TIMER(ChatColor.GREEN + "Game starting in %s"),
-    PREGAME_PLAYERCOUNT(ChatColor.YELLOW + "Players: %s");
+    START_TIMER("<green>Game starting in %s"),
+    PREGAME_PLAYERCOUNT("<yellow>Players: %s");
 
     final String text;
+    private final static MiniMessage miniMessage = MiniMessage.miniMessage();
     ScoreboardEntryType(String text) {
         this.text = text;
     }
 
-    public String getRawText() {
-        return text;
+    public Component getRawText() {
+        return miniMessage.deserialize(text);
     }
 
-    public String getFormattedText(Object arg) {
-        return String.format(text, arg);
+    public Component getFormattedText(Component arg) {
+        String serialized = miniMessage.serialize(arg);
+        return miniMessage.deserialize(String.format(text, serialized));
     }
 
-    public String getFormattedText(Object[] args) {
-        return String.format(text, args);
+    public Component getFormattedText(Component[] args) {
+        // Convert to a string array
+        String[] stringArgs = new String[args.length];
+        for (int i = 0; i < args.length; i++) {
+            stringArgs[i] = miniMessage.serialize(args[i]);
+        }
+        return miniMessage.deserialize(String.format(text, (Object[]) stringArgs));
     }
 }

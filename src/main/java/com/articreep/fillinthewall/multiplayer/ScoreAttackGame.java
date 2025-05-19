@@ -9,6 +9,8 @@ import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.gamemode.GamemodeSettings;
 import com.articreep.fillinthewall.modifiers.ModifierEvent;
 import com.articreep.fillinthewall.utils.Utils;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.GameMode;
@@ -222,16 +224,16 @@ public class ScoreAttackGame extends MultiplayerGame {
     }
 
     public enum Stage {
-        QUALIFICATIONS(ChatColor.AQUA + "" + ChatColor.BOLD + "QUALIFICATIONS"),
-        FINALS(ChatColor.GOLD + "" + ChatColor.BOLD + "FINALS");
+        QUALIFICATIONS("<aqua><bold>QUALIFICATIONS"),
+        FINALS("<gold><bold>FINALS");
 
         final String string;
         Stage(String string) {
             this.string = string;
         }
 
-        public String getString() {
-            return string;
+        public Component getComponent() {
+            return MiniMessage.miniMessage().deserialize(string);
         }
     }
 }

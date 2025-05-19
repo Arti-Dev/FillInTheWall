@@ -25,13 +25,19 @@ public enum DisplayType {
 
     private static final MiniMessage miniMessage = MiniMessage.miniMessage();
 
-    public Component getFormattedText(Object arg) {
-        String formatted = String.format(text, arg);
+    public Component getFormattedText(Component arg) {
+        String serialized = miniMessage.serialize(arg);
+        String formatted = String.format(text, serialized);
         return miniMessage.deserialize(formatted);
     }
 
-    public Component getFormattedText(ArrayList<?> args) {
-        String formatted = String.format(text, args.toArray());
+    public Component getFormattedText(ArrayList<Component> args) {
+        // Convert to a string array
+        String[] stringArgs = new String[args.size()];
+        for (int i = 0; i < args.size(); i++) {
+            stringArgs[i] = miniMessage.serialize(args.get(i));
+        }
+        String formatted = String.format(text, (Object[]) stringArgs);
         return miniMessage.deserialize(formatted);
     }
 }
