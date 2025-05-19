@@ -17,6 +17,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.javatuples.Pair;
 
+import java.time.Duration;
 import java.util.*;
 
 
@@ -32,8 +33,10 @@ public class FireInTheHole extends ModifierEvent {
     @Override
     public void activate() {
         super.activate();
-        field.sendTitleToPlayers(ChatColor.GREEN + "FIRE IN THE HOLE", "Fill holes with " +
-                ChatColor.RED + "fire" + ChatColor.RESET + " for bonus points!", 0, 40, 10);
+        Title.Times times = Title.Times.times(Duration.ZERO, Duration.ofMillis(2000), Duration.ofMillis(500));
+        field.sendTitleToPlayers(Title.title(miniMessage.deserialize("<green>FIRE IN THE HOLE"),
+                        miniMessage.deserialize( "Fill holes with <red>fire</red> for bonus points!"),
+                        times));
         addTemporaryItemToPlayers(flintAndSteel());
     }
 
@@ -114,14 +117,14 @@ public class FireInTheHole extends ModifierEvent {
     @Override
     public void end() {
         super.end();
-        field.sendTitleToPlayers("", "Fire no longer gives a point bonus!", 0, 20, 10);
+        field.sendTitleToPlayers(Component.empty(), Component.text("Fire no longer gives a point bonus!"), 0, 20, 10);
     }
 
     private static ItemStack flintAndSteel() {
         ItemStack item = new ItemStack(Material.FLINT_AND_STEEL);
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(PlayingField.variableKey, PersistentDataType.BOOLEAN, true);
-        meta.setLore(Collections.singletonList(ChatColor.GRAY + "Temporary item"));
+        meta.lore(Collections.singletonList(miniMessage.deserialize("<gray>Temporary item")));
         item.setItemMeta(meta);
         return item;
     }

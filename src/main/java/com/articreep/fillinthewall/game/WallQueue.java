@@ -4,8 +4,6 @@ import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.multiplayer.WallGenerator;
 import com.articreep.fillinthewall.utils.Utils;
-import org.bukkit.Bukkit;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
@@ -180,7 +178,7 @@ public class WallQueue {
                 field.matchAndScore(wall);
                 pauseTickLoop = field.getClearDelay();
             } else if (wall.getWallState() != WallState.VISIBLE) {
-                Bukkit.getLogger().severe(ChatColor.RED + "Attempted to tick wall before spawned..");
+                FillInTheWall.getInstance().getSLF4JLogger().error("Attempted to tick wall before spawned..");
             }
         }
     }
@@ -344,7 +342,8 @@ public class WallQueue {
      */
     public void hardenWall(Wall wall, int hardness) {
         if (wall.getWallState() != WallState.HIDDEN) {
-            Bukkit.getLogger().severe(ChatColor.RED + "Attempted to harden wall that is not hidden/new..");
+            FillInTheWall.getInstance().getSLF4JLogger().error(
+                    "Attempted to harden wall that is not hidden/new..");
             return;
         }
 

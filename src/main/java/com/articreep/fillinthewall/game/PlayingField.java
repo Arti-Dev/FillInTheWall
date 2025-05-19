@@ -1259,6 +1259,23 @@ public class PlayingField implements Listener {
         }
     }
 
+    /**
+     * Sends a title to all players in the playing field
+     * @param title Title
+     * @param subtitle Subtitle
+     * @param fadeIn Fadein time (in ticks)
+     * @param stay Stay time (in ticks)
+     * @param fadeOut Fadeout time (in ticks)
+     */
+    public void sendTitleToPlayers(Component title, Component subtitle, int fadeIn, int stay, int fadeOut) {
+        for (Player player : players) {
+            player.showTitle(Title.title(title, subtitle, Title.Times.times(
+                    Duration.ofMillis(fadeIn * 50L),
+                    Duration.ofMillis(stay * 50L),
+                    Duration.ofMillis(fadeOut * 50L))));
+        }
+    }
+
     @Deprecated
     public void sendActionBarToPlayers(BaseComponent component) {
         for (Player player : players) {

@@ -2,6 +2,7 @@ package com.articreep.fillinthewall.game;
 
 import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.utils.Utils;
+import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
@@ -218,7 +219,7 @@ public class Wall {
             Location location = centerOfWall.clone().add(0, ((double) height/2)+0.5, 0);
             location.setDirection(movementDirection);
             TextDisplay nameDisplay = (TextDisplay) world.spawnEntity(location, EntityType.TEXT_DISPLAY);
-            nameDisplay.setText(name);
+            nameDisplay.text(Component.text(name));
             nameDisplay.setBillboard(Display.Billboard.HORIZONTAL);
             nameDisplay.setTransformation(new Transformation(
                     new Vector3f(0, 0, 0),
@@ -441,13 +442,15 @@ public class Wall {
     public void insertHole(Pair<Integer, Integer> hole) {
         if (hole == null || this.holes.contains(hole)) {
             if (hole != null) {
-                Bukkit.getLogger().info("Hole already exists: (" + hole.getValue0() + ", " + hole.getValue1() + ")");
+                FillInTheWall.getInstance().getSLF4JLogger()
+                        .info("Hole already exists: ({}, {})", hole.getValue0(), hole.getValue1());
             }
             return;
         }
         // out of bounds check
         if (hole.getValue0() < 0 || hole.getValue0() >= length || hole.getValue1() < 0 || hole.getValue1() >= height) {
-            Bukkit.getLogger().info("Hole is out of bounds: (" + hole.getValue0() + ", " + hole.getValue1() + ")");
+            FillInTheWall.getInstance().getSLF4JLogger()
+                    .info("Hole is out of bounds: ({}, {})", hole.getValue0(), hole.getValue1());
             return;
         }
         this.holes.add(hole);
@@ -479,7 +482,7 @@ public class Wall {
         possibleCoordinates.removeAll(holes);
         for (int i = 0; i < count; i++) {
             if (possibleCoordinates.isEmpty()) {
-                Bukkit.getLogger().info("Can't insert random hole");
+                FillInTheWall.getInstance().getSLF4JLogger().info("Can't insert random hole");
                 break;
             }
             Pair<Integer, Integer> hole = Utils.randomSetElement(possibleCoordinates);
@@ -537,7 +540,7 @@ public class Wall {
                 return possibleCoordinates.get(random.nextInt(possibleCoordinates.size()));
             }
         }
-        Bukkit.getLogger().info("Failed to generate a connected hole");
+        FillInTheWall.getInstance().getSLF4JLogger().info("Failed to generate a connected hole");
         return null;
     }
 

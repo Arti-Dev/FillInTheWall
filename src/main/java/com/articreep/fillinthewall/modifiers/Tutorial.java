@@ -38,6 +38,8 @@ public class Tutorial extends ModifierEvent implements Listener {
     int fakeMeterMax = 2;
     boolean error = false;
 
+    private final static MiniMessage miniMessage = MiniMessage.miniMessage();
+
     public Tutorial() {
         super();
         overrideGeneration = true;
@@ -69,8 +71,8 @@ public class Tutorial extends ModifierEvent implements Listener {
     public void end() {
         super.end();
         currentSlide = -1;
-        if (error) field.sendTitleToPlayers(ChatColor.RED + "The tutorial failed to load!", "Please report this!", 10, 40, 20);
-        field.sendTitleToPlayers("", "Good luck!", 10, 40, 20);
+        if (error) field.sendTitleToPlayers(miniMessage.deserialize("<red>The tutorial failed to load!"), Component.text("Please report this!"), 10, 40, 20);
+        else field.sendTitleToPlayers(Component.empty(), Component.text("Good luck!"), 10, 40, 20);
         if (enderman != null) {
             enderman.remove();
             enderman = null;
@@ -147,17 +149,18 @@ public class Tutorial extends ModifierEvent implements Listener {
             wall.setTimeRemaining(600);
             queue.addWall(wall);
 
-            field.sendTitleToPlayers("Welcome!", ChatColor.GREEN + "Your goal is to place blocks on this playing field..", 10, 40, 10);
+            field.sendTitleToPlayers(Component.text("Welcome!"),
+                    miniMessage.deserialize("<green>Your goal is to place blocks on this playing field.."), 10, 40, 10);
             ticksBeforeNextSlide = 20 * 3;
         } else if (slideToPlay == 2) {
             Location location = field.getReferencePoint()
                     .subtract(field.getIncomingDirection().multiply(queue.getFullLength()-5))
                     .add(field.getFieldDirection().multiply(field.getLength()));
             teleportEnderman(location);
-            field.sendTitleToPlayers("", ChatColor.GREEN + "such that they fill the holes in this wall.", 10, 40, 10);
+            field.sendTitleToPlayers(Component.empty(), miniMessage.deserialize("<green>such that they fill the holes in this wall."), 10, 40, 10);
             ticksBeforeNextSlide = 20 * 3;
         } else if (slideToPlay == 3) {
-            field.sendTitleToPlayers("", ChatColor.GREEN + "Like this!", 10, 40, 10);
+            field.sendTitleToPlayers(Component.empty(), miniMessage.deserialize("<green>Like this!"), 10, 40, 10);
             Location location = field.getReferencePoint()
                     .add(field.getIncomingDirection().multiply(2));
             lookAtPlayerGoal.setEnabled(false);
@@ -182,11 +185,11 @@ public class Tutorial extends ModifierEvent implements Listener {
             if (tryAgain) {
                 tryAgainTitle(tip);
             } else {
-                field.sendTitleToPlayers("", ChatColor.GREEN + "Try this wall!", 10, 40, 10);
+                field.sendTitleToPlayers(Component.empty(), miniMessage.deserialize("<green>Try this wall!"), 10, 40, 10);
             }
             // wait for the board to be submitted
         } else if (slideToPlay == 5) {
-            field.sendTitleToPlayers("", ChatColor.GREEN + "Nice! You get an extra point for PERFECT judgements.", 10, 40, 10);
+            field.sendTitleToPlayers(Component.empty(), miniMessage.deserialize("<green>Nice! You get an extra point for PERFECT judgements."), 10, 40, 10);
             field.flashScore(80);
             ticksBeforeNextSlide = 20 * 3;
         } else if (slideToPlay == 6) {
@@ -197,7 +200,7 @@ public class Tutorial extends ModifierEvent implements Listener {
             if (tryAgain) {
                 tryAgainTitle(tip);
             } else {
-                field.sendTitleToPlayers("", ChatColor.GREEN + "Fill in the next wall! This one’s faster.", 10, 40, 10);
+                field.sendTitleToPlayers(Component.empty(), miniMessage.deserialize("<green>Fill in the next wall! This one’s faster."), 10, 40, 10);
             }
         } else if (slideToPlay == 7) {
             Wall wall = new Wall(field.getLength(), field.getHeight());
@@ -211,11 +214,11 @@ public class Tutorial extends ModifierEvent implements Listener {
                     .add(field.getFieldDirection().multiply(field.getLength()-1))
                     .add(field.getIncomingDirection());
             setPathfinderGoal(location);
-            field.sendTitleToPlayers("", ChatColor.YELLOW + "One way to place floating blocks is to use copper support blocks.", 10, 40, 10);
+            field.sendTitleToPlayers(Component.empty(), miniMessage.deserialize("<yellow>One way to place floating blocks is to use copper support blocks."), 10, 40, 10);
             ticksBeforeNextSlide = 20 * 4;
         } else if (slideToPlay == 8) {
             Block block = field.coordinatesToBlock(new Pair<>(field.getLength()-2, 0));
-            field.sendTitleToPlayers("", ChatColor.YELLOW + "It behaves as any other solid block...", 10, 40, 10);
+            field.sendTitleToPlayers(Component.empty(), miniMessage.deserialize("<yellow>It behaves as any other solid block..."), 10, 40, 10);
             block.setType(Material.WAXED_COPPER_GRATE);
             // imitate block place effect
             Random random = new Random();
@@ -226,12 +229,11 @@ public class Tutorial extends ModifierEvent implements Listener {
         } else if (slideToPlay == 9) {
             Block crackedBlock = field.coordinatesToBlock(new Pair<>(field.getLength()-2, 0));
             Block regularBlock = field.coordinatesToBlock(new Pair<>(field.getLength()-2, 1));
-            field.sendTitleToPlayers("",  ChatColor.YELLOW + "but it breaks right before the wall is submitted!", 10, 40, 10);
+            field.sendTitleToPlayers(Component.empty(),
+                    miniMessage.deserialize("<yellow>but it breaks right before the wall is submitted!"), 10, 40, 10);
             regularBlock.setType(field.getPlayerMaterial());
             field.getWorld().playSound(regularBlock.getLocation(), Sound.BLOCK_GLASS_PLACE, 1, 1);
-            Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> {
-                field.getQueue().instantSend();
-            }, 40);
+            Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> field.getQueue().instantSend(), 40);
             ticksBeforeNextSlide = 20 * 3;
         } else if (slideToPlay == 10) {
             Wall wall = new Wall(field.getLength(), field.getHeight());
@@ -241,14 +243,14 @@ public class Tutorial extends ModifierEvent implements Listener {
             if (tryAgain) {
                 tryAgainTitle(tip);
             } else {
-                field.sendTitleToPlayers("", ChatColor.GREEN + "Try it with this wall!", 10, 40, 10);
+                field.sendTitleToPlayers(Component.empty(), miniMessage.deserialize("<green>Try it with this wall!"), 10, 40, 10);
             }
         } else if (slideToPlay == 11) {
             fakeMeter = 0;
-            field.sendTitleToPlayers("", "Lastly, let's talk about the Meter on your action bar.", 10, 40, 10);
+            field.sendTitleToPlayers(Component.empty(), Component.text("Lastly, let's talk about the Meter on your action bar."), 10, 40, 10);
             ticksBeforeNextSlide = 20 * 3;
         } else if (slideToPlay == 12) {
-            field.sendTitleToPlayers("", "You can use it to activate a special effect, like freezing all walls.", 10, 40, 10);
+            field.sendTitleToPlayers(Component.empty(), Component.text("You can use it to activate a special effect, like freezing all walls."), 10, 40, 10);
             ticksBeforeNextSlide = 20 * 3;
         } else if (slideToPlay == 13) {
             // move enderman out of the way
@@ -274,14 +276,15 @@ public class Tutorial extends ModifierEvent implements Listener {
             field.getQueue().setMaxSpawnCooldown(60);
 
             // todo some gamemodes let you activate the event without filling the meter all the way - should elaborate
-            field.sendTitleToPlayers(ChatColor.AQUA + "",
-                    "To fill the meter, clear walls with at least 50% accuracy!", 10, 60, 10);
+            field.sendTitleToPlayers(Component.empty(),
+                    Component.text("To fill the meter, clear walls with at least 50% accuracy!"), 10, 60, 10);
         } else if (slideToPlay == 14) {
             Location spawnpoint = field.getReferencePoint()
                     .add(field.getFieldDirection().multiply((field.getLength() - 1) / 2.0));
             teleportEnderman(spawnpoint);
             field.getQueue().clearAllWalls();
-            field.sendTitleToPlayers(ChatColor.GOLD + "That's all!", "Step off the playing field to end the tutorial.", 10, 100, 20);
+            field.sendTitleToPlayers(miniMessage.deserialize("<gold>That's all!"),
+                    Component.text("Step off the playing field to end the tutorial."), 10, 100, 20);
         }
     }
 
@@ -311,7 +314,7 @@ public class Tutorial extends ModifierEvent implements Listener {
             else fakeMeter -= 1;
             if (fakeMeter >= fakeMeterMax) {
                 Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> {
-                    field.sendTitleToPlayers(ChatColor.GREEN + "", "Press your drop key to activate the Meter and freeze all walls!", 10, 60, 10);
+                    field.sendTitleToPlayers(Component.empty(), Component.text("Press your drop key to activate the Meter and freeze all walls!"), 10, 60, 10);
                 });
                 fakeMeter = fakeMeterMax;
             }
@@ -321,7 +324,8 @@ public class Tutorial extends ModifierEvent implements Listener {
 
     private void tryAgainTitle(String tip) {
         field.playSoundToPlayers(Sound.ENTITY_ENDERMAN_SCREAM, 1, 1);
-        field.sendTitleToPlayers(ChatColor.RED + "Try again!", ChatColor.RED + tip, 10, 40, 10);
+        field.sendTitleToPlayers(miniMessage.deserialize("<red>Try again!"),
+                miniMessage.deserialize("<red>" + tip), 10, 40, 10);
     }
 
     public void onMeterActivate(Player player) {
@@ -330,19 +334,20 @@ public class Tutorial extends ModifierEvent implements Listener {
             fakeMeter = 0;
             wallFreeze = true;
             timeFreeze = true;
-            field.sendTitleToPlayers(ChatColor.AQUA + "FREEZE!", ChatColor.DARK_AQUA + "Walls are temporarily frozen!", 0, 40, 10);
+            field.sendTitleToPlayers(miniMessage.deserialize("<aqua>FREEZE!"),
+                   miniMessage.deserialize("<dark_aqua>Walls are temporarily frozen!"), 0, 40, 10);
             field.playSoundToPlayers(Sound.ENTITY_PLAYER_HURT_FREEZE, 0.5F, 1);
             Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> {
                 wallFreeze = false;
                 timeFreeze = false;
-                field.sendTitleToPlayers("", ChatColor.GREEN + "Walls are no longer frozen!", 0, 20, 10);
+                field.sendTitleToPlayers(Component.empty(), miniMessage.deserialize("<green>Walls are no longer frozen!"), 0, 20, 10);
                 field.playSoundToPlayers(Sound.BLOCK_LAVA_EXTINGUISH, 0.5F, 1);
                 ticksBeforeNextSlide = 20 * 5;
             }, 20 * 5);
         } else if (fakeMeter < fakeMeterMax) {
-            player.sendMessage(ChatColor.RED + "Your meter isn't full enough!");
+            player.sendMessage(miniMessage.deserialize("<red>Your meter isn't full enough!"));
         } else {
-            player.sendMessage(ChatColor.RED + "Don't worry about this yet!");
+            player.sendMessage(miniMessage.deserialize("<red>Don't worry about this yet!"));
         }
     }
 

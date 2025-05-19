@@ -2,6 +2,7 @@ package com.articreep.fillinthewall.modifiers;
 
 import com.articreep.fillinthewall.game.*;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -47,6 +48,8 @@ public abstract class ModifierEvent {
     protected final int DEFAULT_TICKS = 20*20;
 
     protected boolean active = false;
+
+    protected final static MiniMessage miniMessage = MiniMessage.miniMessage();
 
 
     protected ModifierEvent() {

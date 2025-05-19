@@ -6,7 +6,6 @@ import com.articreep.fillinthewall.game.Wall;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -33,10 +32,11 @@ public class PlayerInTheWall extends ModifierEvent {
     public void activate() {
         super.activate();
         setBarriers(Material.BARRIER);
+        field.sendTitleToPlayers(miniMessage.deserialize("<green>Player in the Wall"),
+                miniMessage.deserialize("Fit yourself into the holes for bonus points!"), 0, 40, 10);
         for (Player player : field.getPlayers()) {
             player.setAllowFlight(false);
             player.teleport(field.getReferencePoint().setDirection(field.getIncomingDirection().multiply(-1)));
-            player.sendTitle(ChatColor.GREEN + "PLAYER IN THE WALL", "Fit yourself into the holes for bonus points!", 0, 40, 10);
         }
     }
 
@@ -100,10 +100,11 @@ public class PlayerInTheWall extends ModifierEvent {
     public void end() {
         super.end();
         setBarriers(Material.AIR);
+        field.sendTitleToPlayers(Component.empty(),
+                miniMessage.deserialize("You're free!"), 0, 20, 10);
         for (Player player : field.getPlayers()) {
             player.teleport(field.getSpawnLocation());
             player.setAllowFlight(true);
-            player.sendTitle("", "You're free!", 0, 20, 10);
         }
     }
 

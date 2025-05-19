@@ -8,7 +8,6 @@ import com.articreep.fillinthewall.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.title.Title;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
@@ -33,7 +32,8 @@ public class Stripes extends ModifierEvent {
         Wall wall = field.getQueue().getFrontmostWall();
         if (wall != null) wall.setStripes(true);
         addTemporaryItemToPlayers(altWallMaterial());
-        field.sendTitleToPlayers(ChatColor.DARK_AQUA + "Stripes!", "Match colors for bonus points!", 0, 40, 10);
+        field.sendTitleToPlayers(miniMessage.deserialize("<dark_aqua>Stripes!"),
+                miniMessage.deserialize("Match colors for bonus points!"), 0, 40, 10);
     }
 
     @Override
@@ -74,7 +74,7 @@ public class Stripes extends ModifierEvent {
         super.end();
         Wall wall = field.getQueue().getFrontmostWall();
         if (wall != null) wall.setStripes(false);
-        field.sendTitleToPlayers("", "Stripes are gone!", 0, 20, 10);
+        field.sendTitleToPlayers(Component.empty(), Component.text("Stripes are gone!"), 0, 20, 10);
     }
 
     @Override

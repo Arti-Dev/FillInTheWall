@@ -1,6 +1,7 @@
 package com.articreep.fillinthewall.modifiers;
 
 import com.articreep.fillinthewall.game.Wall;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Sound;
 
 public class Flip extends ModifierEvent {
@@ -25,7 +26,7 @@ public class Flip extends ModifierEvent {
     @Override
     public void end() {
         super.end();
-        field.sendTitleToPlayers("", "Walls don't flip out anymore!", 0, 20, 10);
+        field.sendTitleToPlayers(Component.empty(), Component.text("Walls don't flip out anymore!"), 0, 20, 10);
         for (Wall wall : field.getQueue().getActiveWalls()) {
             wall.setDoFlip(false);
         }

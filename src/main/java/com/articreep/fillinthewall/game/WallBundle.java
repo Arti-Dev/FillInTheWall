@@ -2,7 +2,6 @@ package com.articreep.fillinthewall.game;
 
 import com.articreep.fillinthewall.FillInTheWall;
 import org.apache.commons.io.FilenameUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -28,12 +27,12 @@ public class WallBundle {
         int length = config.getInt("dimensions.length");
         int height = config.getInt("dimensions.height");
         if (length == 0 || height == 0) {
-            Bukkit.getLogger().severe("Invalid or missing dimensions in this YAML config!");
+            FillInTheWall.getInstance().getSLF4JLogger().error("Invalid or missing dimensions in this YAML config!");
             return new WallBundle();
         }
         ConfigurationSection wallSection = config.getConfigurationSection("walls");
         if (wallSection == null) {
-            Bukkit.getLogger().severe("No walls found in this YAML config!");
+            FillInTheWall.getInstance().getSLF4JLogger().error("No walls found in this YAML config!");
             return new WallBundle();
         }
         WallBundle bundle = new WallBundle();
@@ -96,7 +95,7 @@ public class WallBundle {
         }
         File[] files = customWallFolder.listFiles();
         if (files == null) {
-            Bukkit.getLogger().severe("Failed to load custom wall folder");
+            FillInTheWall.getInstance().getSLF4JLogger().error("Failed to load custom wall folder");
             return list;
         }
         for (File file : files) {

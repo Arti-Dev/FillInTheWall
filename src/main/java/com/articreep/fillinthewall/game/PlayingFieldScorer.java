@@ -735,9 +735,9 @@ public class PlayingFieldScorer {
     public EndScreen createEndScreen() {
         EndScreen endScreen = new EndScreen(field.getCenter(true, false).add(0, 1, 0));
         endScreen.addLine(Component.text(Utils.playersToString(field.getPlayers())));
-        // todo missing color for now
         endScreen.addLine(gamemode.getTitle());
         endScreen.addLine(Component.empty());
+        // todo bold is still bleeding through, fix later
         endScreen.addLine(miniMessage.deserialize("<green>Final score: <bold>" + score + "</bold>"));
         if (settings.getBooleanAttribute(GamemodeAttribute.MULTIPLAYER) && multiplayerGame != null) {
             if (gamemode == Gamemode.MULTIPLAYER_SCORE_ATTACK) {

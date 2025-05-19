@@ -4,7 +4,6 @@ import com.articreep.fillinthewall.game.DisplayType;
 import com.articreep.fillinthewall.modifiers.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.md_5.bungee.api.ChatColor;
 
 public enum Gamemode {
 
@@ -150,9 +149,8 @@ public enum Gamemode {
         return MiniMessage.miniMessage().deserialize(title);
     }
 
-    // todo use minimessage
-    public String getDescription() {
-        return description;
+    public Component getDescription() {
+        return MiniMessage.miniMessage().deserialize(description);
     }
 
     private void addAttribute(GamemodeAttribute attribute, Object value) {

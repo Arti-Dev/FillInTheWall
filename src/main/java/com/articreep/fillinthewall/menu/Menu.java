@@ -5,8 +5,7 @@ import com.articreep.fillinthewall.game.PlayingField;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.utils.Utils;
-import net.kyori.adventure.text.TextComponent;
-import net.md_5.bungee.api.ChatColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.*;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.EntityType;
@@ -32,6 +31,7 @@ public class Menu implements Listener {
     private final Map<Gamemode, Integer> personalBests = new HashMap<>();
     private int gamemodeIndex = 0;
     private BukkitTask particleTask;
+    private final static MiniMessage miniMessage = MiniMessage.miniMessage();
 
     public Menu(Location location, PlayingField field) {
         this.location = location;
@@ -108,34 +108,32 @@ public class Menu implements Listener {
     }
 
     private void setMenuGamemode(Gamemode mode) {
-        // todo fix color later
         String string = "Select a gamemode\n" +
-                ((TextComponent)mode.getTitle()).content() + "\n" + mode.getDescription() + "\n";
+                miniMessage.serialize(mode.getTitle()) + "\n" + miniMessage.serialize(mode.getDescription()) + "\n";
         if (personalBests.containsKey(mode)) {
             if (mode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.SCORE_BY_TIME)) {
-                string += ChatColor.AQUA + "Personal best: " + ChatColor.BOLD +
-                        Utils.getPreciseFormattedTime(personalBests.get(mode)) + "\n";
+                string += "<aqua>Personal best: <bold>" + Utils.getPreciseFormattedTime(personalBests.get(mode)) + "</bold>\n";
             } else {
-                string += ChatColor.GOLD + "Personal best: " + ChatColor.BOLD + personalBests.get(mode) + "\n";
+                string += "<gold>Personal best: <bold>" + personalBests.get(mode) + "</bold>\n";
             }
         }
         string += "\n" +
-                ChatColor.RESET + "Left click to change gamemode\n" +
-                "Press [F] or your offhand key to confirm";
-        select.setText(string);
+                "<white><key:key.mouse.left> to change gamemode\n" +
+                "Press <key:key.swapOffhand> to confirm";
+        select.text(miniMessage.deserialize(string));
     }
 
     public void confirmAndDespawn() {
         if (field.isLocked()) {
-            field.sendMessageToPlayers(ChatColor.RED + "Field is locked - cannot start game");
+            field.sendMessageToPlayers(miniMessage.deserialize("<red>Field is locked - cannot start game"));
             despawn();
             return;
         }
         Gamemode mode = Gamemode.values()[gamemodeIndex];
         if (mode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.MULTIPLAYER)) {
-            field.sendMessageToPlayers(ChatColor.RED + "You cannot start a multiplayer game through this menu!");
+            field.sendMessageToPlayers(miniMessage.deserialize("<red>You cannot start a multiplayer game through this menu!"));
         } else if (mode == Gamemode.MEGA && field.getLength() * field.getHeight() < 400) {
-            field.sendMessageToPlayers(ChatColor.RED + "Your board must be at least 400 blocks in total area to play this!");
+            field.sendMessageToPlayers(miniMessage.deserialize("<red>Your board must be at least 400 blocks in total area to play this!"));
         } else {
             field.countdownStart(Gamemode.values()[gamemodeIndex]);
         }

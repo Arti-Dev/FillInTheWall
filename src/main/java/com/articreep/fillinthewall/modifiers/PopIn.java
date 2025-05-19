@@ -3,7 +3,7 @@ package com.articreep.fillinthewall.modifiers;
 import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.game.Wall;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
-import net.md_5.bungee.api.ChatColor;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
@@ -34,7 +34,8 @@ public class PopIn extends ModifierEvent {
     @Override
     public void activate() {
         super.activate();
-        field.sendTitleToPlayers(ChatColor.RED + "Pop-in", "Random blocks may appear...", 0, 40, 10);
+        field.sendTitleToPlayers(miniMessage.deserialize("<red>Pop-in"),
+                Component.text("Random blocks may appear..."), 0, 40, 10);
     }
 
     @Override
@@ -44,7 +45,7 @@ public class PopIn extends ModifierEvent {
             display.remove();
         }
         blockDisplays.clear();
-        field.sendTitleToPlayers("", ChatColor.RED + "Blocks no longer randomly pop in!", 0, 20, 10);
+        field.sendTitleToPlayers(Component.empty(), Component.text("Blocks no longer randomly pop in!"), 0, 20, 10);
     }
 
     @Override

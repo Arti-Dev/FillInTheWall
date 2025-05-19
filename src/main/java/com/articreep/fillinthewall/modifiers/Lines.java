@@ -3,6 +3,7 @@ package com.articreep.fillinthewall.modifiers;
 import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.game.Wall;
 import com.articreep.fillinthewall.game.WallBundle;
+import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
@@ -28,14 +29,15 @@ public class Lines extends ModifierEvent implements Listener {
     public void activate() {
         super.activate();
         Bukkit.getPluginManager().registerEvents(this, FillInTheWall.getInstance());
-        field.sendTitleToPlayers(ChatColor.LIGHT_PURPLE + "Lines", "Placed blocks extend to the other side!", 0, 40, 10);
+        field.sendTitleToPlayers(miniMessage.deserialize("<light_purple>Lines"),
+                Component.text("Placed blocks extend to the other side!"), 0, 40, 10);
         priorityWallBundle.getWalls().forEach(field.getQueue()::addPriorityWall);
     }
 
     @Override
     public void end() {
         super.end();
-        field.sendTitleToPlayers("", "Placed blocks are back to normal!", 0, 20, 10);
+        field.sendTitleToPlayers(Component.empty(), Component.text("Placed blocks are back to normal!"), 0, 20, 10);
         field.getQueue().clearPriorityHiddenWalls();
         HandlerList.unregisterAll(this);
     }

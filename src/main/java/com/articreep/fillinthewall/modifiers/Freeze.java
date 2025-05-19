@@ -2,7 +2,6 @@ package com.articreep.fillinthewall.modifiers;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
@@ -22,15 +21,16 @@ public class Freeze extends ModifierEvent {
             // Reduce time based on percent filled
             ticksRemaining = (int) (200 * field.getScorer().getMeterPercentFilled());
         }
-        field.sendTitleToPlayers(ChatColor.AQUA + "FREEZE!", "Walls and gimmicks are temporarily frozen!", 0, 40, 10);
+        field.sendTitleToPlayers(miniMessage.deserialize("<aqua>FREEZE!"),
+                Component.text("Walls and gimmicks are temporarily frozen!"), 0, 40, 10);
         field.getQueue().correctAllWalls();
     }
 
     @Override
     public void end() {
         super.end();
+        field.sendTitleToPlayers(Component.empty(), miniMessage.deserialize("<green>Walls are no longer frozen!"), 0, 20, 10);
         for (Player player : field.getPlayers()) {
-            player.sendTitle("", ChatColor.GREEN + "Walls are no longer frozen!", 0, 20, 10);
             player.setFreezeTicks(0);
         }
     }
