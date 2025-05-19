@@ -465,10 +465,6 @@ public class PlayingFieldScorer {
         return Component.text(Utils.getFormattedTime(time));
     }
 
-    public Component getPreciseFormattedTime() {
-        return Component.text(Utils.getPreciseFormattedTime(time));
-    }
-
     public int getAbsoluteTimeElapsed() {
         return absoluteTimeElapsed;
     }
@@ -749,9 +745,7 @@ public class PlayingFieldScorer {
             }
         }
         if (settings.getIntAttribute(GamemodeAttribute.TIME_LIMIT) <= 0) {
-            endScreen.addLine(miniMessage.deserialize("<aqua>Time: <bold>")
-                    .append(getPreciseFormattedTime())
-                    .append(miniMessage.deserialize("</bold>")));
+            endScreen.addLine(miniMessage.deserialize("<aqua>Time: <bold>" + Utils.getPreciseFormattedTime(time) + "</bold>"));
         }
         endScreen.addLine(miniMessage.deserialize("<gold>Perfect Walls cleared: <bold>" + perfectWallsCleared + "</bold>"));
         endScreen.addLine(miniMessage.deserialize("<red>" + getFormattedBlocksPerSecond() + " blocks per second"));
