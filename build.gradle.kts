@@ -25,6 +25,11 @@ repositories {
     maven {
         url = uri("https://jitpack.io")
     }
+
+    maven {
+        name = "enginehub-maven"
+        url = uri("https://maven.enginehub.org/repo/")
+    }
 }
 
 dependencies {
@@ -32,6 +37,7 @@ dependencies {
     implementation(libs.com.mysql.mysql.connector.j)
     compileOnly("io.papermc.paper:paper-api:1.21.5-R0.1-SNAPSHOT")
     compileOnly(libs.com.github.koca2000.noteblockapi)
+    implementation("com.sk89q.worldedit:worldedit-bukkit:7.4.0-SNAPSHOT")
 
     paperweight.paperDevBundle("1.21.5-R0.1-SNAPSHOT")
 }
