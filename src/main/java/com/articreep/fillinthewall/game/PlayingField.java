@@ -643,6 +643,10 @@ public class PlayingField implements Listener {
     }
 
     // todo add the option to get this reference point in the center of the block or in the natural corner
+    /**
+     * Returns the corner of the playing field (NOT including the border blocks)
+     * The location is situated in the CENTER of the target block.
+     */
     public Location getReferencePoint() {
         return fieldReferencePoint.clone();
     }

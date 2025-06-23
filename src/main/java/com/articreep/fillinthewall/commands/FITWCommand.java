@@ -1,10 +1,7 @@
 package com.articreep.fillinthewall.commands;
 
 import com.articreep.fillinthewall.FillInTheWall;
-import com.articreep.fillinthewall.game.PlayingField;
-import com.articreep.fillinthewall.game.PlayingFieldManager;
-import com.articreep.fillinthewall.game.Wall;
-import com.articreep.fillinthewall.game.WallBundle;
+import com.articreep.fillinthewall.game.*;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.modifiers.ModifierEvent;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -239,6 +236,19 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                     ClientboundGameEventPacket packet = new ClientboundGameEventPacket(ClientboundGameEventPacket.WIN_GAME, 1);
                     ((CraftPlayer) player).getHandle().connection.sendPacket(packet);
                 }
+            } else if (args[0].equalsIgnoreCase("swap") && sender.isOp()) {
+                if (args.length >= 2) {
+                    String name = args[1];
+                    PlayingField field = PlayingFieldManager.activePlayingFields.get((Player) sender);
+                    if (field == null) {
+                        sender.sendMessage("This player isn't in a game!");
+                        return true;
+                    }
+                    BuildSwapper.swapBuild(field, name);
+                    sender.sendMessage("Attempted a swap!");
+                } else {
+                    sender.sendMessage("/fitw swap <buildname>");
+                }
             } else {
                 return false;
             }
@@ -266,6 +276,7 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                 strings.add("modifier");
                 strings.add("demomode");
                 strings.add("endcredits");
+                strings.add("swap");
             }
             StringUtil.copyPartialMatches(args[0], strings, completions);
         } else if (args.length == 2) {
@@ -278,6 +289,8 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                     strings.add(player.getName());
                 }
                 StringUtil.copyPartialMatches(args[1], strings, completions);
+            } else if (args[0].equalsIgnoreCase("swap")) {
+                StringUtil.copyPartialMatches(args[1], BuildSwapper.getAvailableSchematics(), completions);
             }
         } else if (args.length == 3) {
             if (args[0].equalsIgnoreCase("modifier")) {
