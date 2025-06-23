@@ -1395,9 +1395,10 @@ public class PlayingField implements Listener {
     }
 
     public Location getSpawnLocation() {
-        Location spawn = getReferencePoint().subtract(0.5, 0.5, 0.5);
+        Location spawn = getReferencePoint();
+        spawn.subtract(0, 0.5, 0);
         spawn.add(getFieldDirection()
-                .multiply(getLength() / 2.0));
+                .multiply(getLength() / 2.0 - 0.5));
         spawn.add(getIncomingDirection().multiply(getStandingDistance() / 2.0));
         spawn.setDirection(getIncomingDirection().multiply(-1));
         return spawn;
