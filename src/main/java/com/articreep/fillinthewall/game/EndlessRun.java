@@ -28,7 +28,7 @@ public class EndlessRun {
     public static final int minHoles = 1;
     public static final int minimumWallTime = 80;
     public static final double randomizeFurtherChance = 0.2;
-    private PlayingFieldScorer scorer;
+    private final PlayingFieldScorer scorer;
 
     // Transitions the game into the next phase.
     // The queue/active walls will be frozen for a short time
@@ -75,7 +75,7 @@ public class EndlessRun {
             minPhaseHoles = 3;
             if (currentPhase == 2) {
                 maxPhaseHoles += 1;
-                wallTime -= 20;
+                wallTime -= 40;
             }
         } else if (currentPhase <= 4) {
             maxPhaseHoles = random.nextInt(3, earlyMaxHoles + 1);
