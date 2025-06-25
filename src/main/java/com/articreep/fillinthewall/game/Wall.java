@@ -465,7 +465,7 @@ public class Wall {
         return Utils.randomSetElement(holes);
     }
 
-    public void insertRandomNewHole(int count, int filter) {
+    public void insertRandomNewHoles(int count, int filter) {
         if (holes.size() >= length * height) return;
         boolean even = (length % 2 == 0);
         Set<Pair<Integer, Integer>> possibleCoordinates = new HashSet<>();
@@ -562,18 +562,20 @@ public class Wall {
      * Generate x randomCount holes on the wall.
      * Generate y holes that are connected to existing holes, either horizontally, vertically, or diagonally.
      * @param randomCount Number of random holes to generate
-     * @param clusterCount Number of connected holes to generate. This can be random as well with the next argument.
-     * @param randomizeFurther Whether to instead randomize the number of connected holes and use the given cluster
-     *                         parameter as an upper bound.
+     * @param clusterCount Number of connected holes to generate.
+     * @param randomizeFurther Whether to instead randomize the total amount of holes, with randomCount + clusterCount as an upper bound.
+     * @param minimumHoles If randomizeFurther is enabled, this is the minimum amount of holes that must be placed.
      */
-    public void generateHoles(int randomCount, int clusterCount, boolean randomizeFurther) {
-        insertRandomNewHole(randomCount, 0);
-
+    public void generateHoles(int randomCount, int clusterCount, boolean randomizeFurther, int minimumHoles) {
+        int totalHoles = randomCount + clusterCount;
         if (randomizeFurther) {
             Random rng = new Random();
-            clusterCount = rng.nextInt(0, clusterCount + 1);
+            totalHoles = rng.nextInt(minimumHoles, randomCount + clusterCount);
         }
-        for (int i = 0; i < clusterCount; i++) {
+
+        insertRandomNewHoles(Math.min(randomCount, totalHoles), 0);
+
+        for (int i = 0; i < totalHoles - randomCount; i++) {
             Pair<Integer, Integer> hole = randomCoordinatesConnected();
             if (hole != null) {
                 insertHole(hole);
@@ -581,6 +583,20 @@ public class Wall {
                 break;
             }
         }
+    }
+
+    /**
+     * Generates holes on the wall.
+     * The algorithm works as follows:
+     * Generate x randomCount holes on the wall.
+     * Generate y holes that are connected to existing holes, either horizontally, vertically, or diagonally.
+     * @param randomCount Number of random holes to generate
+     * @param clusterCount Number of connected holes to generate.
+     * @param randomizeFurther Whether to instead randomize the total amount of holes, with randomCount + clusterCount as an upper bound
+     *                         and minimum three holes.
+     */
+    public void generateHoles(int randomCount, int clusterCount, boolean randomizeFurther) {
+        generateHoles(randomCount, clusterCount, randomizeFurther, 3);
     }
 
     // todo should test this rigorously, it's hard to tell if it's working
@@ -597,17 +613,17 @@ public class Wall {
             extra = count % 2;
         }
 
-        insertRandomNewHole(1, -1);
+        insertRandomNewHoles(1, -1);
         for (int i = 0; i < holesPerSide-1; i++) {
             insertHole(randomCoordinatesConnectedLeft());
         }
 
-        insertRandomNewHole(1, 1);
+        insertRandomNewHoles(1, 1);
         for (int i = 0; i < holesPerSide-1; i++) {
             insertHole(randomCoordinatesConnectedRight());
         }
 
-        insertRandomNewHole(extra, 0);
+        insertRandomNewHoles(extra, 0);
     }
 
     public void setMaterial(Material material) {

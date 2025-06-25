@@ -25,6 +25,7 @@ public class WallGenerator {
     private int wallTimeMinimum = 80;
 
     private int wallHolesIncreaseInterval = -1;
+    private int wallHolesMin = 3;
     private int wallHolesMax = 6;
 
     private int randomHoleCount;
@@ -51,7 +52,7 @@ public class WallGenerator {
     public void addNewWallToQueues() {
         Wall wall = new Wall(wallLength, wallHeight);
         if (coop) wall.generateCoopHoles(randomHoleCount + connectedHoleCount);
-        else wall.generateHoles(randomHoleCount, connectedHoleCount, randomizeFurther);
+        else wall.generateHoles(randomHoleCount, connectedHoleCount, randomizeFurther, wallHolesMin);
         wall.setTimeRemaining(wallActiveTime);
         if (queues.isEmpty()) {
             FillInTheWall.getInstance().getSLF4JLogger().warn("No queues to add walls to..?");
@@ -122,6 +123,10 @@ public class WallGenerator {
 
     public void setWallHolesMax(int wallHolesMax) {
         this.wallHolesMax = wallHolesMax;
+    }
+
+    public void setWallHolesMin(int wallHolesMin) {
+        this.wallHolesMin = wallHolesMin;
     }
 
     public void setWallHolesIncreaseInterval(int wallHolesIncreaseInterval) {

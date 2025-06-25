@@ -23,14 +23,12 @@ public enum Gamemode {
         INFINITE.addAttribute(GamemodeAttribute.RANDOM_HOLE_COUNT, 2);
         INFINITE.addAttribute(GamemodeAttribute.CONNECTED_HOLE_COUNT, 4);
         INFINITE.addAttribute(GamemodeAttribute.STARTING_WALL_ACTIVE_TIME, 160);
-        INFINITE.addAttribute(GamemodeAttribute.METER_MAX, 10);
+        INFINITE.addAttribute(GamemodeAttribute.METER_MAX, 0);
         INFINITE.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
         INFINITE.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.PERFECT_WALLS);
         INFINITE.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.SPEED);
         INFINITE.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         INFINITE.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
-        INFINITE.addAttribute(GamemodeAttribute.AUTOMATIC_METER, true);
-        INFINITE.addAttribute(GamemodeAttribute.ABILITY_EVENT, ModifierEvent.Type.RUSH);
 
         SCORE_ATTACK.addAttribute(GamemodeAttribute.TIME_LIMIT, 20*120);
         SCORE_ATTACK.addAttribute(GamemodeAttribute.DO_LEVELS, true);

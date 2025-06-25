@@ -55,6 +55,7 @@ public class PlayingFieldScorer {
     public boolean penalizeEmptyField = true;
 
     // Levels (if enabled)
+    // this is only for score attack/marathon
     boolean doLevels = false;
     private int level = 1;
     private int meterMax = 10;

@@ -272,6 +272,11 @@ public class WallQueue {
         generator.setRandomizeFurther(randomizeFurther);
     }
 
+    public void setMinimumHoleCount(int minimumHoleCount) {
+        if (field.getScorer().getSettings().getBooleanAttribute(GamemodeAttribute.MULTIPLAYER)) return;
+        generator.setWallHolesMin(minimumHoleCount);
+    }
+
     public void clearHiddenWalls() {
         hiddenWalls.clear();
     }
