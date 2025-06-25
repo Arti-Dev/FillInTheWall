@@ -392,4 +392,8 @@ public class WallQueue {
     public List<Wall> getActiveWalls() {
         return activeWalls;
     }
+
+    public void pauseTicking(int ticks) {
+        pauseTickLoop = ticks;
+    }
 }

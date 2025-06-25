@@ -1051,6 +1051,7 @@ public class PlayingField implements Listener {
                         compArray.add(Component.empty());
                     }
                 }
+                case SCORE_TO_NEXT_LEVEL -> component = Component.text(scorer.getScoreToNextLevel());
             }
             if (!compArray.isEmpty()) {
                 textDisplays[i].text(type.getFormattedText(compArray));

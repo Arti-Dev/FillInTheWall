@@ -16,7 +16,8 @@ public enum DisplayType {
     POSITION("<yellow>Position: %s\n%s"),
     NAME("%s"),
     GAMEMODE("Playing %s"),
-    EVENTS("<gray>Events: %s%s");
+    EVENTS("<gray>Events: %s%s"),
+    SCORE_TO_NEXT_LEVEL("<gray>Next level at %s points");
 
     final String text;
     DisplayType(String text) {

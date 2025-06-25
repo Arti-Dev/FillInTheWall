@@ -82,6 +82,8 @@ public class PlayingFieldScorer {
 
     private boolean incompleteGame = false;
 
+    private EndlessRun endlessRun = null;
+
     public PlayingFieldScorer(PlayingField field) {
         this.field = field;
     }
@@ -158,6 +160,12 @@ public class PlayingFieldScorer {
         // Custom walls tip display
         if (gamemode == Gamemode.CUSTOM && !hasImportedCustomWalls) {
             field.setTipDisplay(miniMessage.deserialize("<yellow>You can import custom walls with /fitw custom <name>"));
+        }
+
+        // Check if we are at endless score threshold
+        if (endlessRun != null && this.score >= endlessRun.scoreToNextLevel) {
+            Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(),
+                    () -> endlessRun.nextPhase(), 10);
         }
 
         return judgement;
@@ -753,6 +761,7 @@ public class PlayingFieldScorer {
         return endScreen;
     }
 
+    // Called by the PlayingField when the game starts
     public void setGamemode(Gamemode gamemode, GamemodeSettings settings) {
         this.gamemode = gamemode;
         this.settings = settings;
@@ -790,7 +799,9 @@ public class PlayingFieldScorer {
         if (!settings.getBooleanAttribute(GamemodeAttribute.MULTIPLAYER) &&
                 settings.getModifierEventTypeAttribute(GamemodeAttribute.SINGULAR_EVENT) != null
                 && settings.getModifierEventTypeAttribute(GamemodeAttribute.SINGULAR_EVENT) != ModifierEvent.Type.NONE) {
+
             activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.SINGULAR_EVENT)).setInfinite(true);
+
         } else if (gamemode == Gamemode.CUSTOM) {
             WallBundle bundle = WallBundle.getWallBundle("amogus");
             // todo hardcoded dimension check
@@ -801,6 +812,8 @@ public class PlayingFieldScorer {
                 field.getQueue().clearAllWalls();
                 walls.forEach(field.getQueue()::addWall);
             }
+        } else if (gamemode == Gamemode.INFINITE) {
+            endlessRun = new EndlessRun(this);
         }
         if (settings.getAttribute(GamemodeAttribute.MULTIPLAYER) == Boolean.TRUE) {
             createScoreboard();
@@ -974,5 +987,10 @@ public class PlayingFieldScorer {
     // Marks the game as incomplete and not eligible for participation XP
     public void setIncompleteGame(boolean incompleteGame) {
         this.incompleteGame = incompleteGame;
+    }
+
+    public int getScoreToNextLevel() {
+        if (endlessRun == null) return -1;
+        else return endlessRun.scoreToNextLevel;
     }
 }

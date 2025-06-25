@@ -26,7 +26,7 @@ public enum Gamemode {
         INFINITE.addAttribute(GamemodeAttribute.METER_MAX, 0);
         INFINITE.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
         INFINITE.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.PERFECT_WALLS);
-        INFINITE.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.SPEED);
+        INFINITE.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.SCORE_TO_NEXT_LEVEL);
         INFINITE.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         INFINITE.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
 

@@ -1,10 +1,10 @@
 package com.articreep.fillinthewall.game;
 
 import com.articreep.fillinthewall.FillInTheWall;
-import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.gamemode.GamemodeSettings;
-import com.articreep.fillinthewall.multiplayer.WallGenerator;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 
 import java.util.Random;
 
@@ -12,9 +12,13 @@ public class EndlessRun {
     public EndlessRun(PlayingFieldScorer scorer) {
         if (scorer == null) throw new IllegalArgumentException("Scorer cannot be null");
         this.scorer = scorer;
+        increaseScoreToNextLevel();
     }
 
-    int currentPhase = 1;
+    private static final MiniMessage miniMessage = MiniMessage.miniMessage();
+
+    int currentPhase = 0;
+    public int scoreToNextLevel = 0;
 
     public static final int earlyMinimumWallTime = 120;
     public static final int earlyMaxHoles = 7;
@@ -26,8 +30,33 @@ public class EndlessRun {
     public static final double randomizeFurtherChance = 0.2;
     private PlayingFieldScorer scorer;
 
+    // Transitions the game into the next phase.
+    // The queue/active walls will be frozen for a short time
+    // The current phase will be incremented and the queue difficulty randomized
+    // todo The current island build will be changed to a random one
+    // todo A title will be sent to the player with a random symbol
+    // todo A random sound will be played
+    public void nextPhase() {
+        WallQueue queue = scorer.field.getQueue();
+        queue.pauseTicking(40);
 
-    public void randomQueueDifficulty() {
+        increaseScoreToNextLevel();
+        randomQueueDifficulty();
+        scorer.field.sendTitleToPlayers(Component.empty(), miniMessage.deserialize(
+                "<gradient:#5e4fa2:#f79459:red>placeholder</gradient>"),
+                0, 5, 15);
+    }
+
+    private void increaseScoreToNextLevel() {
+        currentPhase++;
+        if (currentPhase == 1) scoreToNextLevel += 50;
+        else if (currentPhase == 2) scoreToNextLevel += 75;
+        else if (currentPhase <= 10) scoreToNextLevel += 100;
+        else if (currentPhase <= 20) scoreToNextLevel += 150;
+        else scoreToNextLevel += 200;
+    }
+
+    private void randomQueueDifficulty() {
         WallQueue queue = scorer.field.getQueue();
 
         GamemodeSettings settings = scorer.getSettings();
@@ -60,6 +89,7 @@ public class EndlessRun {
             minPhaseHoles = minHoles;
         }
 
+        queue.clearAllWalls();
         queue.setMinimumHoleCount(minPhaseHoles);
         int randomHoleCount = rollRandomHoleCount(maxPhaseHoles);
         int connectedHoleCount = maxPhaseHoles - randomHoleCount;
@@ -73,7 +103,7 @@ public class EndlessRun {
                 randomHoleCount, connectedHoleCount, maxPhaseHoles, wallTime, randomizeFurther, minPhaseHoles);
     }
 
-    public int rollRandomHoleCount(int maxHoles) {
+    private int rollRandomHoleCount(int maxHoles) {
         Random random = new Random();
         // If below 4, choose randomly from 1-3. If not, 2-4.
         if (maxHoles <= 3) {
