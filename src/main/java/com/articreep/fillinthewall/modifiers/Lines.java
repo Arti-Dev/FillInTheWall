@@ -90,7 +90,9 @@ public class Lines extends ModifierEvent implements Listener {
     public WallBundle generatePriorityWallBundle(int length, int height) {
         Random random = new Random();
         WallBundle bundle = new WallBundle();
-        for (int i = 0; i < 3; i++) {
+        int wallsToGenerate = 3;
+        if (doublePriorityWalls) wallsToGenerate *= 2;
+        for (int i = 0; i < wallsToGenerate; i++) {
             // Choose a x and y coordinate
             // Generate holes along these lines
             // Remove up to 2 holes

@@ -172,8 +172,10 @@ public class Multiplace extends ModifierEvent implements Listener {
     public WallBundle generatePriorityWallBundle(int length, int height) {
         WallBundle bundle = new WallBundle();
         Random random = new Random();
+        int wallsToGenerate = 3;
+        if (doublePriorityWalls) wallsToGenerate *= 2;
         // A simpler algorithm without wall kicking
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < wallsToGenerate; i++) {
             // Choose a random hole
             // Expand it to a 2x2 hole
             // 50/50 chance to remove one of the holes at random
@@ -199,6 +201,7 @@ public class Multiplace extends ModifierEvent implements Listener {
         return bundle;
     }
 
+    // todo this needs better docs since you have to remember to run this
     @Override
     public void additionalInit(int length, int height) {
         priorityWallBundle = generatePriorityWallBundle(length, height);

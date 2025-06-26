@@ -59,6 +59,8 @@ public class EndlessRun {
             Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> {
                 ModifierEvent event = ModifierEvent.Type.RANDOM_ENDLESS.createEvent();
                 event.setPlayingField(scorer.field);
+                event.setDoublePriorityWalls(true);
+                event.additionalInit(scorer.field.getLength(), scorer.field.getHeight());
                 event.setTicksRemaining(eventLength);
                 event.activate();
             }, pauseTicks - 5);
