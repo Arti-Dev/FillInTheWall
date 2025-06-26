@@ -90,6 +90,8 @@ public abstract class ModifierEvent {
         // The tutorial uses a fake meter
         TUTORIAL(Tutorial.class, 0),
         RANDOM(null),
+        // Exclusively for endless mode
+        RANDOM_ENDLESS(null),
         NONE(null);
 
         final Class<? extends ModifierEvent> clazz;
@@ -105,6 +107,14 @@ public abstract class ModifierEvent {
 
         public ModifierEvent createEvent() {
             if (this == RANDOM) {
+                ArrayList<Type> types = new ArrayList<>(List.of(values()));
+                types.remove(RANDOM);
+                types.remove(TUTORIAL);
+                types.remove(FREEZE);
+                // todo remove endless-exclusive events
+                Type type = types.get((int) (Math.random() * types.size()));
+                return type.createEvent();
+            } else if (this == RANDOM_ENDLESS) {
                 ArrayList<Type> types = new ArrayList<>(List.of(values()));
                 types.remove(RANDOM);
                 types.remove(TUTORIAL);
@@ -137,6 +147,9 @@ public abstract class ModifierEvent {
         return null;
     }
 
+    /**
+     * Set the playing field before doing this with setPlayingField()
+     */
     public void activate() {
         if (field == null) return;
         field.setEvent(this);

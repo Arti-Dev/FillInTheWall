@@ -54,9 +54,9 @@ public class WallGenerator {
         if (coop) wall.generateCoopHoles(randomHoleCount + connectedHoleCount);
         else wall.generateHoles(randomHoleCount, connectedHoleCount, randomizeFurther, wallHolesMin);
         wall.setTimeRemaining(wallActiveTime);
-        // debug
-        FillInTheWall.getInstance().getSLF4JLogger().info("R{}C{}, T{}",
-                randomHoleCount, connectedHoleCount, wallActiveTime);
+//        // debug
+//        FillInTheWall.getInstance().getSLF4JLogger().info("R{}C{}, T{}",
+//                randomHoleCount, connectedHoleCount, wallActiveTime);
         if (queues.isEmpty()) {
             FillInTheWall.getInstance().getSLF4JLogger().warn("No queues to add walls to..?");
         } else {

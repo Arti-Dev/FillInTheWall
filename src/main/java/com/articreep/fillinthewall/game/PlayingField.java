@@ -923,6 +923,8 @@ public class PlayingField implements Listener {
         return false;
     }
 
+    // Generally, don't use this method: create an event and then use its built-in activate()
+    // bad code design moment
     public void setEvent(ModifierEvent newEvent) {
         if (event != null && newEvent != null) {
             if (newEvent.shelveEvent) {
@@ -936,10 +938,12 @@ public class PlayingField implements Listener {
     }
 
     public void endEvent() {
+        if (event == null) return;
         event.end();
         if (event.shelveEvent) {
             // todo this line prevents infinite recursion - kind of scary
             event = event.getShelvedEvent();
+
             if (event != null) {
                 event.activate();
             }
