@@ -6,14 +6,13 @@ import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.extent.clipboard.Clipboard;
+import com.sk89q.worldedit.extent.clipboard.io.BuiltInClipboardFormat;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormat;
-import com.sk89q.worldedit.extent.clipboard.io.ClipboardFormats;
 import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.math.transform.AffineTransform;
-import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.World;
 import org.apache.commons.io.FilenameUtils;
@@ -89,7 +88,7 @@ public class BuildSwapper {
         File dataFolder = FillInTheWall.getInstance().getDataFolder();
         File build = new File(dataFolder, "schematics/" + name + ".schem");
 
-        ClipboardFormat format = ClipboardFormats.findByFile(build);
+        ClipboardFormat format = BuiltInClipboardFormat.MCEDIT_SCHEMATIC;
         Clipboard clipboard;
         try (ClipboardReader reader = format.getReader(new FileInputStream(build))) {
             clipboard = reader.read();
