@@ -136,6 +136,7 @@ public class EndlessRun {
 
     private boolean rollEventProbability() {
         if (currentPhase < 3) return false;
+        if (currentPhase == 3) return true;
         Random random = new Random();
         boolean result = (eventDrought * (1/3f)) > random.nextDouble();
         if (!result) eventDrought++;
