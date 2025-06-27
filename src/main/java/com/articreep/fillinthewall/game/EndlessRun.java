@@ -8,6 +8,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 
+import java.util.List;
 import java.util.Random;
 
 public class EndlessRun {
@@ -35,14 +36,24 @@ public class EndlessRun {
     private int eventDrought = 0;
     public static final int eventLength = 60 * 20;
 
+    private final static String levelUpMessage = "<gradient:#5e4fa2:#f79459:red>Level up!</gradient>";
+    // todo add more
+    private final static String[] possibleAlternateMessages = {
+            "<gradient:#60ff2b:#35a310:#164706>Hmm...</gradient>",
+            "<gold>What to do...",
+            "<gradient:yellow:blue>Phase up!</gradient>",
+            "<gradient:green:dark_purple>Here's the next set...</gradient>",
+            "<blue>Change!"
+    };
+
     // Transitions the game into the next phase.
     // The queue/active walls will be frozen for a short time
     // The current phase will be incremented and the queue difficulty randomized
-    // todo The current island build will be changed to a random one
-    // todo A title will be sent to the player with a random symbol
-    // todo A random sound will be played
+    // The current island build will be changed to a random one
+    // Send a title to the player with a chance for it to be randomized
     public void nextPhase() {
         int pauseTicks = 40;
+        Random random = new Random();
 
         scorer.field.endEvent();
         WallQueue queue = scorer.field.getQueue();
@@ -50,8 +61,21 @@ public class EndlessRun {
 
         increaseScoreToNextLevel();
         randomQueueDifficulty();
-        scorer.field.sendTitleToPlayers(Component.empty(), miniMessage.deserialize(
-                "<gradient:#5e4fa2:#f79459:red>placeholder</gradient>"),
+
+        List<String> schematicList = BuildSwapper.getAvailableSchematics();
+        // todo do not pick a build that's already deployed on this playing field
+        String schematic = schematicList.get(random.nextInt(schematicList.size()));
+        BuildSwapper.swapBuild(scorer.field, schematic);
+
+        boolean alternateTitle = random.nextDouble() < 0.25;
+        String title;
+        if (alternateTitle) {
+            title = possibleAlternateMessages[random.nextInt(possibleAlternateMessages.length)];
+        } else {
+            title = levelUpMessage;
+        }
+        scorer.field.sendTitleToPlayers(miniMessage.deserialize(title),
+                Component.empty(),
                 0, 5, 15);
 
         boolean doRandomEvent = rollEventProbability();
