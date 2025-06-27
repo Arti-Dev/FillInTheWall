@@ -164,6 +164,7 @@ public class PlayingFieldScorer {
 
         // Check if we are at endless score threshold
         if (endlessRun != null && this.score >= endlessRun.scoreToNextLevel) {
+            field.playSoundToPlayers(Sound.ITEM_TRIDENT_THROW, 1, 1);
             Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(),
                     () -> endlessRun.nextPhase(), 10);
         }

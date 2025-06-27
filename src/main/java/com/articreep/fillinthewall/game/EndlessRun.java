@@ -4,9 +4,11 @@ import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.gamemode.GamemodeSettings;
 import com.articreep.fillinthewall.modifiers.ModifierEvent;
+import com.articreep.fillinthewall.multiplayer.WallGenerator;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
+import org.bukkit.Sound;
 
 import java.util.List;
 import java.util.Random;
@@ -21,6 +23,7 @@ public class EndlessRun {
     private static final MiniMessage miniMessage = MiniMessage.miniMessage();
 
     int currentPhase = 0;
+    int currentMaxHoles = 6;
     public int scoreToNextLevel = 0;
 
     public static final int earlyMinimumWallTime = 120;
@@ -56,11 +59,12 @@ public class EndlessRun {
         Random random = new Random();
 
         scorer.field.endEvent();
+        scorer.field.playSoundToPlayers(Sound.ITEM_TRIDENT_RETURN, 1, 0.5f);
         WallQueue queue = scorer.field.getQueue();
         queue.pauseTicking(pauseTicks);
 
-        increaseScoreToNextLevel();
         randomQueueDifficulty();
+        increaseScoreToNextLevel();
 
         List<String> schematicList = BuildSwapper.getAvailableSchematics();
         // todo do not pick a build that's already deployed on this playing field
@@ -93,7 +97,9 @@ public class EndlessRun {
 
     private void increaseScoreToNextLevel() {
         currentPhase++;
-        if (currentPhase == 1) scoreToNextLevel += 25;
+
+        if (currentMaxHoles <= 3) scoreToNextLevel += 25;
+        else if (currentPhase == 1) scoreToNextLevel += 25;
         else if (currentPhase == 2) scoreToNextLevel += 50;
         else if (currentPhase <= 10) scoreToNextLevel += 75;
         else if (currentPhase <= 20) scoreToNextLevel += 100;
@@ -142,10 +148,12 @@ public class EndlessRun {
         queue.setWallActiveTime(wallTime);
         queue.setRandomizeFurther(randomizeFurther);
 
+        currentMaxHoles = maxPhaseHoles;
+
         // debug
-        FillInTheWall.getInstance().getSLF4JLogger()
-                .info("R{}C{} for total {}, WT{}, RandFurther{}, MinHoles{}",
-                randomHoleCount, connectedHoleCount, maxPhaseHoles, wallTime, randomizeFurther, minPhaseHoles);
+//        FillInTheWall.getInstance().getSLF4JLogger()
+//                .info("R{}C{} for total {}, WT{}, RandFurther{}, MinHoles{}",
+//                randomHoleCount, connectedHoleCount, maxPhaseHoles, wallTime, randomizeFurther, minPhaseHoles);
     }
 
     private int rollRandomHoleCount(int maxHoles) {
