@@ -95,6 +95,7 @@ public abstract class ModifierEvent {
         RUSH(Rush.class),
         SCALE(Scale.class),
         STRIPES(Stripes.class),
+        SPEEDUP(SpeedUp.class),
         // The tutorial uses a fake meter
         TUTORIAL(Tutorial.class, 0),
         UNSUPPORTED(Unsupported.class),
