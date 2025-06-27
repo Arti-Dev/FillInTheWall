@@ -47,6 +47,7 @@ public class BuildSwapper {
         Location spawnLoc = playingField.getSpawnLocation();
         PotionEffect blindness = new PotionEffect(PotionEffectType.BLINDNESS, 30, 0);
         for (Player player : playingField.getPlayers()) {
+            if (player.getLocation().distance(spawnLoc) <= 5) continue;
             player.teleport(spawnLoc);
             player.addPotionEffect(blindness);
         }
@@ -64,6 +65,8 @@ public class BuildSwapper {
         } catch (WorldEditException e) {
             throw new RuntimeException(e);
         }
+
+        // todo change environment
     }
 
     private static @NotNull AffineTransform getAffineTransform(PlayingField playingField) {
