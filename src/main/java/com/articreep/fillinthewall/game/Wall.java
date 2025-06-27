@@ -1,6 +1,7 @@
 package com.articreep.fillinthewall.game;
 
 import com.articreep.fillinthewall.FillInTheWall;
+import com.articreep.fillinthewall.modifiers.Cheese;
 import com.articreep.fillinthewall.utils.Utils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.*;
@@ -234,8 +235,14 @@ public class Wall {
         }
 
         if (nextState == WallState.HARDENED) {
-            for (BlockDisplay display : blocks.keySet()) {
-                display.setBlock(Material.GRAY_WOOL.createBlockData());
+            if (material == Cheese.cheeseMaterial) {
+                for (BlockDisplay display : blocks.keySet()) {
+                    display.setBlock(Cheese.cheeseMaterial.createBlockData());
+                }
+            } else {
+                for (BlockDisplay display : blocks.keySet()) {
+                    display.setBlock(Material.GRAY_WOOL.createBlockData());
+                }
             }
             for (BlockDisplay display : border) {
                 display.setBlock(Material.STONE.createBlockData());

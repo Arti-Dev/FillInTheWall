@@ -81,6 +81,7 @@ public abstract class ModifierEvent {
 
     // Register all modifier events here
     public enum Type {
+        CHEESE(Cheese.class),
         FIREINTHEHOLE(FireInTheHole.class),
         FLIP(Flip.class),
         FREEZE(Freeze.class, 0.5),
@@ -119,6 +120,7 @@ public abstract class ModifierEvent {
                 types.remove(TUTORIAL);
                 types.remove(FREEZE);
                 types.remove(UNSUPPORTED);
+                types.remove(CHEESE);
                 // todo remove endless-exclusive events
                 Type type = types.get((int) (Math.random() * types.size()));
                 return type.createEvent();

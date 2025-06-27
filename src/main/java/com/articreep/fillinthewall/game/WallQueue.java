@@ -342,6 +342,8 @@ public class WallQueue {
 
     /**
      * Takes a new wall and hardens it at the end of the queue.
+     * This is generally an internal method, use PlayingFieldScorer#addGarbageToQueue
+     * (bad code design again)
      * @param wall Wall to harden
      * @param hardness Resistance to positive judgements (perfect = 2, cool = 1)
      */
