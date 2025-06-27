@@ -4,7 +4,7 @@ import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.gamemode.GamemodeSettings;
 import com.articreep.fillinthewall.modifiers.ModifierEvent;
-import com.articreep.fillinthewall.multiplayer.WallGenerator;
+import com.articreep.fillinthewall.modifiers.SpeedUp;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
@@ -36,6 +36,7 @@ public class EndlessRun {
     public static final double randomizeFurtherChance = 0.3;
     private final PlayingFieldScorer scorer;
 
+    private ModifierEvent nextRandomEvent = null;
     private int eventDrought = 0;
     public static final int eventLength = 60 * 20;
 
@@ -63,6 +64,18 @@ public class EndlessRun {
         WallQueue queue = scorer.field.getQueue();
         queue.pauseTicking(pauseTicks);
 
+        boolean doRandomEvent = rollEventProbability();
+        if (doRandomEvent) {
+            nextRandomEvent = ModifierEvent.Type.RANDOM_ENDLESS.createEvent();
+            Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> {
+                nextRandomEvent.setPlayingField(scorer.field);
+                nextRandomEvent.setDoublePriorityWalls(true);
+                nextRandomEvent.additionalInit(scorer.field.getLength(), scorer.field.getHeight());
+                nextRandomEvent.setTicksRemaining(eventLength);
+                nextRandomEvent.activate();
+            }, pauseTicks - 5);
+        }
+
         randomQueueDifficulty();
         increaseScoreToNextLevel();
 
@@ -81,18 +94,6 @@ public class EndlessRun {
         scorer.field.sendTitleToPlayers(miniMessage.deserialize(title),
                 Component.empty(),
                 0, 5, 15);
-
-        boolean doRandomEvent = rollEventProbability();
-        if (doRandomEvent) {
-            Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> {
-                ModifierEvent event = ModifierEvent.Type.RANDOM_ENDLESS.createEvent();
-                event.setPlayingField(scorer.field);
-                event.setDoublePriorityWalls(true);
-                event.additionalInit(scorer.field.getLength(), scorer.field.getHeight());
-                event.setTicksRemaining(eventLength);
-                event.activate();
-            }, pauseTicks - 5);
-        }
     }
 
     private void increaseScoreToNextLevel() {
@@ -134,7 +135,16 @@ public class EndlessRun {
             minPhaseHoles = 3;
         } else {
             maxPhaseHoles = random.nextInt(1, maxHoles + 1);
-            wallTime = random.nextInt(minimumWallTime + (maxPhaseHoles * 4), 200);
+            boolean speedModifierActive = (nextRandomEvent != null) && nextRandomEvent instanceof SpeedUp;
+            // 4 or less holes - 70% chance for fast speeds
+            // 5 or more holes - 30% chance for fast speeds
+            if (maxPhaseHoles <= 4) {
+                if (!speedModifierActive && random.nextDouble() < 0.7) wallTime = random.nextInt(minimumWallTime, minimumWallTime + 40);
+                else wallTime = random.nextInt(minimumWallTime + 40, 200);
+            } else {
+                if (!speedModifierActive && random.nextDouble() < 0.3) wallTime = random.nextInt(minimumWallTime, minimumWallTime + 40);
+                else wallTime = random.nextInt(minimumWallTime + 40, 200);
+            }
             randomizeFurther = random.nextDouble() < randomizeFurtherChance;
             minPhaseHoles = minHoles;
         }
