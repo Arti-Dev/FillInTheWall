@@ -133,6 +133,7 @@ public abstract class ModifierEvent {
                 types.remove(TUTORIAL);
                 types.remove(FREEZE);
                 types.remove(NONE);
+                types.remove(RUSH);
                 Type type = types.get((int) (Math.random() * types.size()));
                 return type.createEvent();
             }
