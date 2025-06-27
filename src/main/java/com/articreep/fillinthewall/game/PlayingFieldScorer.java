@@ -47,8 +47,8 @@ public class PlayingFieldScorer {
     private int time = 0;
     /** for calculating blocks per second */
     private int absoluteTimeElapsed = 0;
-    private Gamemode gamemode = Gamemode.INFINITE;
-    private GamemodeSettings settings = Gamemode.INFINITE.getDefaultSettings();
+    private Gamemode gamemode = Gamemode.ENDLESS;
+    private GamemodeSettings settings = Gamemode.ENDLESS.getDefaultSettings();
     private int eventCount = 0;
     private int playersOnGameStart = 0;
     // todo maybe make this an actual setting
@@ -654,7 +654,7 @@ public class PlayingFieldScorer {
     private int getXp(boolean participationBonus) {
         int xp = 0;
         switch (gamemode) {
-            case INFINITE -> xp += perfectWallsCleared;
+            case ENDLESS -> xp += perfectWallsCleared;
             case SCORE_ATTACK -> {
                 if (participationBonus) xp += 20;
                 xp += score / 5;
@@ -813,7 +813,7 @@ public class PlayingFieldScorer {
                 field.getQueue().clearAllWalls();
                 walls.forEach(field.getQueue()::addWall);
             }
-        } else if (gamemode == Gamemode.INFINITE) {
+        } else if (gamemode == Gamemode.ENDLESS) {
             endlessRun = new EndlessRun(this);
         }
         if (settings.getAttribute(GamemodeAttribute.MULTIPLAYER) == Boolean.TRUE) {

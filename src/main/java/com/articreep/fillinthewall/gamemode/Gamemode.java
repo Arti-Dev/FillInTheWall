@@ -8,7 +8,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 public enum Gamemode {
 
     TUTORIAL("Tutorial", "<gray>Learn how to play!"),
-    INFINITE("<light_purple>Infinite", "<gray>Step off the playing field to stop playing."),
+    ENDLESS("<gradient:#5e4fa2:#f79459:red>Endless</gradient>", "<gray>Step off the playing field to stop playing."),
     SCORE_ATTACK("<gold>Score Attack", "<gray>Score as much as you can in 2 minutes!"),
     RUSH_SCORE_ATTACK("<red>Rush Score Attack", "<gray>Use Rush Attacks to score as much as you can!"),
     SPRINT("<aqua>Sprint", "<gray>Perfect clear 20 walls as fast as you can!"),
@@ -19,16 +19,16 @@ public enum Gamemode {
     MEGA("<dark_aqua>Mega", "<gray>Work with others to fill 200 holes!");
 
     static {
-        INFINITE.addAttribute(GamemodeAttribute.CONSISTENT_HOLE_COUNT, false);
-        INFINITE.addAttribute(GamemodeAttribute.RANDOM_HOLE_COUNT, 2);
-        INFINITE.addAttribute(GamemodeAttribute.CONNECTED_HOLE_COUNT, 4);
-        INFINITE.addAttribute(GamemodeAttribute.STARTING_WALL_ACTIVE_TIME, 160);
-        INFINITE.addAttribute(GamemodeAttribute.METER_MAX, 0);
-        INFINITE.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
-        INFINITE.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.PERFECT_WALLS);
-        INFINITE.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.SCORE_TO_NEXT_LEVEL);
-        INFINITE.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
-        INFINITE.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
+        ENDLESS.addAttribute(GamemodeAttribute.CONSISTENT_HOLE_COUNT, false);
+        ENDLESS.addAttribute(GamemodeAttribute.RANDOM_HOLE_COUNT, 2);
+        ENDLESS.addAttribute(GamemodeAttribute.CONNECTED_HOLE_COUNT, 4);
+        ENDLESS.addAttribute(GamemodeAttribute.STARTING_WALL_ACTIVE_TIME, 160);
+        ENDLESS.addAttribute(GamemodeAttribute.METER_MAX, 0);
+        ENDLESS.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
+        ENDLESS.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.PERFECT_WALLS);
+        ENDLESS.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.SCORE_TO_NEXT_LEVEL);
+        ENDLESS.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
+        ENDLESS.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
 
         SCORE_ATTACK.addAttribute(GamemodeAttribute.TIME_LIMIT, 20*120);
         SCORE_ATTACK.addAttribute(GamemodeAttribute.DO_LEVELS, true);
