@@ -95,6 +95,7 @@ public abstract class ModifierEvent {
         STRIPES(Stripes.class),
         // The tutorial uses a fake meter
         TUTORIAL(Tutorial.class, 0),
+        UNSUPPORTED(Unsupported.class),
         RANDOM(null),
         // Exclusively for endless mode
         RANDOM_ENDLESS(null),
@@ -117,6 +118,7 @@ public abstract class ModifierEvent {
                 types.remove(RANDOM);
                 types.remove(TUTORIAL);
                 types.remove(FREEZE);
+                types.remove(UNSUPPORTED);
                 // todo remove endless-exclusive events
                 Type type = types.get((int) (Math.random() * types.size()));
                 return type.createEvent();

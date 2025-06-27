@@ -509,7 +509,7 @@ public class PlayingField implements Listener {
             event.setCancelled(false);
         }
 
-        if (event.getBlockPlaced().getType() == Material.CRACKED_STONE_BRICKS) {
+        if (event.getBlockPlaced().getType() == stoneSupportItem().getType()) {
             Random random = new Random();
             player.playSound(player.getLocation(), Sound.BLOCK_CHAIN_PLACE, 0.7f, random.nextFloat(0.5f, 2));
         }
