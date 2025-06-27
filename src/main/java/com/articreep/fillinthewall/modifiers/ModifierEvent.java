@@ -81,6 +81,7 @@ public abstract class ModifierEvent {
 
     // Register all modifier events here
     public enum Type {
+        CHAIN(Chain.class),
         CHEESE(Cheese.class),
         FIREINTHEHOLE(FireInTheHole.class),
         FLIP(Flip.class),
@@ -121,7 +122,7 @@ public abstract class ModifierEvent {
                 types.remove(FREEZE);
                 types.remove(UNSUPPORTED);
                 types.remove(CHEESE);
-                // todo remove endless-exclusive events
+                types.remove(CHAIN);
                 Type type = types.get((int) (Math.random() * types.size()));
                 return type.createEvent();
             } else if (this == RANDOM_ENDLESS) {

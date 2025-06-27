@@ -89,7 +89,7 @@ public class PlayingFieldScorer {
     }
 
     public enum BonusType {
-        PERFECT, FIRE, STRIPE, PLAYER
+        PERFECT, FIRE, STRIPE, PLAYER, CHAIN
     }
 
     public Judgement scoreWall(Wall wall, PlayingField field) {
@@ -966,6 +966,10 @@ public class PlayingFieldScorer {
 
     public int getPerfectWallChain() {
         return perfectWallChain;
+    }
+
+    public void breakPerfectWallChain() {
+        perfectWallChain = 0;
     }
 
     public double getMeterPercentFilled() {
