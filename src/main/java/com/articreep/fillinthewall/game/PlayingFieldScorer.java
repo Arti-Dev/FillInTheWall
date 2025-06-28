@@ -654,7 +654,10 @@ public class PlayingFieldScorer {
     private int getXp(boolean participationBonus) {
         int xp = 0;
         switch (gamemode) {
-            case ENDLESS -> xp += perfectWallsCleared;
+            case ENDLESS -> {
+                xp += perfectWallsCleared;
+                xp += (endlessRun.currentPhase - 1) * 10;
+            }
             case SCORE_ATTACK -> {
                 if (participationBonus) xp += 20;
                 xp += score / 5;
