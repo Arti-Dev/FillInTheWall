@@ -22,7 +22,7 @@ public class EndlessRun {
 
     private static final MiniMessage miniMessage = MiniMessage.miniMessage();
 
-    int currentPhase = 0;
+    int currentPhase = 1;
     int currentMaxHoles = 6;
     public int scoreToNextLevel = 0;
 
@@ -58,6 +58,8 @@ public class EndlessRun {
     public void nextPhase() {
         int pauseTicks = 40;
         Random random = new Random();
+
+        currentPhase++;
 
         scorer.field.endEvent();
         scorer.field.playSoundToPlayers(Sound.ITEM_TRIDENT_RETURN, 1, 0.5f);
@@ -97,8 +99,6 @@ public class EndlessRun {
     }
 
     private void increaseScoreToNextLevel() {
-        currentPhase++;
-
         if (currentMaxHoles <= 3) scoreToNextLevel += 25;
         else if (currentPhase == 1) scoreToNextLevel += 25;
         else if (currentPhase == 2) scoreToNextLevel += 50;
