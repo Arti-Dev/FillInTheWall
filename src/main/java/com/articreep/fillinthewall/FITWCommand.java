@@ -218,7 +218,7 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                     }
 
                     ClientboundGameEventPacket packet = new ClientboundGameEventPacket(ClientboundGameEventPacket.DEMO_EVENT, 0);
-                    ((CraftPlayer) player).getHandle().connection.sendPacket(packet);
+                    ((CraftPlayer) player).getHandle().connection.send(packet);
                 }
             } else if (args[0].equalsIgnoreCase("endcredits") && sender.isOp()) {
                 if (args.length >= 2) {
@@ -229,7 +229,7 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                     }
 
                     ClientboundGameEventPacket packet = new ClientboundGameEventPacket(ClientboundGameEventPacket.WIN_GAME, 1);
-                    ((CraftPlayer) player).getHandle().connection.sendPacket(packet);
+                    ((CraftPlayer) player).getHandle().connection.send(packet);
                 }
             } else {
                 return false;
