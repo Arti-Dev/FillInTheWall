@@ -35,11 +35,11 @@ repositories {
 dependencies {
     implementation(libs.org.javatuples.javatuples)
     implementation(libs.com.mysql.mysql.connector.j)
-    compileOnly("io.papermc.paper:paper-api:1.21.5-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.7-R0.1-SNAPSHOT")
     compileOnly(libs.com.github.koca2000.noteblockapi)
     compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.4.0-SNAPSHOT")
 
-    paperweight.paperDevBundle("1.21.5-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.21.7-R0.1-SNAPSHOT")
 }
 
 group = "com.articreep"
