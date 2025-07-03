@@ -106,14 +106,16 @@ public class GlobalListeners implements Listener {
         if (!LobbyItems.checkInventoryForItem(event.getPlayer(), "PROFILE_LOBBY_ITEM"))
             LobbyItems.giveProfileMenuItem(event.getPlayer());
         // load level in cache
-        Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> {
-            try {
-                PlayerLevels.getRawXP(event.getPlayer().getUniqueId());
-            } catch (SQLException e) {
-                FillInTheWall.getInstance().getSLF4JLogger().error("Failed to cache player level for {}", event.getPlayer().getName());
-                e.printStackTrace();
-            }
-        });
+        if (!Database.isOfflineMode()) {
+            Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> {
+                try {
+                    PlayerLevels.getRawXP(event.getPlayer().getUniqueId());
+                } catch (SQLException e) {
+                    FillInTheWall.getInstance().getSLF4JLogger().error("Failed to cache player level for {}", event.getPlayer().getName());
+                    e.printStackTrace();
+                }
+            });
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
