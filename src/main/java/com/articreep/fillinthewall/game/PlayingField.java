@@ -9,7 +9,7 @@ import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.gamemode.GamemodeSettings;
 import com.articreep.fillinthewall.lobby.LobbyItems;
 import com.articreep.fillinthewall.menu.EndScreen;
-import com.articreep.fillinthewall.menu.Menu;
+import com.articreep.fillinthewall.menu.SelectMenu;
 import com.articreep.fillinthewall.modifiers.ModifierEvent;
 import com.articreep.fillinthewall.modifiers.PlayerInTheWall;
 import com.articreep.fillinthewall.modifiers.Rush;
@@ -117,7 +117,7 @@ public class PlayingField implements Listener {
 
     private BukkitTask countdown = null;
     private BukkitTask task = null;
-    private Menu menu = null;
+    private SelectMenu selectMenu = null;
     private EndScreen endScreen = null;
     private boolean confirmOnCooldown = false;
 
@@ -176,8 +176,8 @@ public class PlayingField implements Listener {
         if (players.isEmpty()) return;
         if (hasMenu()) removeMenu();
         if (hasEndScreen()) removeEndScreen();
-        menu = new Menu(getCenter(true, false).add(0, 1, 0), this);
-        menu.display();
+        selectMenu = new SelectMenu(getCenter(true, false).add(0, 1, 0), this);
+        selectMenu.display();
     }
 
     private static final Title.Times titleTimes = Title.Times.times(
@@ -1143,12 +1143,12 @@ public class PlayingField implements Listener {
     }
 
     public void removeMenu() {
-        if (menu != null) this.menu.despawn();
-        this.menu = null;
+        if (selectMenu != null) this.selectMenu.despawn();
+        this.selectMenu = null;
     }
 
     public boolean hasMenu() {
-        return menu != null;
+        return selectMenu != null;
     }
 
     public void removeEndScreen() {
