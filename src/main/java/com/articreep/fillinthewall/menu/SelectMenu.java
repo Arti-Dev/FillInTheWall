@@ -16,6 +16,9 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.util.Transformation;
+import org.joml.AxisAngle4f;
+import org.joml.Vector3f;
 
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -34,6 +37,7 @@ public class SelectMenu implements Listener {
     private int gamemodeIndex = 0;
     private BukkitTask particleTask;
     private final static MiniMessage miniMessage = MiniMessage.miniMessage();
+    private BukkitTask spinTask = null;
 
     public SelectMenu(Location location, PlayingField field) {
         this.location = location;
@@ -52,14 +56,14 @@ public class SelectMenu implements Listener {
     public void display() {
         // todo fine-tune and maybe generalize it for small playing fields
         title = (TextDisplay) location.getWorld().spawnEntity(location.clone().add(0, 1, 0), EntityType.TEXT_DISPLAY);
-        // todo center this hitbox so we can spin it
         block = (BlockDisplay) location.getWorld().spawnEntity(location, EntityType.BLOCK_DISPLAY);
+        block.setTransformation(new Transformation(
+                new Vector3f(-0.5f, -0.5f, -0.5f),
+                new AxisAngle4f(0, 0, 0, 1), new Vector3f(1, 1, 1),
+                new AxisAngle4f(0, 0, 0, 1)));
         block.setInterpolationDuration(1);
-        float initialScale = 0.05f;
-        Utils.scaleDisplay(block, initialScale);
         description = (TextDisplay) location.getWorld().spawnEntity(location.clone().subtract(0, 0.5, 0.5), EntityType.TEXT_DISPLAY);
         controls = (TextDisplay) location.getWorld().spawnEntity(location.clone().subtract(0, 1.5, 0), EntityType.TEXT_DISPLAY);
-        Utils.scaleDisplay(controls, 0.5f);
 
 
         if (field.getHeight() * field.getLength() >= 400) {
@@ -74,15 +78,7 @@ public class SelectMenu implements Listener {
         updateMenu(Gamemode.values()[gamemodeIndex]);
         Bukkit.getPluginManager().registerEvents(this, FillInTheWall.getInstance());
         particleTask = createParticleTask();
-        new BukkitRunnable() {
-            float scale = initialScale;
-            @Override
-            public void run() {
-                scale += 0.05f;
-                Utils.scaleDisplay(block, scale);
-                if (scale >= 1) this.cancel();
-            }
-        }.runTaskTimer(FillInTheWall.getInstance(), 0, 1);
+        spinTask = createSpinTask();
     }
 
     private BukkitTask createParticleTask() {
@@ -95,6 +91,17 @@ public class SelectMenu implements Listener {
                         0.5, 1, 0.5, 0.1, new Particle.DustOptions(color, 1F));
             }
         }, 0, 5);
+    }
+
+    private BukkitTask createSpinTask() {
+        return new BukkitRunnable() {
+            @Override
+            public void run() {
+                Location loc = block.getLocation();
+                loc.setYaw(loc.getYaw() + 10);
+                block.teleport(loc);
+            }
+        }.runTaskTimer(FillInTheWall.getInstance(), 0, 1);
     }
 
     @EventHandler
@@ -176,11 +183,31 @@ public class SelectMenu implements Listener {
     public void despawn() {
         HandlerList.unregisterAll(this);
         if (title != null) title.remove();
-        if (block != null) block.remove();
+        if (block != null) {
+            new BukkitRunnable() {
+                float scale = 1;
+                @Override
+                public void run() {
+                    scale -= 0.05f;
+                    if (scale <= 0) {
+                        block.remove();
+                        this.cancel();
+                        return;
+                    }
+                    block.setTransformation(new Transformation(
+                            new Vector3f(-scale/2f, -scale/2f, -scale/2f),
+                            new AxisAngle4f(0, 0, 0, 1), new Vector3f(scale, scale, scale),
+                            new AxisAngle4f(0, 0, 0, 1)));
+                }
+            }.runTaskTimer(FillInTheWall.getInstance(), 0, 1);
+        }
         if (description != null) description.remove();
         if (controls != null) controls.remove();
         if (particleTask != null) {
             particleTask.cancel();
+        }
+        if (spinTask != null) {
+            spinTask.cancel();
         }
     }
 }
