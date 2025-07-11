@@ -176,7 +176,7 @@ public class PlayingField implements Listener {
         if (players.isEmpty()) return;
         if (hasMenu()) removeMenu();
         if (hasEndScreen()) removeEndScreen();
-        selectMenu = new SelectMenu(getCenter(true, false).add(0, 1, 0), this);
+        selectMenu = new SelectMenu(getCenter(true, false), this);
         selectMenu.display();
     }
 
@@ -1144,6 +1144,11 @@ public class PlayingField implements Listener {
 
     public void removeMenu() {
         if (selectMenu != null) this.selectMenu.despawn();
+        this.selectMenu = null;
+    }
+
+    public void forceRemoveMenu() {
+        if (selectMenu != null) this.selectMenu.despawn(true);
         this.selectMenu = null;
     }
 

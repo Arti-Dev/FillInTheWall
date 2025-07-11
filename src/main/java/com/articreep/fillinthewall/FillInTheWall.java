@@ -125,7 +125,7 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
         for (PlayingField field : PlayingFieldManager.playingFieldLocations.values()) {
             if (field.hasStarted()) field.stop(false, false);
             else {
-                field.removeMenu();
+                field.forceRemoveMenu();
                 field.removeEndScreen();
             }
         }
