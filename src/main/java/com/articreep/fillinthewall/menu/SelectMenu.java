@@ -29,6 +29,7 @@ public class SelectMenu implements Listener {
     private final Location location;
     private TextDisplay title;
     private BlockDisplay block;
+    private final float blockScale = 0.5f;
     private TextDisplay description;
     private TextDisplay controls;
 
@@ -55,15 +56,19 @@ public class SelectMenu implements Listener {
 
     public void display() {
         // todo fine-tune and maybe generalize it for small playing fields
-        title = (TextDisplay) location.getWorld().spawnEntity(location.clone().add(0, 1, 0), EntityType.TEXT_DISPLAY);
-        block = (BlockDisplay) location.getWorld().spawnEntity(location, EntityType.BLOCK_DISPLAY);
+        title = (TextDisplay) location.getWorld().spawnEntity(location.clone().add(0, 1.5, 0), EntityType.TEXT_DISPLAY);
+        block = (BlockDisplay) location.getWorld().spawnEntity(location.clone().add(0, 2.5, 0), EntityType.BLOCK_DISPLAY);
         block.setTransformation(new Transformation(
-                new Vector3f(-0.5f, -0.5f, -0.5f),
-                new AxisAngle4f(0, 0, 0, 1), new Vector3f(1, 1, 1),
+                new Vector3f(-blockScale/2f, -blockScale/2f, -blockScale/2f),
+                new AxisAngle4f(0, 0, 0, 1), new Vector3f(blockScale, blockScale, blockScale),
                 new AxisAngle4f(0, 0, 0, 1)));
         block.setInterpolationDuration(1);
-        description = (TextDisplay) location.getWorld().spawnEntity(location.clone().subtract(0, 0.5, 0.5), EntityType.TEXT_DISPLAY);
-        controls = (TextDisplay) location.getWorld().spawnEntity(location.clone().subtract(0, 1.5, 0), EntityType.TEXT_DISPLAY);
+        description = (TextDisplay) location.getWorld().spawnEntity(location.clone().add(0, 0.5, 0), EntityType.TEXT_DISPLAY);
+        controls = (TextDisplay) location.getWorld().spawnEntity(location, EntityType.TEXT_DISPLAY);
+        controls.setTransformation(new Transformation(
+                new Vector3f(0, 0, 0),
+                new AxisAngle4f(0, 0, 0, 1), new Vector3f(0.5f, 0.5f, 0.5f),
+                new AxisAngle4f(0, 0, 0, 1)));
 
 
         if (field.getHeight() * field.getLength() >= 400) {
@@ -75,6 +80,8 @@ public class SelectMenu implements Listener {
             }
         }
         title.setBillboard(Display.Billboard.CENTER);
+        description.setBillboard(Display.Billboard.CENTER);
+        controls.setBillboard(Display.Billboard.CENTER);
         updateMenu(Gamemode.values()[gamemodeIndex]);
         Bukkit.getPluginManager().registerEvents(this, FillInTheWall.getInstance());
         particleTask = createParticleTask();
@@ -131,6 +138,10 @@ public class SelectMenu implements Listener {
         if (gamemodeIndex >= Gamemode.values().length) {
             gamemodeIndex = 0;
         }
+        if (Gamemode.values()[gamemodeIndex].getDefaultSettings().getBooleanAttribute(GamemodeAttribute.MULTIPLAYER)) {
+            nextGamemode();
+            return;
+        }
         updateMenu(Gamemode.values()[gamemodeIndex]);
     }
 
@@ -145,7 +156,7 @@ public class SelectMenu implements Listener {
     }
 
     private void updateMenu(Gamemode mode) {
-        String string = "Select a gamemode\n" +
+        String string = "<white><shadow:dark_gray:1>Select a gamemode</shadow>\n" +
                 miniMessage.serialize(mode.getTitle());
         String descriptionString = miniMessage.serialize(mode.getDescription());
 
@@ -156,11 +167,13 @@ public class SelectMenu implements Listener {
                 descriptionString += "<gold>Personal best: <bold>" + personalBests.get(mode) + "</bold>\n";
             }
         }
-        controls.text(miniMessage.deserialize("<white><key:key.mouse.left>/<key:key.mouse.right> to change gamemode\n" +
+        controls.text(miniMessage.deserialize("<gray><key:key.mouse.left>/<key:key.mouse.right> to change gamemode\n" +
                 "Press <key:key.swapOffhand> to start game"));
         title.text(miniMessage.deserialize(string));
         description.text(miniMessage.deserialize(descriptionString));
-        block.setBlock(Material.WAXED_EXPOSED_CUT_COPPER.createBlockData());
+        Material blockMaterial = mode.getBlock();
+        if (!blockMaterial.isBlock()) blockMaterial = Material.STONE_BUTTON;
+        block.setBlock(blockMaterial.createBlockData());
     }
 
     public void confirmAndDespawn() {
@@ -180,12 +193,12 @@ public class SelectMenu implements Listener {
         despawn();
     }
 
-    public void despawn() {
+    public void despawn(boolean force) {
         HandlerList.unregisterAll(this);
         if (title != null) title.remove();
-        if (block != null) {
+        if (block != null && !force) {
             new BukkitRunnable() {
-                float scale = 1;
+                float scale = blockScale;
                 @Override
                 public void run() {
                     scale -= 0.05f;
@@ -200,6 +213,8 @@ public class SelectMenu implements Listener {
                             new AxisAngle4f(0, 0, 0, 1)));
                 }
             }.runTaskTimer(FillInTheWall.getInstance(), 0, 1);
+        } else if (block != null) {
+            block.remove();
         }
         if (description != null) description.remove();
         if (controls != null) controls.remove();
@@ -209,5 +224,9 @@ public class SelectMenu implements Listener {
         if (spinTask != null) {
             spinTask.cancel();
         }
+    }
+
+    public void despawn() {
+        despawn(false);
     }
 }

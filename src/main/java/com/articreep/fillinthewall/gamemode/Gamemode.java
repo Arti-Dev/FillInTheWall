@@ -4,19 +4,20 @@ import com.articreep.fillinthewall.game.DisplayType;
 import com.articreep.fillinthewall.modifiers.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.Material;
 
 public enum Gamemode {
 
-    TUTORIAL("Tutorial", "<gray>Learn how to play!"),
-    ENDLESS("<gradient:#5e4fa2:#f79459:red>Endless</gradient>", "<gray>Step off the playing field to stop playing."),
-    SCORE_ATTACK("<gold>Score Attack", "<gray>Score as much as you can in 2 minutes!"),
-    RUSH_SCORE_ATTACK("<red>Rush Score Attack", "<gray>Use Rush Attacks to score as much as you can!"),
-    SPRINT("<aqua>Sprint", "<gray>Perfect clear 20 walls as fast as you can!"),
-    MULTIPLAYER_SCORE_ATTACK("<aqua>Multiplayer Score Attack", "<gray>Hypixel-style game"),
-    MARATHON("<gray>Marathon", "<gray>Survive as long as you can!"),
-    VERSUS("<blue>2-player Versus", "<gray>Experimental versus system with garbage walls"),
-    CUSTOM("<green>Custom Walls", "<gray>Load a custom wall pack"),
-    MEGA("<dark_aqua>Mega", "<gray>Work with others to fill 200 holes!");
+    TUTORIAL("Tutorial", "Learn how to play!", Material.END_STONE),
+    ENDLESS("<gradient:#5e4fa2:#f79459:red>Endless</gradient>", "Step off the playing field to stop playing.", Material.WAXED_EXPOSED_CUT_COPPER),
+    SCORE_ATTACK("<gold>Score Attack", "Score as much as you can in 2 minutes!", Material.GOLD_BLOCK),
+    RUSH_SCORE_ATTACK("<red>Rush Score Attack", "Use Rush Attacks to score as much as you can!", Material.REDSTONE_BLOCK),
+    SPRINT("<aqua>Sprint", "Perfect clear 20 walls as fast as you can!", Material.DIAMOND_BLOCK),
+    MULTIPLAYER_SCORE_ATTACK("<aqua>Multiplayer Score Attack", "Hypixel-style game", Material.BAMBOO_BLOCK),
+    MARATHON("<gray>Marathon", "Survive as long as you can!", Material.STONE),
+    VERSUS("<blue>2-player Versus", "Experimental versus system with garbage walls", Material.TNT),
+    CUSTOM("<green>Custom Walls", "Load a custom wall pack", Material.COMMAND_BLOCK),
+    MEGA("<dark_aqua>Mega", "Work with others to fill 200 holes!", Material.LIGHT_BLUE_CONCRETE);
 
     static {
         ENDLESS.addAttribute(GamemodeAttribute.CONSISTENT_HOLE_COUNT, false);
@@ -138,9 +139,12 @@ public enum Gamemode {
     final String title;
     final String description;
     final GamemodeSettings settings = new GamemodeSettings();
-    Gamemode(String title, String description) {
+    /** The block that represents the gamemode in the pregame menu **/
+    final Material block;
+    Gamemode(String title, String description, Material block) {
         this.title = title;
         this.description = description;
+        this.block = block;
     }
 
     public Component getTitle() {
@@ -157,5 +161,9 @@ public enum Gamemode {
 
     public GamemodeSettings getDefaultSettings() {
         return settings.copy();
+    }
+
+    public Material getBlock() {
+        return block;
     }
 }
