@@ -9,6 +9,7 @@ import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.gamemode.GamemodeSettings;
 import com.articreep.fillinthewall.lobby.LobbyItems;
 import com.articreep.fillinthewall.menu.EndScreen;
+import com.articreep.fillinthewall.menu.SandboxMenu;
 import com.articreep.fillinthewall.menu.SelectMenu;
 import com.articreep.fillinthewall.modifiers.ModifierEvent;
 import com.articreep.fillinthewall.modifiers.PlayerInTheWall;
@@ -402,6 +403,10 @@ public class PlayingField implements Listener {
         } if (!hotbar.contains("M")) {
             player.getInventory().addItem(meterItem());
         }
+
+        if (scorer.getGamemode() == Gamemode.CUSTOM) {
+            player.getInventory().setItem(8, sandboxMenuItem());
+        }
         // todo temporary
         if (scorer.getSettings().getBooleanAttribute(GamemodeAttribute.DO_CLEARING_MODES)) {
             player.getInventory().addItem(new ItemStack(Material.FIREWORK_STAR));
@@ -593,6 +598,16 @@ public class PlayingField implements Listener {
                     || event.getAction() == Action.LEFT_CLICK_AIR) {
                 event.setCancelled(true);
                 scorer.onClearingModeChange(player);
+            }
+        }
+
+        if (item.getType() == Material.NETHER_STAR && scorer.getGamemode() == Gamemode.CUSTOM) {
+            if (event.getAction() == Action.RIGHT_CLICK_BLOCK
+                    || event.getAction() == Action.LEFT_CLICK_BLOCK
+                    || event.getAction() == Action.RIGHT_CLICK_AIR
+                    || event.getAction() == Action.LEFT_CLICK_AIR) {
+                event.setCancelled(true);
+                SandboxMenu.sandboxInventory(event.getPlayer(), this);
             }
         }
     }
@@ -1244,6 +1259,16 @@ public class PlayingField implements Listener {
         item.setItemMeta(meta);
         return item;
 
+    }
+
+    public static ItemStack sandboxMenuItem() {
+        ItemStack item = new ItemStack(Material.NETHER_STAR);
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(miniMessage.deserialize("<gradient:green:dark_green>Sandbox Settings"));
+        meta.lore(List.of(miniMessage.deserialize("<gray>Right click to open!")));
+        meta.getPersistentDataContainer().set(gameKey, PersistentDataType.BOOLEAN, true);
+        item.setItemMeta(meta);
+        return item;
     }
 
     public void sendMessageToPlayers(String message) {

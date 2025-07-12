@@ -257,6 +257,10 @@ public class WallQueue {
         generator.setWallActiveTime(wallActiveTime);
     }
 
+    public int getWallActiveTime() {
+        return generator.getWallActiveTime();
+    }
+
     public void setRandomHoleCount(int randomHoleCount) {
         if (field.getScorer().getSettings().getBooleanAttribute(GamemodeAttribute.MULTIPLAYER)) return;
         generator.setRandomHoleCount(randomHoleCount);

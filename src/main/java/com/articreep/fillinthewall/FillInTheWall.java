@@ -10,6 +10,7 @@ import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.infodisplay.Leaderboards;
 import com.articreep.fillinthewall.lobby.LobbyItems;
 import com.articreep.fillinthewall.lobby.NBSMusic;
+import com.articreep.fillinthewall.menu.SandboxMenu;
 import com.articreep.fillinthewall.multiplayer.Pregame;
 import com.articreep.fillinthewall.commands.PregameSettingsMenu;
 import com.articreep.fillinthewall.playerinfo.InventoryMenus;
@@ -63,6 +64,7 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new GlobalListeners(), this);
         getServer().getPluginManager().registerEvents(new InventoryMenus(), this);
         getServer().getPluginManager().registerEvents(new LobbyItems(), this);
+        getServer().getPluginManager().registerEvents(new SandboxMenu(), this);
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
             loadPlayingFieldConfig();

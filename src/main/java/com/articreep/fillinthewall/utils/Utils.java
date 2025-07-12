@@ -1,6 +1,7 @@
 package com.articreep.fillinthewall.utils;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -18,6 +19,8 @@ import java.util.Collection;
 import java.util.Set;
 
 public class Utils {
+    private final static MiniMessage miniMessage = MiniMessage.miniMessage();
+
     /**
      * Makes all components of this vector the absolute values of their current values.
      * @param vector Vector to evaluate
@@ -132,5 +135,10 @@ public class Utils {
                 trans.getLeftRotation(),
                 new Vector3f(scale, scale, scale),
                 trans.getRightRotation()));
+    }
+
+    public static Component statusComponent(boolean enabled) {
+        if (enabled) return miniMessage.deserialize("<green>ENABLED");
+        else return miniMessage.deserialize("<red>DISABLED");
     }
 }

@@ -5,6 +5,7 @@ import com.articreep.fillinthewall.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -31,6 +32,7 @@ public class InventoryMenus implements Listener {
         PROFILE, STATS, SETTINGS
     }
     private final static Map<Inventory, MenuType> inventoryMappings = new HashMap<>();
+    private final static MiniMessage miniMessage = MiniMessage.miniMessage();
 
     public static void profileInventory(UUID uuid, Player player) {
 
@@ -95,9 +97,9 @@ public class InventoryMenus implements Listener {
     }
 
     @EventHandler
-    public void onCloseInventory(InventoryCloseEvent event) {
-        Inventory inventory = event.getInventory();
-        inventoryMappings.remove(inventory);
+        public void onCloseInventory(InventoryCloseEvent event) {
+            Inventory inventory = event.getInventory();
+            inventoryMappings.remove(inventory);
     }
 
     @EventHandler
@@ -148,7 +150,7 @@ public class InventoryMenus implements Listener {
         }
     }
 
-    private static ItemStack backItem(String where) {
+    public static ItemStack backItem(String where) {
         ItemStack back = Utils.createGuiItem(Material.ARROW, Component.text("Back", NamedTextColor.YELLOW)
                         .decoration(TextDecoration.ITALIC, false),
                 Component.text(where, NamedTextColor.GRAY)
@@ -157,5 +159,29 @@ public class InventoryMenus implements Listener {
         backMeta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, "BACK_ITEM");
         back.setItemMeta(backMeta);
         return back;
+    }
+
+    private static ItemStack tipToggleItem(boolean enabled) {
+        ItemStack item = Utils.createGuiItem(Material.WRITABLE_BOOK,
+                miniMessage.deserialize("<yellow>Show Tips"),
+                miniMessage.deserialize("<gray>Toggles various tips in-game."),
+                Component.empty(), Utils.statusComponent(enabled),
+                miniMessage.deserialize("<yellow>Click to toggle"));
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, "SHOW_TIPS");
+        item.setItemMeta(itemMeta);
+        return item;
+    }
+
+    private static ItemStack musicToggleItem(boolean enabled) {
+        ItemStack item = Utils.createGuiItem(Material.NOTE_BLOCK,
+                miniMessage.deserialize("<yellow>Play Music"),
+                miniMessage.deserialize("<gray>Toggles music in the lobby and in-game."),
+                Component.empty(), Utils.statusComponent(enabled),
+                miniMessage.deserialize("<yellow>Click to toggle"));
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, "PLAY_MUSIC");
+        item.setItemMeta(itemMeta);
+        return item;
     }
 }
