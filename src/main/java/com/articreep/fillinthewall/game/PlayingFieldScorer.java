@@ -626,6 +626,7 @@ public class PlayingFieldScorer {
     public void awardXP(Player player) {
         if (player == null) return;
         if (field.isLatePlayer(player)) return;
+        if (Database.isOfflineMode()) return;
         
         // If the game is still running or was marked as incomplete, do not award a bonus
         boolean participationBonus = !(incompleteGame ||
