@@ -572,12 +572,17 @@ public class Wall {
      * @param clusterCount Number of connected holes to generate.
      * @param randomizeFurther Whether to instead randomize the total amount of holes, with randomCount + clusterCount as an upper bound.
      * @param minimumHoles If randomizeFurther is enabled, this is the minimum amount of holes that must be placed.
+     *                     This is ignored if randomizeFurther is false or the total possible holes is less than the minimum.
      */
     public void generateHoles(int randomCount, int clusterCount, boolean randomizeFurther, int minimumHoles) {
         int totalHoles = randomCount + clusterCount;
         if (randomizeFurther) {
             Random rng = new Random();
-            totalHoles = rng.nextInt(minimumHoles, randomCount + clusterCount);
+            if (totalHoles <= minimumHoles) {
+                totalHoles = rng.nextInt(0, totalHoles + 1);
+            } else {
+                totalHoles = rng.nextInt(minimumHoles, randomCount + clusterCount + 1);
+            }
         }
 
         insertRandomNewHoles(Math.min(randomCount, totalHoles), 0);
