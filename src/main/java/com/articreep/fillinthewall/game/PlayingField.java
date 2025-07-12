@@ -1264,8 +1264,8 @@ public class PlayingField implements Listener {
     public static ItemStack sandboxMenuItem() {
         ItemStack item = new ItemStack(Material.NETHER_STAR);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(miniMessage.deserialize("<gradient:green:dark_green>Sandbox Settings"));
-        meta.lore(List.of(miniMessage.deserialize("<gray>Right click to open!")));
+        meta.displayName(miniMessage.deserialize("<!italic><gradient:green:dark_green>Sandbox Settings"));
+        meta.lore(List.of(miniMessage.deserialize("<!italic><gray>Right click to open!")));
         meta.getPersistentDataContainer().set(gameKey, PersistentDataType.BOOLEAN, true);
         item.setItemMeta(meta);
         return item;

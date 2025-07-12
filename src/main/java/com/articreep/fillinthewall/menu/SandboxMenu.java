@@ -94,8 +94,8 @@ public class SandboxMenu implements Listener {
     }
 
     private static ItemStack wallSettingsItem() {
-        ItemStack item = Utils.createGuiItem(Material.COBBLESTONE_WALL, minimessage.deserialize("<green>Wall Generation Settings"),
-                minimessage.deserialize("<yellow>Click to view!"));
+        ItemStack item = Utils.createGuiItem(Material.COBBLESTONE_WALL, minimessage.deserialize("<!italic><green>Wall Generation Settings"),
+                minimessage.deserialize("<!italic><yellow>Click to view!"));
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, "WALL_GENERATION");
         item.setItemMeta(meta);
@@ -104,10 +104,11 @@ public class SandboxMenu implements Listener {
 
     private static ItemStack wallTimeItem(int ticks) {
         double seconds = ticks / 20d;
-        ItemStack item = Utils.createGuiItem(Material.CLOCK, minimessage.deserialize("<green>Wall Time"),
-                minimessage.deserialize("<gray>How long it takes for walls\nto reach the playing field"),
-                Component.empty(), minimessage.deserialize("<aqua>Currently set to " + seconds + "s"),
-                minimessage.deserialize("<yellow>Click to change!"));
+        ItemStack item = Utils.createGuiItem(Material.CLOCK, minimessage.deserialize("<!italic><green>Wall Time"),
+                minimessage.deserialize("<!italic><gray>How long it takes for walls),"),
+                minimessage.deserialize("<!italic><gray>to reach the playing field"),
+                Component.empty(), minimessage.deserialize("<!italic><aqua>Currently set to " + seconds + "s"),
+                minimessage.deserialize("<!italic><yellow>Click to change!"));
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, "WALL_TIME");
         item.setItemMeta(meta);
@@ -115,8 +116,8 @@ public class SandboxMenu implements Listener {
     }
 
     private static ItemStack displaySlotsItem() {
-        ItemStack item = Utils.createGuiItem(Material.ITEM_FRAME, minimessage.deserialize("<green>Display Slots"),
-                minimessage.deserialize("<yellow>Click to view!"));
+        ItemStack item = Utils.createGuiItem(Material.ITEM_FRAME, minimessage.deserialize("<!italic><green>Display Slots"),
+                minimessage.deserialize("<!italic><yellow>Click to view!"));
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, "DISPLAY_SLOTS");
         item.setItemMeta(meta);
@@ -124,9 +125,9 @@ public class SandboxMenu implements Listener {
     }
 
     private static ItemStack noHoleGarbageItem() {
-        ItemStack item = Utils.createGuiItem(Material.STONE, minimessage.deserialize("<green>No-hole Garbage"),
-                minimessage.deserialize("<gray>Adds a no-hole garbage wall to the queue"),
-                minimessage.deserialize("<yellow>Click to add!"));
+        ItemStack item = Utils.createGuiItem(Material.STONE, minimessage.deserialize("<!italic><green>No-hole Garbage"),
+                minimessage.deserialize("<!italic><gray>Adds a no-hole garbage wall to the queue"),
+                minimessage.deserialize("<!italic><yellow>Click to add!"));
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, "NO_HOLE_GARBAGE");
         item.setItemMeta(meta);
@@ -134,9 +135,9 @@ public class SandboxMenu implements Listener {
     }
 
     private static ItemStack messyGarbageItem() {
-        ItemStack item = Utils.createGuiItem(Material.DIRT, minimessage.deserialize("<green>Messy Garbage"),
-                minimessage.deserialize("<gray>Adds a messy garbage wall to the queue"),
-                minimessage.deserialize("<yellow>Click to add!"));
+        ItemStack item = Utils.createGuiItem(Material.DIRT, minimessage.deserialize("<!italic><green>Messy Garbage"),
+                minimessage.deserialize("<!italic><gray>Adds a messy garbage wall to the queue"),
+                minimessage.deserialize("<!italic><yellow>Click to add!"));
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, "MESSY_GARBAGE");
         item.setItemMeta(meta);
@@ -144,10 +145,10 @@ public class SandboxMenu implements Listener {
     }
 
     private static ItemStack highlightIncorrectBlocksItem(boolean enabled) {
-        ItemStack item = Utils.createGuiItem(Material.GLOW_BERRIES, minimessage.deserialize("<red>Highlight Incorrect Blocks"),
-                minimessage.deserialize("<gray>Note: Highlights disappear after some time"),
+        ItemStack item = Utils.createGuiItem(Material.GLOW_BERRIES, minimessage.deserialize("<!italic><red>Highlight Incorrect Blocks"),
+                minimessage.deserialize("<!italic><gray>Note: Highlights disappear after some time"),
                 Component.empty(), Utils.statusComponent(enabled),
-                minimessage.deserialize("<yellow>Click to toggle!"));
+                minimessage.deserialize("<!italic><yellow>Click to toggle!"));
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, "HIGHLIGHT_INCORRECT_BLOCKS");
         item.setItemMeta(meta);
@@ -155,9 +156,9 @@ public class SandboxMenu implements Listener {
     }
 
     private static ItemStack infiniteReachItem(boolean enabled) {
-        ItemStack item = Utils.createGuiItem(Material.BEACON, minimessage.deserialize("<green>Infinite Reach"),
+        ItemStack item = Utils.createGuiItem(Material.BEACON, minimessage.deserialize("<!italic><green>Infinite Reach"),
                 Component.empty(), Utils.statusComponent(enabled),
-                minimessage.deserialize("<yellow>Click to toggle!"));
+                minimessage.deserialize("<!italic><yellow>Click to toggle!"));
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, "INFINITE_REACH");
         item.setItemMeta(meta);
@@ -165,8 +166,8 @@ public class SandboxMenu implements Listener {
     }
 
     private static ItemStack gimmickItem() {
-        ItemStack item = Utils.createGuiItem(Material.END_CRYSTAL, minimessage.deserialize("<red>Gimmicks"),
-                minimessage.deserialize("<yellow>Click to view!"));
+        ItemStack item = Utils.createGuiItem(Material.END_CRYSTAL, minimessage.deserialize("<!italic><red>Gimmicks"),
+                minimessage.deserialize("<!italic><yellow>Click to view!"));
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, "GIMMICK");
         item.setItemMeta(meta);
@@ -174,9 +175,9 @@ public class SandboxMenu implements Listener {
     }
 
     private static ItemStack infoItem() {
-        return Utils.createGuiItem(Material.BOOK, minimessage.deserialize("<gradient:green:dark_green>Welcome to the Sandbox!"),
-                minimessage.deserialize("<gray>Fiddle around with various features of the game here."),
-                minimessage.deserialize("<blue>You can use /fitw custom <name> to import custom walls!"));
+        return Utils.createGuiItem(Material.BOOK, minimessage.deserialize("<!italic><gradient:green:dark_green>Welcome to the Sandbox!"),
+                minimessage.deserialize("<!italic><gray>Fiddle around with various features of the game here."),
+                minimessage.deserialize("<!italic><blue>You can use /fitw custom <name> to import custom walls!"));
     }
 
     private static void fillEmptySpace(Inventory inventory, ItemStack border) {

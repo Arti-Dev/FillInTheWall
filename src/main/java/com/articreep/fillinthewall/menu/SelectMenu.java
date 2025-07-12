@@ -162,9 +162,9 @@ public class SelectMenu implements Listener {
 
         if (personalBests.containsKey(mode)) {
             if (mode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.SCORE_BY_TIME)) {
-                descriptionString += "<aqua>Personal best: <bold>" + Utils.getPreciseFormattedTime(personalBests.get(mode)) + "</bold>\n";
+                descriptionString += "\n<aqua>Personal best: <bold>" + Utils.getPreciseFormattedTime(personalBests.get(mode)) + "</bold>";
             } else {
-                descriptionString += "<gold>Personal best: <bold>" + personalBests.get(mode) + "</bold>\n";
+                descriptionString += "\n<gold>Personal best: <bold>" + personalBests.get(mode) + "</bold>";
             }
         }
         controls.text(miniMessage.deserialize("<gray><key:key.mouse.left>/<key:key.mouse.right> to change gamemode\n" +
