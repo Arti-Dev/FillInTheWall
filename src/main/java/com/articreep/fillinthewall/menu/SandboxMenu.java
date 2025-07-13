@@ -59,8 +59,8 @@ public class SandboxMenu implements Listener {
         inventory.setItem(11, wallTimeItem(field.getQueue().getWallActiveTime()));
         inventory.setItem(12, displaySlotsItem());
         inventory.setItem(13, infoItem());
-        inventory.setItem(14, highlightIncorrectBlocksItem(settings.getBooleanAttribute(GamemodeAttribute.HIGHLIGHT_INCORRECT_BLOCKS)));
-        inventory.setItem(15, infiniteReachItem(settings.getBooleanAttribute(GamemodeAttribute.INFINITE_BLOCK_REACH)));
+        inventory.setItem(14, highlightIncorrectBlocksItem(field.highlightIncorrectBlocksEnabled()));
+        inventory.setItem(15, infiniteReachItem(field.infiniteReachEnabled()));
         inventory.setItem(16, gimmickItem());
         inventory.setItem(22, messyGarbageItem());
         fillEmptySpace(inventory, glassBorder());
@@ -113,6 +113,14 @@ public class SandboxMenu implements Listener {
                         wall.generateHoles(10, 0, false);
                         field.getScorer().addGarbageToQueue(wall);
                         player.sendMessage(minimessage.deserialize("<yellow>Cheesy, greasy, you might say..."));
+                    }
+                    case "INFINITE_REACH" -> {
+                        field.setInfiniteReach(!field.infiniteReachEnabled());
+                        populateSandboxInventory(inventory, field);
+                    }
+                    case "HIGHLIGHT_INCORRECT_BLOCKS" -> {
+                        field.setHighlightIncorrectBlocks(!field.highlightIncorrectBlocksEnabled());
+                        populateSandboxInventory(inventory, field);
                     }
                 }
             }

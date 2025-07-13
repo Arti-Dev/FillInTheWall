@@ -25,6 +25,7 @@ import net.kyori.adventure.title.Title;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -62,7 +63,6 @@ public class PlayingField implements Listener {
     private final ArrayList<UUID> playerOrder = new ArrayList<>();
     private final Set<Player> latePlayers = new HashSet<>();
     private final HashMap<Player, GameMode> previousGamemodes = new HashMap<>();
-    private final HashMap<Player, Double> previousBlockReach = new HashMap<>();
     /**
      * Must be the bottom left corner of the playing field (NOT including the border blocks)
      * The location is situated in the CENTER of the target block when it is set by the constructor.
@@ -127,6 +127,11 @@ public class PlayingField implements Listener {
     private Sound currentlyPlayingTrack = null;
 
     public static final String DEFAULT_HOTBAR = "PVCSM____";
+
+    private boolean infiniteReach = false;
+    private static final NamespacedKey infiniteReachKey = new NamespacedKey(FillInTheWall.getInstance(), "infinite_reach");
+
+    private boolean highlightIncorrectBlocks = false;
 
     // Multiplayer settings
     /** Whether to prevent new players from joining and current players from leaving, AND prevent players from starting their own games
@@ -241,6 +246,8 @@ public class PlayingField implements Listener {
         if (!resetRecently) reset();
         scorer.setGamemode(mode, settings);
         scorer.setPlayersOnGameStart(players.size());
+        if (scorer.getSettings().getBooleanAttribute(GamemodeAttribute.INFINITE_BLOCK_REACH)) infiniteReach = true;
+        if (scorer.getSettings().getBooleanAttribute(GamemodeAttribute.HIGHLIGHT_INCORRECT_BLOCKS)) highlightIncorrectBlocks = true;
         setDisplaySlots(settings);
         removeMenu();
         removeEndScreen();
@@ -249,7 +256,7 @@ public class PlayingField implements Listener {
             player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, -1, 0, false, false));
             formatInventory(player);
             player.setGameMode(GameMode.CREATIVE);
-            setInfiniteReach(player);
+            if (infiniteReach) giveInfiniteReach(player);
             try {
                 if (!Database.isOfflineMode() && Database.isNewcomer(player.getUniqueId())) {
                     if (mode != Gamemode.TUTORIAL) Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> {
@@ -296,7 +303,7 @@ public class PlayingField implements Listener {
             latePlayers.add(player);
             formatInventory(player);
             player.setGameMode(GameMode.CREATIVE);
-            setInfiniteReach(player);
+            if (infiniteReach) giveInfiniteReach(player);
             player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, -1, 0, false, false));
             if (scorer.getScoreboard() != null) player.setScoreboard(scorer.getScoreboard());
             if (currentlyPlayingTrack != null)  player.playSound(player, currentlyPlayingTrack, 0.5f, 1);
@@ -342,7 +349,7 @@ public class PlayingField implements Listener {
             }
         }
         previousGamemodes.remove(player);
-        resetReach(player);
+        removeInfiniteReach(player);
         player.setInvulnerable(false);
         if (currentlyPlayingTrack != null) player.stopSound(currentlyPlayingTrack);
 
@@ -418,18 +425,44 @@ public class PlayingField implements Listener {
 
     }
 
-    public void setInfiniteReach(Player player) {
-        if (!scorer.getSettings().getBooleanAttribute(GamemodeAttribute.INFINITE_BLOCK_REACH)) return;
+    private void giveInfiniteReach(Player player) {
         AttributeInstance attribute = player.getAttribute(Attribute.BLOCK_INTERACTION_RANGE);
-        previousBlockReach.put(player, attribute.getBaseValue());
-        attribute.setBaseValue(64);
+        attribute.addModifier(new AttributeModifier(infiniteReachKey, 64, AttributeModifier.Operation.ADD_NUMBER));
     }
 
-    public void resetReach(Player player) {
-        if (previousBlockReach.containsKey(player)) {
-            player.getAttribute(Attribute.BLOCK_INTERACTION_RANGE).setBaseValue(previousBlockReach.get(player));
-            previousBlockReach.remove(player);
+    private void removeInfiniteReach(Player player) {
+        AttributeInstance attribute = player.getAttribute(Attribute.BLOCK_INTERACTION_RANGE);
+        attribute.removeModifier(infiniteReachKey);
+    }
+
+    public void setInfiniteReach(boolean enabled) {
+        infiniteReach = enabled;
+        for (Player player : getPlayers()) {
+            if (enabled) {
+                giveInfiniteReach(player);
+            } else {
+                removeInfiniteReach(player);
+            }
         }
+    }
+
+    public boolean infiniteReachEnabled() {
+        return infiniteReach;
+    }
+
+    public void setHighlightIncorrectBlocks(boolean enabled) {
+        highlightIncorrectBlocks = enabled;
+        if (enabled) refreshIncorrectBlockHighlights(queue.getFrontmostWall()); // todo this doesn't work
+        else {
+            for (BlockDisplay display : incorrectBlockHighlights.values()) {
+                display.remove();
+            }
+            incorrectBlockHighlights.clear();
+        }
+    }
+
+    public boolean highlightIncorrectBlocksEnabled() {
+        return highlightIncorrectBlocks;
     }
 
     public void stop(boolean submitFinalWall, boolean showEndScreen) {
@@ -454,8 +487,10 @@ public class PlayingField implements Listener {
         queue.clearAllWalls();
         queue.allowMultipleWalls(false);
         for (Player player : getPlayers()) {
-            resetReach(player);
+            removeInfiniteReach(player);
         }
+        infiniteReach = false;
+        highlightIncorrectBlocks = false;
         if (event != null) {
             event.end();
             event = null;
@@ -523,7 +558,7 @@ public class PlayingField implements Listener {
             player.playSound(player.getLocation(), Sound.BLOCK_CHAIN_PLACE, 0.7f, random.nextFloat(0.5f, 2));
         }
 
-        if (scorer.getSettings().getBooleanAttribute(GamemodeAttribute.HIGHLIGHT_INCORRECT_BLOCKS)) {
+        if (highlightIncorrectBlocks) {
             Block block = event.getBlockPlaced();
             if (block.getType() != copperSupportItem().getType()) {
                 Pair<Integer, Integer> coordinates = blockToCoordinates(block);
