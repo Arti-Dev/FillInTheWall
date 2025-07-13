@@ -93,7 +93,7 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
             } else if (args[0].equalsIgnoreCase("custom")) {
                 if (args.length == 2 && sender instanceof Player player && PlayingFieldManager.isInGame(player)) {
                     PlayingField field = PlayingFieldManager.activePlayingFields.get(player);
-                    if (field.getScorer().getGamemode() == Gamemode.CUSTOM) {
+                    if (field.getScorer().getGamemode() == Gamemode.SANDBOX) {
                         WallBundle bundle = WallBundle.getWallBundle(args[1]);
                         if (bundle.size() == 0) {
                             sender.sendMessage(miniMessage.deserialize("<red>Something went wrong loading custom walls!"));

@@ -411,7 +411,7 @@ public class PlayingField implements Listener {
             player.getInventory().addItem(meterItem());
         }
 
-        if (scorer.getGamemode() == Gamemode.CUSTOM) {
+        if (scorer.getGamemode() == Gamemode.SANDBOX) {
             player.getInventory().setItem(5, sandboxMenuItem());
             Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () ->
                     sendTitleToPlayers(miniMessage.deserialize("<gradient:green:dark_green>Sandbox Mode"),
@@ -640,7 +640,7 @@ public class PlayingField implements Listener {
             }
         }
 
-        if (item.getType() == Material.NETHER_STAR && scorer.getGamemode() == Gamemode.CUSTOM) {
+        if (item.getType() == Material.NETHER_STAR && scorer.getGamemode() == Gamemode.SANDBOX) {
             if (event.getAction() == Action.RIGHT_CLICK_BLOCK
                     || event.getAction() == Action.LEFT_CLICK_BLOCK
                     || event.getAction() == Action.RIGHT_CLICK_AIR

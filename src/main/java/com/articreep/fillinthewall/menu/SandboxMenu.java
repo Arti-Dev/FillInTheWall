@@ -388,6 +388,7 @@ public class SandboxMenu implements Listener {
     private static ItemStack infoItem() {
         return Utils.createGuiItem(Material.BOOK, minimessage.deserialize("<!italic><gradient:green:dark_green>Welcome to the Sandbox!"),
                 minimessage.deserialize("<!italic><gray>Fiddle around with various features of the game here."),
+                minimessage.deserialize("<red>You might even be able to break the game, haha!"),
                 minimessage.deserialize("<!italic><blue>You can use /fitw custom <name> to import custom walls!"));
     }
 

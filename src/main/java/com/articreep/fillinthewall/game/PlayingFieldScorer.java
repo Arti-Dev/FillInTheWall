@@ -158,9 +158,9 @@ public class PlayingFieldScorer {
         setMeterItemGlint(isMeterFilledEnough(meter / meterMax));
 
         // Custom walls tip display
-        if (gamemode == Gamemode.CUSTOM && !hasImportedCustomWalls) {
-            field.setTipDisplay(miniMessage.deserialize("<yellow>You can import custom walls with /fitw custom <name>"));
-        }
+//        if (gamemode == Gamemode.CUSTOM && !hasImportedCustomWalls) {
+//            field.setTipDisplay(miniMessage.deserialize("<yellow>You can import custom walls with /fitw custom <name>"));
+//        }
 
         // Check if we are at endless score threshold
         if (endlessRun != null && this.score >= endlessRun.scoreToNextLevel) {
@@ -807,7 +807,7 @@ public class PlayingFieldScorer {
 
             activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.SINGULAR_EVENT)).setInfinite(true);
 
-        } else if (gamemode == Gamemode.CUSTOM) {
+        } else if (gamemode == Gamemode.SANDBOX) {
             WallBundle bundle = WallBundle.getWallBundle("amogus");
             // todo hardcoded dimension check
             if (bundle.size() == 0 || field.getLength() != 7 || field.getHeight() != 4) {

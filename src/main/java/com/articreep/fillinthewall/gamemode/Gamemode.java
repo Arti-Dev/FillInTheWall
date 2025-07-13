@@ -16,7 +16,7 @@ public enum Gamemode {
     MULTIPLAYER_SCORE_ATTACK("<aqua>Multiplayer Score Attack", "Hypixel-style game", Material.BAMBOO_BLOCK),
     MARATHON("<gray>Marathon", "Survive as long as you can!", Material.STONE),
     VERSUS("<blue>2-player Versus", "Experimental versus system with garbage walls", Material.TNT),
-    CUSTOM("<green>Custom Walls", "Load a custom wall pack", Material.COMMAND_BLOCK),
+    SANDBOX("<gradient:green:dark_green>Sandbox", "...like the video game Minecraft?", Material.CHAIN_COMMAND_BLOCK),
     MEGA("<dark_aqua>Mega", "Work with others to fill 200 holes!", Material.LIGHT_BLUE_CONCRETE);
 
     static {
@@ -131,7 +131,7 @@ public enum Gamemode {
         VERSUS.addAttribute(GamemodeAttribute.GARBAGE_WALL_HARDNESS, 2);
         VERSUS.addAttribute(GamemodeAttribute.DO_CLEARING_MODES, true);
 
-        CUSTOM.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
+        SANDBOX.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
 
 
     }
