@@ -3,7 +3,6 @@ package com.articreep.fillinthewall.menu;
 import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.game.DisplayType;
 import com.articreep.fillinthewall.game.PlayingField;
-import com.articreep.fillinthewall.game.PlayingFieldManager;
 import com.articreep.fillinthewall.game.Wall;
 import com.articreep.fillinthewall.lobby.LobbyItems;
 import com.articreep.fillinthewall.modifiers.ModifierEvent;
@@ -15,6 +14,7 @@ import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -101,6 +101,9 @@ public class SandboxMenu implements Listener {
                 PlayingField field = pendingWallTimeInputs.remove(player);
                 if (!field.getPlayers().contains(player)) return; // Players who left may not use this
                 field.getQueue().setWallActiveTime((int) (seconds * 20));
+                player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
+                player.sendMessage(minimessage.deserialize(
+                        "<green>Wall time set to " + seconds + " seconds! You may need to cycle a few walls for it to take effect."));
             } else if (pendingGimmickTimeInputs.containsKey(player)) {
                 ModifierEvent gimmick = pendingGimmickTimeInputs.remove(player);
                 if (gimmick == null) {
@@ -108,7 +111,10 @@ public class SandboxMenu implements Listener {
                 } else {
                     if (!gimmick.getPlayingField().getPlayers().contains(player)) return; // Players who left may not use this
                     gimmick.setTicksRemaining((int) (seconds * 20));
-                    Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), gimmick::activate);
+                    Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> {
+                        gimmick.activate();
+                        player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
+                    });
                 }
             }
         }
@@ -135,37 +141,45 @@ public class SandboxMenu implements Listener {
             case BASE -> {
                 switch (itemString) {
                     case "WALL_GENERATION" -> {
+                        player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                         inventory.close();
                         wallGenerationInventory(player, field);
                     }
                     case "DISPLAY_SLOTS" -> {
+                        player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                         inventory.close();
                         displaySlotsInventory(player, field);
                     }
                     case "GIMMICK" -> {
+                        player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                         inventory.close();
                         gimmickInventory(player, field);
                     }
                     case "NO_HOLE_GARBAGE" -> {
+                        player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                         Wall wall = new Wall(field.getLength(), field.getHeight());
                         field.getScorer().addGarbageToQueue(wall);
                         player.sendMessage(minimessage.deserialize("<gray>The words \"clean\" and \"garbage\" don't go together..."));
                     }
                     case "MESSY_GARBAGE" -> {
+                        player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                         Wall wall = new Wall(field.getLength(), field.getHeight());
                         wall.generateHoles(10, 0, false);
                         field.getScorer().addGarbageToQueue(wall);
                         player.sendMessage(minimessage.deserialize("<yellow>Cheesy, greasy, you might say..."));
                     }
                     case "INFINITE_REACH" -> {
+                        player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                         field.setInfiniteReach(!field.infiniteReachEnabled());
                         populateSandboxInventory(inventory, field);
                     }
                     case "HIGHLIGHT_INCORRECT_BLOCKS" -> {
+                        player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                         field.setHighlightIncorrectBlocks(!field.highlightIncorrectBlocksEnabled());
                         populateSandboxInventory(inventory, field);
                     }
                     case "WALL_TIME" -> {
+                        player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                         player.sendMessage(minimessage.deserialize("<gray>Enter new wall time in chat (seconds):"));
                         pendingWallTimeInputs.put(player, field);
                         inventory.close();
@@ -176,6 +190,7 @@ public class SandboxMenu implements Listener {
             case WALL_GENERATION -> {
                 switch (itemString) {
                     case "RANDOM_HOLE_COUNT" -> {
+                        player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                         if (event.isLeftClick()) {
                             field.getQueue().setRandomHoleCount(field.getQueue().getRandomHoleCount() + 1);
                         } else if (event.isRightClick()) {
@@ -184,6 +199,7 @@ public class SandboxMenu implements Listener {
                         populateWallGenerationInventory(inventory, field);
                     }
                     case "CONNECTED_HOLE_COUNT" -> {
+                        player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                         if (event.isLeftClick()) {
                             field.getQueue().setConnectedHoleCount(field.getQueue().getConnectedHoleCount() + 1);
                         } else if (event.isRightClick()) {
@@ -192,10 +208,12 @@ public class SandboxMenu implements Listener {
                         populateWallGenerationInventory(inventory, field);
                     }
                     case "HOLE_SIZE" -> {
+                        player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                         field.getQueue().setRandomizeFurther(!field.getQueue().isRandomizeFurther());
                         populateWallGenerationInventory(inventory, field);
                     }
                     case "BACK_ITEM" -> {
+                        player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                         inventory.close();
                         sandboxInventory(player, field);
                     }
@@ -206,6 +224,7 @@ public class SandboxMenu implements Listener {
                 String name = ((TextComponent) clickedItem.getItemMeta().displayName()).content();
                 switch (itemString) {
                     case "DISPLAY_SLOT_SELECT" -> {
+                        player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                         for (int i = 0; i < customizableSlots; i++) {
                             if (name.equals("Display Slot " + (i + 1))) {
                                 displayTypeUserInput(player, field, i);
@@ -214,6 +233,7 @@ public class SandboxMenu implements Listener {
                         }
                     }
                     case "BACK_ITEM" -> {
+                        player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                         inventory.close();
                         sandboxInventory(player, field);
                     }
@@ -223,6 +243,7 @@ public class SandboxMenu implements Listener {
             case DISPLAY_SLOTS_PICK -> {
                 String name = ((TextComponent) clickedItem.getItemMeta().displayName()).content();
                 if (itemString.equals("DISPLAY_TYPE_SELECT")) {
+                    player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                     DisplayType displayType;
                     try {
                         displayType = DisplayType.valueOf(name);
@@ -236,6 +257,7 @@ public class SandboxMenu implements Listener {
                     inventory.close();
                     displaySlotsInventory(player, field);
                 } else if (itemString.equals("BACK_ITEM")) {
+                    player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                     inventory.close();
                     displaySlotsInventory(player, field);
                 }
@@ -244,6 +266,7 @@ public class SandboxMenu implements Listener {
             case GIMMICK -> {
                 String name = ((TextComponent) clickedItem.getItemMeta().displayName()).content();
                 if (itemString.equals("MODIFIER_EVENT")) {
+                    player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                     ModifierEvent gimmick;
                     try {
                         gimmick = ModifierEvent.Type.valueOf(name).createEvent();
@@ -264,6 +287,7 @@ public class SandboxMenu implements Listener {
 
                     inventory.close();
                 } else if (itemString.equals("BACK_ITEM")) {
+                    player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                     inventory.close();
                     sandboxInventory(player, field);
                 }
