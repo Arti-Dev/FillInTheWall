@@ -116,6 +116,7 @@ public enum Gamemode {
         MARATHON.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         MARATHON.addAttribute(GamemodeAttribute.DO_GARBAGE_WALLS, true);
         MARATHON.addAttribute(GamemodeAttribute.WALL_TIME_DECREASE_AMOUNT, 14);
+        MARATHON.setLevelReq(3);
 
         VERSUS.addAttribute(GamemodeAttribute.CONSISTENT_HOLE_COUNT, false);
         VERSUS.addAttribute(GamemodeAttribute.STARTING_WALL_ACTIVE_TIME, 2000);
@@ -132,6 +133,7 @@ public enum Gamemode {
         VERSUS.addAttribute(GamemodeAttribute.DO_CLEARING_MODES, true);
 
         SANDBOX.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
+        SANDBOX.setLevelReq(10);
 
 
     }
@@ -139,6 +141,7 @@ public enum Gamemode {
     final String title;
     final String description;
     final GamemodeSettings settings = new GamemodeSettings();
+    int levelReq = 0;
     /** The block that represents the gamemode in the pregame menu **/
     final Material block;
     Gamemode(String title, String description, Material block) {
@@ -165,5 +168,13 @@ public enum Gamemode {
 
     public Material getBlock() {
         return block;
+    }
+
+    public int getLevelReq() {
+        return levelReq;
+    }
+
+    private void setLevelReq(int levelReq) {
+        this.levelReq = levelReq;
     }
 }

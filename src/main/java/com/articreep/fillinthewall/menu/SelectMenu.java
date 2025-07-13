@@ -4,6 +4,7 @@ import com.articreep.fillinthewall.*;
 import com.articreep.fillinthewall.game.PlayingField;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
+import com.articreep.fillinthewall.playerinfo.PlayerLevels;
 import com.articreep.fillinthewall.utils.Utils;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.*;
@@ -35,6 +36,7 @@ public class SelectMenu implements Listener {
 
     private final PlayingField field;
     private final Map<Gamemode, Integer> personalBests = new HashMap<>();
+    private int playerLevel;
     private int gamemodeIndex = 0;
     private BukkitTask particleTask;
     private final static MiniMessage miniMessage = MiniMessage.miniMessage();
@@ -51,6 +53,20 @@ public class SelectMenu implements Listener {
                     e.printStackTrace();
                 }
             }
+        }
+        if (!Database.isOfflineMode()) {
+            for (Player player : field.getPlayers()) {
+                try {
+                    int level = PlayerLevels.getLevel(player.getUniqueId()).getValue0();
+                    if (level > playerLevel) {
+                        playerLevel = level;
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        } else {
+            playerLevel = -1; // Allow access to everything
         }
     }
 
@@ -167,6 +183,11 @@ public class SelectMenu implements Listener {
                 descriptionString += "\n<gold>Personal best: <bold>" + personalBests.get(mode) + "</bold>";
             }
         }
+
+        if (mode.getLevelReq() > playerLevel && !Database.isOfflineMode()) {
+            descriptionString += "\n<red>Requires player level " + mode.getLevelReq();
+        }
+
         controls.text(miniMessage.deserialize("<gray><key:key.mouse.left>/<key:key.mouse.right> to change gamemode\n" +
                 "Press <key:key.swapOffhand> to start game"));
         title.text(miniMessage.deserialize(string));
@@ -187,6 +208,8 @@ public class SelectMenu implements Listener {
             field.sendMessageToPlayers(miniMessage.deserialize("<red>You cannot start a multiplayer game through this menu!"));
         } else if (mode == Gamemode.MEGA && field.getLength() * field.getHeight() < 400) {
             field.sendMessageToPlayers(miniMessage.deserialize("<red>Your board must be at least 400 blocks in total area to play this!"));
+        } else if (mode.getLevelReq() > playerLevel && !Database.isOfflineMode()) {
+            field.sendMessageToPlayers(miniMessage.deserialize("<red>Your player level is too low to play this gamemode!"));
         } else {
             field.countdownStart(Gamemode.values()[gamemodeIndex]);
         }
