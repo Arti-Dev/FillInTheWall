@@ -2,9 +2,11 @@ package com.articreep.fillinthewall.menu;
 
 import com.articreep.fillinthewall.game.DisplayType;
 import com.articreep.fillinthewall.game.PlayingField;
+import com.articreep.fillinthewall.game.Wall;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.gamemode.GamemodeSettings;
 import com.articreep.fillinthewall.lobby.LobbyItems;
+import com.articreep.fillinthewall.modifiers.ModifierEvent;
 import com.articreep.fillinthewall.playerinfo.InventoryMenus;
 import com.articreep.fillinthewall.utils.Utils;
 import net.kyori.adventure.text.Component;
@@ -97,6 +99,21 @@ public class SandboxMenu implements Listener {
                         inventory.close();
                         displaySlotsInventory(player, field);
                     }
+                    case "GIMMICK" -> {
+                        inventory.close();
+                        gimmickInventory(player, field);
+                    }
+                    case "NO_HOLE_GARBAGE" -> {
+                        Wall wall = new Wall(field.getLength(), field.getHeight());
+                        field.getScorer().addGarbageToQueue(wall);
+                        player.sendMessage(minimessage.deserialize("<gray>The words \"clean\" and \"garbage\" don't go together..."));
+                    }
+                    case "MESSY_GARBAGE" -> {
+                        Wall wall = new Wall(field.getLength(), field.getHeight());
+                        wall.generateHoles(10, 0, false);
+                        field.getScorer().addGarbageToQueue(wall);
+                        player.sendMessage(minimessage.deserialize("<yellow>Cheesy, greasy, you might say..."));
+                    }
                 }
             }
 
@@ -165,6 +182,34 @@ public class SandboxMenu implements Listener {
                 } else if (itemString.equals("BACK_ITEM")) {
                     inventory.close();
                     displaySlotsInventory(player, field);
+                }
+            }
+
+            case GIMMICK -> {
+                String name = ((TextComponent) clickedItem.getItemMeta().displayName()).content();
+                if (itemString.equals("MODIFIER_EVENT")) {
+                    ModifierEvent gimmick;
+                    try {
+                        gimmick = ModifierEvent.Type.valueOf(name).createEvent();
+                        if (gimmick == null) {
+                            field.endEvent();
+                            return;
+                        }
+                    } catch (IllegalArgumentException e) {
+                        player.sendMessage(minimessage.deserialize("<red>Unknown modifier"));
+                        return;
+                    }
+
+                    // todo allow players to choose duration
+                    gimmick.setTicksRemaining(30 * 20);
+                    gimmick.setPlayingField(field);
+                    gimmick.additionalInit(field.getLength(), field.getHeight());
+                    gimmick.activate();
+
+                    inventory.close();
+                } else if (itemString.equals("BACK_ITEM")) {
+                    inventory.close();
+                    sandboxInventory(player, field);
                 }
             }
         }
@@ -381,6 +426,27 @@ public class SandboxMenu implements Listener {
         fillEmptySpace(inventory, glassBorder());
         inventoryMappings.put(inventory, new SandboxInfo(MenuType.DISPLAY_SLOTS_PICK, field));
         displaySlotMappings.put(inventory, slot);
+        player.openInventory(inventory);
+    }
+
+    // Gimmick activation
+
+    public static void gimmickInventory(Player player, PlayingField field) {
+        Inventory inventory = Bukkit.createInventory(null, 27, Component.text("Gimmicks"));
+        inventoryMappings.put(inventory, new SandboxInfo(MenuType.GIMMICK, field));
+        inventory.setItem(18, InventoryMenus.backItem("Sandbox Settings"));
+
+        for (ModifierEvent.Type type : ModifierEvent.Type.values()) {
+            ItemStack item = new ItemStack(Material.BLAZE_POWDER);
+            ItemMeta meta = item.getItemMeta();
+            meta.displayName(minimessage.deserialize("<!italic>" + type.toString()));
+            meta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, "MODIFIER_EVENT");
+            item.setItemMeta(meta);
+            inventory.addItem(item);
+        }
+
+        fillEmptySpace(inventory, glassBorder());
+
         player.openInventory(inventory);
     }
 }
