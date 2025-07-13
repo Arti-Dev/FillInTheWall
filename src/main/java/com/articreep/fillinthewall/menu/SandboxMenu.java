@@ -1,14 +1,15 @@
 package com.articreep.fillinthewall.menu;
 
+import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.game.DisplayType;
 import com.articreep.fillinthewall.game.PlayingField;
+import com.articreep.fillinthewall.game.PlayingFieldManager;
 import com.articreep.fillinthewall.game.Wall;
-import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
-import com.articreep.fillinthewall.gamemode.GamemodeSettings;
 import com.articreep.fillinthewall.lobby.LobbyItems;
 import com.articreep.fillinthewall.modifiers.ModifierEvent;
 import com.articreep.fillinthewall.playerinfo.InventoryMenus;
 import com.articreep.fillinthewall.utils.Utils;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -40,6 +41,8 @@ public class SandboxMenu implements Listener {
 
     private final static Map<Inventory, SandboxInfo> inventoryMappings = new HashMap<>();
     private final static Map<Inventory, Integer> displaySlotMappings = new HashMap<>();
+    private final static Map<Player, PlayingField> pendingWallTimeInputs = new HashMap<>();
+    private final static Map<Player, ModifierEvent> pendingGimmickTimeInputs = new HashMap<>();
 
     public final static int customizableSlots = 4;
 
@@ -53,7 +56,6 @@ public class SandboxMenu implements Listener {
     private static void populateSandboxInventory(Inventory inventory, PlayingField field) {
         inventory.clear();
 
-        GamemodeSettings settings = field.getScorer().getSettings();
         inventory.setItem(4, noHoleGarbageItem());
         inventory.setItem(10, wallSettingsItem());
         inventory.setItem(11, wallTimeItem(field.getQueue().getWallActiveTime()));
@@ -74,8 +76,48 @@ public class SandboxMenu implements Listener {
     }
 
     @EventHandler
+    public void onPlayerChat(AsyncChatEvent event) {
+        Player player = event.getPlayer();
+        if (pendingWallTimeInputs.containsKey(player) || pendingGimmickTimeInputs.containsKey(player)) {
+            event.setCancelled(true);
+            String message = ((TextComponent)event.message()).content();
+            double seconds;
+            try {
+                seconds = Double.parseDouble(message);
+                if (seconds < 0) {
+                    player.sendMessage(minimessage.deserialize("<red>Time cannot be negative!"));
+                    pendingWallTimeInputs.remove(player);
+                    pendingGimmickTimeInputs.remove(player);
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                player.sendMessage(minimessage.deserialize("<red>Not a number"));
+                pendingWallTimeInputs.remove(player);
+                pendingGimmickTimeInputs.remove(player);
+                return;
+            }
+
+            if (pendingWallTimeInputs.containsKey(player)) {
+                PlayingField field = pendingWallTimeInputs.remove(player);
+                if (!field.getPlayers().contains(player)) return; // Players who left may not use this
+                field.getQueue().setWallActiveTime((int) (seconds * 20));
+            } else if (pendingGimmickTimeInputs.containsKey(player)) {
+                ModifierEvent gimmick = pendingGimmickTimeInputs.remove(player);
+                if (gimmick == null) {
+                    player.sendMessage(minimessage.deserialize("<red>No event to activate...?"));
+                } else {
+                    if (!gimmick.getPlayingField().getPlayers().contains(player)) return; // Players who left may not use this
+                    gimmick.setTicksRemaining((int) (seconds * 20));
+                    Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), gimmick::activate);
+                }
+            }
+        }
+    }
+
+    @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         // guard block
+        // todo prevent players who aren't playing from using the sandbox
         Inventory inventory = event.getInventory();
         if (!inventoryMappings.containsKey(inventory)) return;
         event.setCancelled(true);
@@ -88,6 +130,7 @@ public class SandboxMenu implements Listener {
         MenuType type = inventoryMappings.get(inventory).type;
         PlayingField field = inventoryMappings.get(inventory).field;
         Player player = (Player) event.getWhoClicked();
+        if (!field.getPlayers().contains(player)) return; // If the player somehow has the inventory open without being in game
         switch (type) {
             case BASE -> {
                 switch (itemString) {
@@ -121,6 +164,11 @@ public class SandboxMenu implements Listener {
                     case "HIGHLIGHT_INCORRECT_BLOCKS" -> {
                         field.setHighlightIncorrectBlocks(!field.highlightIncorrectBlocksEnabled());
                         populateSandboxInventory(inventory, field);
+                    }
+                    case "WALL_TIME" -> {
+                        player.sendMessage(minimessage.deserialize("<gray>Enter new wall time in chat (seconds):"));
+                        pendingWallTimeInputs.put(player, field);
+                        inventory.close();
                     }
                 }
             }
@@ -208,11 +256,11 @@ public class SandboxMenu implements Listener {
                         return;
                     }
 
-                    // todo allow players to choose duration
                     gimmick.setTicksRemaining(30 * 20);
                     gimmick.setPlayingField(field);
                     gimmick.additionalInit(field.getLength(), field.getHeight());
-                    gimmick.activate();
+                    player.sendMessage(minimessage.deserialize("<gray>Enter gimmick duration in chat (seconds):"));
+                    pendingGimmickTimeInputs.put(player, gimmick);
 
                     inventory.close();
                 } else if (itemString.equals("BACK_ITEM")) {
