@@ -18,6 +18,7 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
@@ -123,7 +124,7 @@ public class SandboxMenu implements Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         // guard block
-        // todo prevent players who aren't playing from using the sandbox
+        if (event.getAction() == InventoryAction.NOTHING) return;
         Inventory inventory = event.getInventory();
         if (!inventoryMappings.containsKey(inventory)) return;
         event.setCancelled(true);
