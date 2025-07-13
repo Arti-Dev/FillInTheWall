@@ -266,6 +266,18 @@ public class WallQueue {
         generator.setRandomHoleCount(randomHoleCount);
     }
 
+    public int getRandomHoleCount() {
+        return generator.getRandomHoleCount();
+    }
+
+    public int getConnectedHoleCount() {
+        return generator.getConnectedHoleCount();
+    }
+
+    public boolean isRandomizeFurther() {
+        return generator.isRandomizeFurther();
+    }
+
     public void setConnectedHoleCount(int connectedHoleCount) {
         if (field.getScorer().getSettings().getBooleanAttribute(GamemodeAttribute.MULTIPLAYER)) return;
         generator.setConnectedHoleCount(connectedHoleCount);

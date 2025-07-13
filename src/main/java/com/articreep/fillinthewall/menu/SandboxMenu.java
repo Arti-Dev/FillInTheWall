@@ -1,11 +1,14 @@
 package com.articreep.fillinthewall.menu;
 
+import com.articreep.fillinthewall.game.DisplayType;
 import com.articreep.fillinthewall.game.PlayingField;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.gamemode.GamemodeSettings;
 import com.articreep.fillinthewall.lobby.LobbyItems;
+import com.articreep.fillinthewall.playerinfo.InventoryMenus;
 import com.articreep.fillinthewall.utils.Utils;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -27,13 +30,16 @@ public class SandboxMenu implements Listener {
     private final static MiniMessage minimessage = MiniMessage.miniMessage();
 
     public enum MenuType {
-        BASE, WALL_GENERATION, DISPLAY_SLOTS, GIMMICK
+        BASE, WALL_GENERATION, DISPLAY_SLOTS, DISPLAY_SLOTS_PICK, GIMMICK
     }
 
     private record SandboxInfo(MenuType type, PlayingField field) {
     }
 
     private final static Map<Inventory, SandboxInfo> inventoryMappings = new HashMap<>();
+    private final static Map<Inventory, Integer> displaySlotMappings = new HashMap<>();
+
+    public final static int customizableSlots = 4;
 
     public static void sandboxInventory(Player player, PlayingField field) {
         Inventory inventory = Bukkit.createInventory(null, 27, Component.text("Sandbox Settings"));
@@ -44,10 +50,6 @@ public class SandboxMenu implements Listener {
 
     private static void populateSandboxInventory(Inventory inventory, PlayingField field) {
         inventory.clear();
-        ItemStack border = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
-        ItemMeta meta = border.getItemMeta();
-        meta.setHideTooltip(true);
-        border.setItemMeta(meta);
 
         GamemodeSettings settings = field.getScorer().getSettings();
         inventory.setItem(4, noHoleGarbageItem());
@@ -59,13 +61,14 @@ public class SandboxMenu implements Listener {
         inventory.setItem(15, infiniteReachItem(settings.getBooleanAttribute(GamemodeAttribute.INFINITE_BLOCK_REACH)));
         inventory.setItem(16, gimmickItem());
         inventory.setItem(22, messyGarbageItem());
-        fillEmptySpace(inventory, border);
+        fillEmptySpace(inventory, glassBorder());
     }
 
     @EventHandler
     public void onCloseInventory(InventoryCloseEvent event) {
         Inventory inventory = event.getInventory();
         inventoryMappings.remove(inventory);
+        displaySlotMappings.remove(inventory);
     }
 
     @EventHandler
@@ -74,15 +77,97 @@ public class SandboxMenu implements Listener {
         Inventory inventory = event.getInventory();
         if (!inventoryMappings.containsKey(inventory)) return;
         event.setCancelled(true);
-        MenuType type = inventoryMappings.get(inventory).type;
-        PlayingField field = inventoryMappings.get(inventory).field;
         ItemStack clickedItem = event.getCurrentItem();
         if (clickedItem == null || !clickedItem.hasItemMeta()) return;
         String itemString = clickedItem.getItemMeta().getPersistentDataContainer()
                 .get(LobbyItems.itemTypeKey, PersistentDataType.STRING);
         if (itemString == null) return;
 
+        MenuType type = inventoryMappings.get(inventory).type;
+        PlayingField field = inventoryMappings.get(inventory).field;
+        Player player = (Player) event.getWhoClicked();
+        switch (type) {
+            case BASE -> {
+                switch (itemString) {
+                    case "WALL_GENERATION" -> {
+                        inventory.close();
+                        wallGenerationInventory(player, field);
+                    }
+                    case "DISPLAY_SLOTS" -> {
+                        inventory.close();
+                        displaySlotsInventory(player, field);
+                    }
+                }
+            }
 
+            case WALL_GENERATION -> {
+                switch (itemString) {
+                    case "RANDOM_HOLE_COUNT" -> {
+                        if (event.isLeftClick()) {
+                            field.getQueue().setRandomHoleCount(field.getQueue().getRandomHoleCount() + 1);
+                        } else if (event.isRightClick()) {
+                            field.getQueue().setRandomHoleCount(Math.max(0, field.getQueue().getRandomHoleCount() - 1));
+                        }
+                        populateWallGenerationInventory(inventory, field);
+                    }
+                    case "CONNECTED_HOLE_COUNT" -> {
+                        if (event.isLeftClick()) {
+                            field.getQueue().setConnectedHoleCount(field.getQueue().getConnectedHoleCount() + 1);
+                        } else if (event.isRightClick()) {
+                            field.getQueue().setConnectedHoleCount(Math.max(0, field.getQueue().getConnectedHoleCount() - 1));
+                        }
+                        populateWallGenerationInventory(inventory, field);
+                    }
+                    case "HOLE_SIZE" -> {
+                        field.getQueue().setRandomizeFurther(!field.getQueue().isRandomizeFurther());
+                        populateWallGenerationInventory(inventory, field);
+                    }
+                    case "BACK_ITEM" -> {
+                        inventory.close();
+                        sandboxInventory(player, field);
+                    }
+                }
+            }
+
+            case DISPLAY_SLOTS -> {
+                String name = ((TextComponent) clickedItem.getItemMeta().displayName()).content();
+                switch (itemString) {
+                    case "DISPLAY_SLOT_SELECT" -> {
+                        for (int i = 0; i < customizableSlots; i++) {
+                            if (name.equals("Display Slot " + (i + 1))) {
+                                displayTypeUserInput(player, field, i);
+                                return;
+                            }
+                        }
+                    }
+                    case "BACK_ITEM" -> {
+                        inventory.close();
+                        sandboxInventory(player, field);
+                    }
+                }
+            }
+
+            case DISPLAY_SLOTS_PICK -> {
+                String name = ((TextComponent) clickedItem.getItemMeta().displayName()).content();
+                if (itemString.equals("DISPLAY_TYPE_SELECT")) {
+                    DisplayType displayType;
+                    try {
+                        displayType = DisplayType.valueOf(name);
+                    } catch (IllegalArgumentException e) {
+                        player.sendMessage(minimessage.deserialize("<red>Invalid display type?"));
+                        inventory.close();
+                        return;
+                    }
+                    int slot = displaySlotMappings.get(inventory);
+                    field.setDisplaySlot(slot, displayType);
+                    inventory.close();
+                    displaySlotsInventory(player, field);
+                } else if (itemString.equals("BACK_ITEM")) {
+                    inventory.close();
+                    displaySlotsInventory(player, field);
+                }
+            }
+        }
     }
 
     @EventHandler
@@ -105,7 +190,7 @@ public class SandboxMenu implements Listener {
     private static ItemStack wallTimeItem(int ticks) {
         double seconds = ticks / 20d;
         ItemStack item = Utils.createGuiItem(Material.CLOCK, minimessage.deserialize("<!italic><green>Wall Time"),
-                minimessage.deserialize("<!italic><gray>How long it takes for walls),"),
+                minimessage.deserialize("<!italic><gray>How long it takes for walls"),
                 minimessage.deserialize("<!italic><gray>to reach the playing field"),
                 Component.empty(), minimessage.deserialize("<!italic><aqua>Currently set to " + seconds + "s"),
                 minimessage.deserialize("<!italic><yellow>Click to change!"));
@@ -186,5 +271,116 @@ public class SandboxMenu implements Listener {
                 inventory.setItem(i, border);
             }
         }
+    }
+
+    private static ItemStack glassBorder() {
+        ItemStack border = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
+        ItemMeta meta = border.getItemMeta();
+        meta.setHideTooltip(true);
+        border.setItemMeta(meta);
+        return border;
+    }
+
+    // Wall generation
+
+    private static void wallGenerationInventory(Player player, PlayingField field) {
+        Inventory inventory = Bukkit.createInventory(null, 27, Component.text("Wall Generation Settings"));
+        inventoryMappings.put(inventory, new SandboxInfo(MenuType.WALL_GENERATION, field));
+        populateWallGenerationInventory(inventory, field);
+        player.openInventory(inventory);
+    }
+
+    private static void populateWallGenerationInventory(Inventory inventory, PlayingField field) {
+        inventory.clear();
+
+        inventory.setItem(18, InventoryMenus.backItem("Sandbox Settings"));
+        inventory.setItem(11, randomHoleItem(field.getQueue().getRandomHoleCount()));
+        inventory.setItem(13, connectedHoleItem(field.getQueue().getConnectedHoleCount()));
+        inventory.setItem(15, randomTotalHolesItem(field.getQueue().isRandomizeFurther()));
+        fillEmptySpace(inventory, glassBorder());
+    }
+    private static ItemStack randomHoleItem(int count) {
+        ItemStack item = Utils.createGuiItem(Material.RED_MUSHROOM_BLOCK, minimessage.deserialize("<!italic><red>Random Hole Count"),
+                minimessage.deserialize("<!italic><gray>Sets the number of completely random holes to generate."),
+                Component.empty(), minimessage.deserialize("<!italic><aqua>Currently set to " + count),
+                minimessage.deserialize("<!italic><yellow>Right click to decrease!"),
+                minimessage.deserialize("<!italic><yellow>Left click to increase!"));
+        ItemMeta meta = item.getItemMeta();
+        meta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, "RANDOM_HOLE_COUNT");
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private static ItemStack connectedHoleItem(int count) {
+        ItemStack item = Utils.createGuiItem(Material.BROWN_MUSHROOM_BLOCK, minimessage.deserialize("<!italic><color:#fabd7f>Connected Hole Count"),
+                minimessage.deserialize("<!italic><gray>Sets the number of connected holes to generate."),
+                minimessage.deserialize("<!italic><gray>These generate after the random holes and only next to existing holes"),
+                Component.empty(), minimessage.deserialize("<!italic><aqua>Currently set to " + count),
+                minimessage.deserialize("<!italic><yellow>Right click to decrease!"),
+                minimessage.deserialize("<!italic><yellow>Left click to increase!"));
+        ItemMeta meta = item.getItemMeta();
+        meta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, "CONNECTED_HOLE_COUNT");
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private static ItemStack randomTotalHolesItem(boolean enabled) {
+        ItemStack item = Utils.createGuiItem(Material.OAK_BUTTON, minimessage.deserialize("<!italic><yellow>Randomized Hole Count"),
+                minimessage.deserialize("<!italic><gray>Whether to generate the same amount of holes each wall or not."),
+                Component.empty(), Utils.statusComponent(enabled),
+                minimessage.deserialize("<!italic><yellow>Click to toggle!"));
+        ItemMeta meta = item.getItemMeta();
+        meta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, "HOLE_SIZE");
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    // Display slots
+
+    public static void displaySlotsInventory(Player player, PlayingField field) {
+        Inventory inventory = Bukkit.createInventory(null, 27, minimessage.deserialize("<!italic>Display Slots"));
+        inventoryMappings.put(inventory, new SandboxInfo(MenuType.DISPLAY_SLOTS, field));
+        populateDisplaySlotsInventory(inventory, field);
+        player.openInventory(inventory);
+    }
+
+    private static void populateDisplaySlotsInventory(Inventory inventory, PlayingField field) {
+        inventory.clear();
+
+        DisplayType[] displayTypes = field.getDisplaySlots();
+        ItemStack[] itemStacks = new ItemStack[customizableSlots];
+        for (int i = 0; i < customizableSlots; i++) {
+            itemStacks[i] = Utils.createGuiItem(Material.PAINTING, minimessage.deserialize("<!italic>Display Slot " + (i + 1)),
+                    minimessage.deserialize("<!italic>" + displayTypes[i].name()),
+                    minimessage.deserialize("<!italic><yellow>Click to edit"));
+            ItemMeta meta = itemStacks[i].getItemMeta();
+            meta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, "DISPLAY_SLOT_SELECT");
+            itemStacks[i].setItemMeta(meta);
+
+        }
+
+        inventory.setItem(18, InventoryMenus.backItem("Sandbox Settings"));
+        inventory.setItem(10, itemStacks[0]);
+        inventory.setItem(12, itemStacks[1]);
+        inventory.setItem(14, itemStacks[2]);
+        inventory.setItem(16, itemStacks[3]);
+        fillEmptySpace(inventory, glassBorder());
+    }
+
+    private void displayTypeUserInput(Player player, PlayingField field, int slot) {
+        Inventory inventory = Bukkit.createInventory(null, 27, Component.text("select a type... i got lazy"));
+        inventory.setItem(18, InventoryMenus.backItem("Display Slots"));
+        for (DisplayType displayType : DisplayType.values()) {
+            ItemStack item = new ItemStack(Material.PAINTING);
+            ItemMeta meta = item.getItemMeta();
+            meta.displayName(minimessage.deserialize("<!italic>" + displayType.toString()));
+            meta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, "DISPLAY_TYPE_SELECT");
+            item.setItemMeta(meta);
+            inventory.addItem(item);
+        }
+        fillEmptySpace(inventory, glassBorder());
+        inventoryMappings.put(inventory, new SandboxInfo(MenuType.DISPLAY_SLOTS_PICK, field));
+        displaySlotMappings.put(inventory, slot);
+        player.openInventory(inventory);
     }
 }

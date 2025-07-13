@@ -405,7 +405,11 @@ public class PlayingField implements Listener {
         }
 
         if (scorer.getGamemode() == Gamemode.CUSTOM) {
-            player.getInventory().setItem(8, sandboxMenuItem());
+            player.getInventory().setItem(5, sandboxMenuItem());
+            Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () ->
+                    sendTitleToPlayers(miniMessage.deserialize("<gradient:green:dark_green>Sandbox Mode"),
+                    Component.text("Right click the nether star in your inventory to customize!"),
+                    10, 80, 20), 40);
         }
         // todo temporary
         if (scorer.getSettings().getBooleanAttribute(GamemodeAttribute.DO_CLEARING_MODES)) {
@@ -1575,5 +1579,18 @@ public class PlayingField implements Listener {
 
     public boolean isLatePlayer(Player player) {
         return latePlayers.contains(player);
+    }
+
+    public DisplayType[] getDisplaySlots() {
+        return Arrays.copyOf(displaySlots, displaySlotsLength);
+    }
+
+    public void setDisplaySlot(int index, DisplayType displayType) {
+        if (displayType == null) return;
+        if (index < 0 || index >= displaySlotsLength) {
+            throw new IndexOutOfBoundsException("Display slot index out of bounds: " + index);
+        }
+
+        displaySlots[index] = displayType;
     }
 }

@@ -6,6 +6,7 @@ import com.articreep.fillinthewall.modifiers.ModifierEvent;
 import java.util.HashMap;
 
 // Flexible class that allows overriding default settings
+// Not designed to be changed during a game. Probably happens and should be removed later.
 public class GamemodeSettings {
     private final HashMap<GamemodeAttribute, Object> settings = new HashMap<>();
 

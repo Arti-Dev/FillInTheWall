@@ -95,6 +95,10 @@ public class WallGenerator {
         this.randomHoleCount = randomHoleCount;
     }
 
+    public int getRandomHoleCount() {
+        return randomHoleCount;
+    }
+
     public void setWallActiveTime(int wallActiveTime) {
         this.wallActiveTime = wallActiveTime;
     }
@@ -103,8 +107,16 @@ public class WallGenerator {
         this.connectedHoleCount = connectedHoleCount;
     }
 
+    public int getConnectedHoleCount() {
+        return connectedHoleCount;
+    }
+
     public void setRandomizeFurther(boolean randomizeFurther) {
         this.randomizeFurther = randomizeFurther;
+    }
+
+    public boolean isRandomizeFurther() {
+        return randomizeFurther;
     }
 
     public int getLength() {
