@@ -16,7 +16,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.SpawnEggMeta;
 import org.bukkit.persistence.PersistentDataType;
 
 public class GlobalListeners implements Listener {
@@ -95,5 +94,9 @@ public class GlobalListeners implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         if (event.getPlayer().isOp()) return;
         event.getPlayer().teleport(FillInTheWall.getInstance().getMultiplayerSpawn());
+
+        if (!Database.isOfflineMode()) {
+            Database.addNewcomer(event.getPlayer().getUniqueId());
+        }
     }
 }

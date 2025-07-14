@@ -2,10 +2,7 @@ package com.articreep.fillinthewall;
 
 import com.articreep.fillinthewall.gamemode.Gamemode;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.*;
 
 public class Database {
@@ -183,6 +180,16 @@ public class Database {
     }
 
     public static void addNewcomer(UUID uuid) {
+        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "SELECT * FROM playerInfo WHERE uuid = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) return;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "INSERT INTO playerInfo(uuid, newcomer) VALUES(?, ?)"
         )) {
