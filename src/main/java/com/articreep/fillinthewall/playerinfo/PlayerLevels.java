@@ -5,6 +5,7 @@ import com.articreep.fillinthewall.FillInTheWall;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.javatuples.Pair;
 
 import java.sql.SQLException;
@@ -88,5 +89,9 @@ public class PlayerLevels {
     public static int getBracketXP(int level) {
         int levelBracket = Math.min(level / 10, 11);
         return levelBracketXP[levelBracket];
+    }
+
+    public static void removeFromXPCache(Player player) {
+        xpCache.remove(player.getUniqueId());
     }
 }

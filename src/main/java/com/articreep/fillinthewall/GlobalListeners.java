@@ -22,6 +22,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -115,6 +116,13 @@ public class GlobalListeners implements Listener {
                     e.printStackTrace();
                 }
             });
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onPLayerQuit(PlayerQuitEvent event) {
+        if (!Database.isOfflineMode()) {
+            PlayerLevels.removeFromXPCache(event.getPlayer());
         }
     }
 
