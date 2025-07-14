@@ -66,7 +66,7 @@ public class SandboxMenu implements Listener {
         inventory.setItem(15, infiniteReachItem(field.infiniteReachEnabled()));
         inventory.setItem(16, gimmickItem());
         inventory.setItem(22, messyGarbageItem());
-        fillEmptySpace(inventory, glassBorder());
+        Utils.fillEmptySpace(inventory, glassBorder());
     }
 
     @EventHandler
@@ -392,14 +392,6 @@ public class SandboxMenu implements Listener {
                 minimessage.deserialize("<!italic><blue>You can use /fitw custom <name> to import custom walls!"));
     }
 
-    private static void fillEmptySpace(Inventory inventory, ItemStack border) {
-        for (int i = 0; i < inventory.getSize(); i++) {
-            if (inventory.getItem(i) == null) {
-                inventory.setItem(i, border);
-            }
-        }
-    }
-
     private static ItemStack glassBorder() {
         ItemStack border = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
         ItemMeta meta = border.getItemMeta();
@@ -424,7 +416,7 @@ public class SandboxMenu implements Listener {
         inventory.setItem(11, randomHoleItem(field.getQueue().getRandomHoleCount()));
         inventory.setItem(13, connectedHoleItem(field.getQueue().getConnectedHoleCount()));
         inventory.setItem(15, randomTotalHolesItem(field.getQueue().isRandomizeFurther()));
-        fillEmptySpace(inventory, glassBorder());
+        Utils.fillEmptySpace(inventory, glassBorder());
     }
     private static ItemStack randomHoleItem(int count) {
         ItemStack item = Utils.createGuiItem(Material.RED_MUSHROOM_BLOCK, minimessage.deserialize("<!italic><red>Random Hole Count"),
@@ -491,7 +483,7 @@ public class SandboxMenu implements Listener {
         inventory.setItem(12, itemStacks[1]);
         inventory.setItem(14, itemStacks[2]);
         inventory.setItem(16, itemStacks[3]);
-        fillEmptySpace(inventory, glassBorder());
+        Utils.fillEmptySpace(inventory, glassBorder());
     }
 
     private void displayTypeUserInput(Player player, PlayingField field, int slot) {
@@ -505,7 +497,7 @@ public class SandboxMenu implements Listener {
             item.setItemMeta(meta);
             inventory.addItem(item);
         }
-        fillEmptySpace(inventory, glassBorder());
+        Utils.fillEmptySpace(inventory, glassBorder());
         inventoryMappings.put(inventory, new SandboxInfo(MenuType.DISPLAY_SLOTS_PICK, field));
         displaySlotMappings.put(inventory, slot);
         player.openInventory(inventory);
@@ -527,7 +519,7 @@ public class SandboxMenu implements Listener {
             inventory.addItem(item);
         }
 
-        fillEmptySpace(inventory, glassBorder());
+        Utils.fillEmptySpace(inventory, glassBorder());
 
         player.openInventory(inventory);
     }

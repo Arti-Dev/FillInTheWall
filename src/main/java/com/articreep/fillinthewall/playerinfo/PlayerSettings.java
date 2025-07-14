@@ -65,6 +65,15 @@ public class PlayerSettings {
         return settings.get(setting);
     }
 
+    public static boolean getBooleanSettingOrDefault(UUID uuid, BooleanSetting setting) {
+        try {
+            return getBooleanSetting(uuid, setting);
+        } catch (SQLException e) {
+            FillInTheWall.getInstance().getSLF4JLogger().error("Failed to get boolean setting for player {}: {}", uuid, e.getMessage());
+            return setting.getDefault();
+        }
+    }
+
     public static void setBooleanSetting(UUID uuid, BooleanSetting setting, boolean value) {
         Map<BooleanSetting, Boolean> settings = booleanSettingCache.get(uuid);
         if (settings == null) {

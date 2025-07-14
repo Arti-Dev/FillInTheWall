@@ -15,6 +15,7 @@ import com.articreep.fillinthewall.modifiers.ModifierEvent;
 import com.articreep.fillinthewall.modifiers.PlayerInTheWall;
 import com.articreep.fillinthewall.modifiers.Rush;
 import com.articreep.fillinthewall.multiplayer.WallGenerator;
+import com.articreep.fillinthewall.playerinfo.PlayerSettings;
 import com.articreep.fillinthewall.utils.Utils;
 import com.articreep.fillinthewall.utils.WorldBoundingBox;
 import net.kyori.adventure.text.Component;
@@ -126,12 +127,14 @@ public class PlayingField implements Listener {
 
     private Sound currentlyPlayingTrack = null;
 
-    public static final String DEFAULT_HOTBAR = "PVCSM____";
+    public static final String DEFAULT_HOTBAR = "PVCM_____";
 
     private boolean infiniteReach = false;
     private static final NamespacedKey infiniteReachKey = new NamespacedKey(FillInTheWall.getInstance(), "infinite_reach");
 
     private boolean highlightIncorrectBlocks = false;
+
+    private boolean allowOthersJoin = true;
 
     // Multiplayer settings
     /** Whether to prevent new players from joining and current players from leaving, AND prevent players from starting their own games
@@ -280,13 +283,15 @@ public class PlayingField implements Listener {
     }
 
     /**
-     * Adds a player to the game. If locked is true, locks this playing field after the player is added.
+     * Adds a player to the game.
      * @param player Player to add
      * @return Whether the player was added successfully
      */
     public boolean addPlayer(Player player, AddReason reason) {
         if (multiplayerMode && reason != AddReason.MULTIPLAYER) return false;
         if (player.getGameMode() == GameMode.SPECTATOR) return false;
+        if (!players.isEmpty() && !allowOthersJoin && reason == AddReason.IN_RANGE) return false;
+
         Gamemode mode = scorer.getGamemode();
         // Do not add extra players to singleplayer leaderboard games
         if (hasStarted() && !players.isEmpty() && Database.isSupported(mode) &&
@@ -298,6 +303,7 @@ public class PlayingField implements Listener {
         previousGamemodes.put(player, player.getGameMode());
         if (!hasStarted() && !hasMenu() && !multiplayerMode) {
             // Display a new menu
+            allowOthersJoin = PlayerSettings.getBooleanSettingOrDefault(player.getUniqueId(), PlayerSettings.BooleanSetting.OTHERS_JOIN);
             createMenu();
         } else if (hasStarted()) {
             latePlayers.add(player);
@@ -326,6 +332,7 @@ public class PlayingField implements Listener {
 
         // If this will be our last player, shut the game down and mark the game as incomplete
         if (playerCount() == 1) {
+            allowOthersJoin = true;
             if (hasStarted()) {
                 scorer.setIncompleteGame(true);
                 stop();
@@ -372,13 +379,18 @@ public class PlayingField implements Listener {
         player.getInventory().clear();
         player.setItemOnCursor(null);
         String hotbar;
+        ItemStack supportBlock;
         try {
             if (Database.isOfflineMode()) hotbar = DEFAULT_HOTBAR;
             else hotbar = Database.getHotbar(player.getUniqueId());
+            boolean altBlock = PlayerSettings.getBooleanSetting(player.getUniqueId(), PlayerSettings.BooleanSetting.ALT_SUPPORT_BLOCK);
+            if (altBlock) supportBlock = stoneSupportItem();
+            else supportBlock = copperSupportItem();
         } catch (SQLException e) {
             FillInTheWall.getInstance().getSLF4JLogger().error("Something went wrong while trying to fetch saved hotbar.");
             e.printStackTrace();
             hotbar = DEFAULT_HOTBAR;
+            supportBlock = copperSupportItem();
 
         }
         for (int i = 0; i < hotbar.length(); i++) {
@@ -388,9 +400,7 @@ public class PlayingField implements Listener {
             } else if (c == 'V') {
                 player.getInventory().setItem(i, variableItem());
             } else if (c == 'C') {
-                player.getInventory().setItem(i, copperSupportItem());
-            } else if (c == 'S') {
-                player.getInventory().setItem(i, stoneSupportItem());
+                player.getInventory().setItem(i, supportBlock);
             } else if (c == 'M') {
                 player.getInventory().setItem(i, meterItem());
             } else {
@@ -404,9 +414,7 @@ public class PlayingField implements Listener {
         } if (!hotbar.contains("V")) {
             player.getInventory().addItem(variableItem());
         } if (!hotbar.contains("C")) {
-            player.getInventory().addItem(copperSupportItem());
-        } if (!hotbar.contains("S")) {
-            player.getInventory().addItem(stoneSupportItem());
+            player.getInventory().addItem(supportBlock);
         } if (!hotbar.contains("M")) {
             player.getInventory().addItem(meterItem());
         }
@@ -483,6 +491,7 @@ public class PlayingField implements Listener {
         }
         if (!tipDisplays.isEmpty()) clearTipDisplays();
         multiplayerMode = false;
+        allowOthersJoin = true;
         stopMusic();
         queue.clearAllWalls();
         queue.allowMultipleWalls(false);
@@ -1479,7 +1488,13 @@ public class PlayingField implements Listener {
     }
 
     // todo maybe the display could slide across the floor?
-    public void setTipDisplay(Component tip) {
+    public void setTipDisplay(Component tip, boolean force) {
+        UUID uuid = playerOrder.getFirst();
+        if (!PlayerSettings.getBooleanSettingOrDefault(uuid, PlayerSettings.BooleanSetting.TIPS)
+                && !force) {
+            return;
+        }
+
         if (!tipDisplays.isEmpty()) clearTipDisplays();
         Location bottomLocation = getCenter(true, false)
                 .subtract(0, 0.45, 0)
@@ -1499,6 +1514,10 @@ public class PlayingField implements Listener {
         tipDisplays.add(topDisplay);
 
         Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), this::clearTipDisplays, 20*10);
+    }
+
+    public void setTipDisplay(Component tip) {
+        setTipDisplay(tip, false);
     }
 
     private TextDisplay tipSetTextandTransform(Component tip, Location location) {
@@ -1541,6 +1560,8 @@ public class PlayingField implements Listener {
         stopMusic();
         currentlyPlayingTrack = sound;
         for (Player player : players) {
+            if (!PlayerSettings.getBooleanSettingOrDefault(
+                    player.getUniqueId(), PlayerSettings.BooleanSetting.MUSIC)) continue;
             player.playSound(player, currentlyPlayingTrack, 0.5f, 1);
         }
     }
@@ -1596,10 +1617,8 @@ public class PlayingField implements Listener {
 
             if (item.getType() == playerMaterial) {
                 hotbar.append("P");
-            } else if (item.getType() == copperSupportItem().getType()) {
+            } else if (item.getType() == copperSupportItem().getType() || item.getType() == stoneSupportItem().getType()) {
                 hotbar.append("C");
-            } else if (item.getType() == stoneSupportItem().getType()) {
-                hotbar.append("S");
             } else if (container != null && container.has(meterKey, PersistentDataType.BOOLEAN)) {
                 hotbar.append("M");
             } else if (container != null && container.has(variableKey, PersistentDataType.BOOLEAN)) {

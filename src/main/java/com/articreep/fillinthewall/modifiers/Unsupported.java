@@ -51,7 +51,8 @@ public class Unsupported extends ModifierEvent implements Listener
     public void onSupportBlockPlace(BlockPlaceEvent event) {
         Player player = event.getPlayer();
         if (!field.getPlayers().contains(player)) return;
-        if (event.getBlockPlaced().getType() == PlayingField.copperSupportItem().getType()) {
+        if (event.getBlockPlaced().getType() == PlayingField.copperSupportItem().getType() ||
+                event.getBlockPlaced().getType() == PlayingField.stoneSupportItem().getType()) {
             event.setCancelled(true);
             player.sendMessage(miniMessage.deserialize(
                     "<color:#9A5F4A>Your support block is currently <bold>un</bold>supported!"));

@@ -76,6 +76,7 @@ public class InventoryMenus implements Listener {
         settingsMeta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, "SETTINGS_ITEM");
         settings.setItemMeta(settingsMeta);
         inventory.setItem(14, settings);
+        Utils.fillEmptySpace(inventory, border());
 
         inventoryMappings.put(inventory, MenuType.PROFILE);
         player.openInventory(inventory);
@@ -221,10 +222,10 @@ public class InventoryMenus implements Listener {
 
     private static ItemStack tipToggleItem(boolean enabled) {
         ItemStack item = Utils.createGuiItem(Material.WRITABLE_BOOK,
-                miniMessage.deserialize("<yellow>Show Tips"),
+                miniMessage.deserialize("<!italic><yellow>Show Tips"),
                 miniMessage.deserialize("<gray>Toggles various tips in-game."),
                 Component.empty(), Utils.statusComponent(enabled),
-                miniMessage.deserialize("<yellow>Click to toggle"));
+                miniMessage.deserialize("<!italic><yellow>Click to toggle"));
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, BooleanSetting.TIPS.toString());
         item.setItemMeta(itemMeta);
@@ -233,10 +234,10 @@ public class InventoryMenus implements Listener {
 
     private static ItemStack musicToggleItem(boolean enabled) {
         ItemStack item = Utils.createGuiItem(Material.NOTE_BLOCK,
-                miniMessage.deserialize("<yellow>Play Music"),
+                miniMessage.deserialize("<!italic><yellow>Play Music"),
                 miniMessage.deserialize("<gray>Toggles music in the lobby and in-game."),
                 Component.empty(), Utils.statusComponent(enabled),
-                miniMessage.deserialize("<yellow>Click to toggle"));
+                miniMessage.deserialize("<!italic><yellow>Click to toggle"));
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, BooleanSetting.MUSIC.toString());
         item.setItemMeta(itemMeta);
@@ -245,10 +246,10 @@ public class InventoryMenus implements Listener {
 
     private static ItemStack altSupportToggleItem(boolean enabled) {
         ItemStack item = Utils.createGuiItem(Material.CRACKED_STONE_BRICKS,
-                miniMessage.deserialize("<yellow>Alternate Support Block"),
+                miniMessage.deserialize("<!italic><yellow>Alternate Support Block"),
                 miniMessage.deserialize("<gray>Use the first iteration of the support block"),
                 Component.empty(), Utils.statusComponent(enabled),
-                miniMessage.deserialize("<yellow>Click to toggle"));
+                miniMessage.deserialize("<!italic><yellow>Click to toggle"));
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, BooleanSetting.ALT_SUPPORT_BLOCK.toString());
         item.setItemMeta(itemMeta);
@@ -257,10 +258,10 @@ public class InventoryMenus implements Listener {
 
     private static ItemStack othersJoinToggleItem(boolean enabled) {
         ItemStack item = Utils.createGuiItem(Material.PLAYER_HEAD,
-                miniMessage.deserialize("<yellow>Allow other players to join your games"),
-                miniMessage.deserialize("<gray>For the true singleplayer experience"),
+                miniMessage.deserialize("<!italic><yellow>Allow other players to join your games"),
+                miniMessage.deserialize("<gray>Disable this if you hate people"),
                 Component.empty(), Utils.statusComponent(enabled),
-                miniMessage.deserialize("<yellow>Click to toggle"));
+                miniMessage.deserialize("<!italic><yellow>Click to toggle"));
         ItemMeta itemMeta = item.getItemMeta();
         itemMeta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, BooleanSetting.OTHERS_JOIN.toString());
         item.setItemMeta(itemMeta);

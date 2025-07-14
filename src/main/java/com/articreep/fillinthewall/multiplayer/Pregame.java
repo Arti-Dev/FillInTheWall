@@ -9,6 +9,7 @@ import com.articreep.fillinthewall.infodisplay.ScoreboardEntry;
 import com.articreep.fillinthewall.infodisplay.ScoreboardEntryType;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.gamemode.GamemodeSettings;
+import com.articreep.fillinthewall.playerinfo.PlayerSettings;
 import com.articreep.fillinthewall.utils.Utils;
 import com.xxmicloxx.NoteBlockAPI.model.RepeatMode;
 import com.xxmicloxx.NoteBlockAPI.songplayer.PositionSongPlayer;
@@ -240,7 +241,10 @@ public class Pregame implements Listener {
 
                 for (Player player : world.getPlayers()) {
                     player.setScoreboard(scoreboard);
-                    if (songPlayer != null && !songPlayer.getPlayerUUIDs().contains(player.getUniqueId())) {
+                    if (!PlayerSettings.getBooleanSettingOrDefault(
+                            player.getUniqueId(), PlayerSettings.BooleanSetting.MUSIC)) {
+                        songPlayer.removePlayer(player);
+                    } else if (songPlayer != null && !songPlayer.getPlayerUUIDs().contains(player.getUniqueId())) {
                         songPlayer.addPlayer(player);
                     }
                 }

@@ -7,6 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.util.Transformation;
@@ -140,5 +141,13 @@ public class Utils {
     public static Component statusComponent(boolean enabled) {
         if (enabled) return miniMessage.deserialize("<green>ENABLED");
         else return miniMessage.deserialize("<red>DISABLED");
+    }
+
+    public static void fillEmptySpace(Inventory inventory, ItemStack border) {
+        for (int i = 0; i < inventory.getSize(); i++) {
+            if (inventory.getItem(i) == null) {
+                inventory.setItem(i, border);
+            }
+        }
     }
 }
