@@ -8,6 +8,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 
 import java.sql.*;
 import java.util.*;
+import com.articreep.fillinthewall.playerinfo.PlayerSettings.*;
 
 public class Database {
     private static final HashSet<Gamemode> supportedGamemodes = new HashSet<>();
@@ -34,10 +35,10 @@ public class Database {
         dataSource.setUser(config.getString("database.username"));
         dataSource.setPassword(config.getString("database.password"));
 
-
+        Connection conn;
         // Test the connection
         try {
-            Connection conn = dataSource.getConnection();
+            conn = dataSource.getConnection();
             if (!conn.isValid(1)) {
                 throw new SQLException("Could not establish database connection.");
             }
@@ -68,7 +69,8 @@ public class Database {
                 "newcomer BIT DEFAULT 1 NOT NULL," +
                 "xp INT DEFAULT 0 NOT NULL," +
                 "PRIMARY KEY (uuid));";
-        try (Connection conn = dataSource.getConnection()) {
+        try {
+            conn.setAutoCommit(false);
             PreparedStatement stmt = conn.prepareStatement(sqlScores);
             stmt.executeUpdate();
             stmt = conn.prepareStatement(sqlHotbars);
@@ -77,14 +79,34 @@ public class Database {
             stmt = conn.prepareStatement(sqlPlayerInfo);
             stmt.executeUpdate();
         } catch (SQLException e) {
+            try {
+                conn.rollback();
+            } catch (SQLException rollbackEx) {
+                rollbackEx.printStackTrace();
+            }
+            e.printStackTrace();
+        }
+
+        for (StringSetting setting : StringSetting.values()) {
+            verifyColumn(conn, "playerInfo", setting.toString(), "VARCHAR(32) DEFAULT '" + setting.getDefault() + "' NOT NULL");
+        }
+        for (BooleanSetting setting : BooleanSetting.values()) {
+            // thanks copilot
+            verifyColumn(conn, "playerInfo", setting.toString(), "BIT DEFAULT " + (setting.getDefault() ? 1 : 0) + " NOT NULL");
+        }
+
+        try {
+            conn.commit();
+        } catch (SQLException e) {
+            FillInTheWall.getInstance().getSLF4JLogger().error("Error while committing or closing the database connection");
             e.printStackTrace();
         }
         offlineMode = false;
         return true;
     }
 
-    private static void verifyColumn(String table, String column, String modifiers) throws SQLException {
-        try (Connection conn = dataSource.getConnection()) {
+    private static void verifyColumn(Connection conn, String table, String column, String modifiers) {
+        try {
             DatabaseMetaData meta = conn.getMetaData();
             try (ResultSet result = meta.getColumns(null, null, table, column)) {
                 if (!result.next()) {
@@ -92,6 +114,9 @@ public class Database {
                     stmt.execute("ALTER TABLE " + table + " ADD " + column + " " + modifiers);
                 }
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            FillInTheWall.getInstance().getSLF4JLogger().error("Error while verifying column {} in table {}!", column, table);
         }
     }
 
@@ -326,5 +351,67 @@ public class Database {
 
     public static Gamemode[] getSupportedGamemodes() {
         return supportedGamemodes.toArray(new Gamemode[0]);
+    }
+    
+    public static void setStringSetting(UUID uuid, StringSetting setting, String string) {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "UPDATE playerInfo SET " + setting.toString() + " = ? WHERE uuid = ?"
+        )) {
+            stmt.setString(1, string);
+            stmt.setString(2, uuid.toString());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void setBooleanSetting(UUID uuid, BooleanSetting setting, int value) {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "UPDATE playerInfo SET " + setting.toString() + " = ? WHERE uuid = ?"
+        )) {
+            stmt.setInt(1, value);
+            stmt.setString(2, uuid.toString());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static String getStringSetting(UUID uuid, StringSetting setting) throws SQLException {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "SELECT " + setting.toString() + " FROM playerInfo WHERE uuid = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return result.getString(setting.toString());
+            } else {
+                // If they didn't exist before, add them!
+                addPlayerInfo(uuid);
+                return setting.getDefault();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error while getting user setting from database!");
+        }
+    }
+
+    public static boolean getBooleanSetting(UUID uuid, BooleanSetting setting) throws SQLException {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "SELECT " + setting.toString() + " FROM playerInfo WHERE uuid = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return result.getBoolean(setting.toString());
+            } else {
+                // If they didn't exist before, add them!
+                addPlayerInfo(uuid);
+                return setting.getDefault();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error while getting user setting from database!");
+        }
     }
 }
