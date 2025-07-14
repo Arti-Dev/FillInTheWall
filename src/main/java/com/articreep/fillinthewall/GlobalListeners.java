@@ -3,6 +3,7 @@ package com.articreep.fillinthewall;
 import com.articreep.fillinthewall.game.PlayingField;
 import com.articreep.fillinthewall.lobby.LobbyItems;
 import com.articreep.fillinthewall.playerinfo.PlayerLevels;
+import com.articreep.fillinthewall.playerinfo.PlayerSettings;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -123,6 +124,7 @@ public class GlobalListeners implements Listener {
     public void onPLayerQuit(PlayerQuitEvent event) {
         if (!Database.isOfflineMode()) {
             PlayerLevels.removeFromXPCache(event.getPlayer());
+            PlayerSettings.writeToDatabase(event.getPlayer().getUniqueId());
         }
     }
 

@@ -62,7 +62,7 @@ public class LobbyItems implements Listener {
             if (itemType == null) return;
 
             if (itemType.equals("PROFILE_LOBBY_ITEM")) {
-                InventoryMenus.profileInventory(event.getPlayer().getUniqueId(), event.getPlayer());
+                InventoryMenus.profileInventory(event.getPlayer());
             }
         }
     }

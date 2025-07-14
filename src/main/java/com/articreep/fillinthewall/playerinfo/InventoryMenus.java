@@ -1,5 +1,6 @@
 package com.articreep.fillinthewall.playerinfo;
 
+import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.lobby.LobbyItems;
 import com.articreep.fillinthewall.utils.Utils;
 import net.kyori.adventure.text.Component;
@@ -8,6 +9,7 @@ import net.kyori.adventure.text.format.TextDecoration;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -26,18 +28,19 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import com.articreep.fillinthewall.playerinfo.PlayerSettings.*;
 
 public class InventoryMenus implements Listener {
     public enum MenuType {
-        PROFILE, STATS, SETTINGS
+        PROFILE, SETTINGS
     }
     private final static Map<Inventory, MenuType> inventoryMappings = new HashMap<>();
     private final static MiniMessage miniMessage = MiniMessage.miniMessage();
 
-    public static void profileInventory(UUID uuid, Player player) {
+    public static void profileInventory(Player player) {
 
-        String playername = Bukkit.getOfflinePlayer(uuid).getName();
-        if (playername == null) playername = "null";
+        String playername = player.getName();
+        UUID uuid = player.getUniqueId();
         Inventory inventory = Bukkit.createInventory(null, 27, Component.text(playername)
                 .append(Component.text("'s profile")));
 
@@ -78,22 +81,59 @@ public class InventoryMenus implements Listener {
         player.openInventory(inventory);
     }
 
-    public static void statsInventory(UUID uuid) {
-        // todo
-    }
-
-    public static void settingsInventory(UUID uuid, Player player) {
+    public static void settingsInventory(Player player) {
         Inventory inventory = Bukkit.createInventory(null, 54, Component.text("Settings"));
-        ItemStack border = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
-        ItemMeta meta = border.getItemMeta();
-        meta.setHideTooltip(true);
-        border.setItemMeta(meta);
-        addBorder(inventory, border);
+        addBorder(inventory, border());
 
-        // todo add settings items
+        asyncPopulateSettingsInventory(inventory, player.getUniqueId());
         inventory.setItem(45, backItem("Profile"));
         inventoryMappings.put(inventory, MenuType.SETTINGS);
         player.openInventory(inventory);
+    }
+
+    private static void asyncPopulateSettingsInventory(Inventory inventory, UUID uuid) {
+        Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> {
+            boolean showTips;
+            boolean playMusic;
+//            String color;
+            boolean altSupport;
+            boolean othersJoin;
+
+            try {
+                showTips = PlayerSettings.getBooleanSetting(uuid, BooleanSetting.TIPS);
+                playMusic = PlayerSettings.getBooleanSetting(uuid, BooleanSetting.MUSIC);
+//                color = PlayerSettings.getStringSetting(uuid, StringSetting.LEVEL_COLOR);
+                altSupport = PlayerSettings.getBooleanSetting(uuid, BooleanSetting.ALT_SUPPORT_BLOCK);
+                othersJoin = PlayerSettings.getBooleanSetting(uuid, BooleanSetting.OTHERS_JOIN);
+
+            } catch (SQLException e) {
+                e.printStackTrace();
+                errorSettingsInventory(inventory);
+                return;
+            }
+
+            ItemStack showTipsItem = tipToggleItem(showTips);
+            ItemStack playMusicItem = musicToggleItem(playMusic);
+            ItemStack altSupportItem = altSupportToggleItem(altSupport);
+            ItemStack othersJoinItem = othersJoinToggleItem(othersJoin);
+
+            Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> {
+                inventory.clear();
+                inventory.setItem(10, showTipsItem);
+                inventory.setItem(11, playMusicItem);
+                inventory.setItem(12, altSupportItem);
+                inventory.setItem(13, othersJoinItem);
+                addBorder(inventory, border());
+                inventory.setItem(45, backItem("Profile"));
+            });
+        });
+    }
+
+    private static void errorSettingsInventory(Inventory inventory) {
+        Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> {
+            inventory.setItem(22, Utils.createGuiItem(Material.BARRIER,
+                    miniMessage.deserialize("<red>Error while loading settings!")));
+        });
     }
 
     @EventHandler
@@ -114,21 +154,39 @@ public class InventoryMenus implements Listener {
         String itemString = clickedItem.getItemMeta().getPersistentDataContainer()
                 .get(LobbyItems.itemTypeKey, PersistentDataType.STRING);
         if (itemString == null) return;
+        Player player = (Player) event.getWhoClicked();
 
         switch (type) {
             case PROFILE -> {
+                player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
                 if (itemString.equals("SETTINGS_ITEM")) {
                     event.getWhoClicked().closeInventory();
-                    settingsInventory(event.getWhoClicked().getUniqueId(), (Player) event.getWhoClicked());
+                    settingsInventory((Player) event.getWhoClicked());
                 }
             }
-            case STATS -> {
-                // todo
-            }
             case SETTINGS -> {
-                if (itemString.equals("BACK_ITEM")) {
-                    event.getWhoClicked().closeInventory();
-                    profileInventory(event.getWhoClicked().getUniqueId(), (Player) event.getWhoClicked());
+                player.playSound(player, Sound.UI_BUTTON_CLICK, 1, 1);
+                switch (itemString) {
+                    case "BACK_ITEM":
+                        player.closeInventory();
+                        profileInventory((Player) event.getWhoClicked());
+                        break;
+                    // Remember to add new future settings here
+                    case "TIPS":
+                    case "MUSIC":
+                    case "ALT_SUPPORT_BLOCK":
+                    case "OTHERS_JOIN":
+                        BooleanSetting setting = BooleanSetting.valueOf(itemString);
+                        boolean currentValue;
+                        try {
+                            currentValue = PlayerSettings.getBooleanSetting(player.getUniqueId(), setting);
+                        } catch (SQLException e) {
+                            player.sendMessage(Component.text("Error while reloading this setting!", NamedTextColor.RED));
+                            return;
+                        }
+                        PlayerSettings.setBooleanSetting(player.getUniqueId(), setting, !currentValue);
+                        asyncPopulateSettingsInventory(inventory, player.getUniqueId());
+                        break;
                 }
             }
         }
@@ -168,7 +226,7 @@ public class InventoryMenus implements Listener {
                 Component.empty(), Utils.statusComponent(enabled),
                 miniMessage.deserialize("<yellow>Click to toggle"));
         ItemMeta itemMeta = item.getItemMeta();
-        itemMeta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, "SHOW_TIPS");
+        itemMeta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, BooleanSetting.TIPS.toString());
         item.setItemMeta(itemMeta);
         return item;
     }
@@ -180,8 +238,40 @@ public class InventoryMenus implements Listener {
                 Component.empty(), Utils.statusComponent(enabled),
                 miniMessage.deserialize("<yellow>Click to toggle"));
         ItemMeta itemMeta = item.getItemMeta();
-        itemMeta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, "PLAY_MUSIC");
+        itemMeta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, BooleanSetting.MUSIC.toString());
         item.setItemMeta(itemMeta);
         return item;
+    }
+
+    private static ItemStack altSupportToggleItem(boolean enabled) {
+        ItemStack item = Utils.createGuiItem(Material.CRACKED_STONE_BRICKS,
+                miniMessage.deserialize("<yellow>Alternate Support Block"),
+                miniMessage.deserialize("<gray>Use the first iteration of the support block"),
+                Component.empty(), Utils.statusComponent(enabled),
+                miniMessage.deserialize("<yellow>Click to toggle"));
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, BooleanSetting.ALT_SUPPORT_BLOCK.toString());
+        item.setItemMeta(itemMeta);
+        return item;
+    }
+
+    private static ItemStack othersJoinToggleItem(boolean enabled) {
+        ItemStack item = Utils.createGuiItem(Material.PLAYER_HEAD,
+                miniMessage.deserialize("<yellow>Allow other players to join your games"),
+                miniMessage.deserialize("<gray>For the true singleplayer experience"),
+                Component.empty(), Utils.statusComponent(enabled),
+                miniMessage.deserialize("<yellow>Click to toggle"));
+        ItemMeta itemMeta = item.getItemMeta();
+        itemMeta.getPersistentDataContainer().set(LobbyItems.itemTypeKey, PersistentDataType.STRING, BooleanSetting.OTHERS_JOIN.toString());
+        item.setItemMeta(itemMeta);
+        return item;
+    }
+
+    private static ItemStack border() {
+        ItemStack border = new ItemStack(Material.WHITE_STAINED_GLASS_PANE);
+        ItemMeta meta = border.getItemMeta();
+        meta.setHideTooltip(true);
+        border.setItemMeta(meta);
+        return border;
     }
 }

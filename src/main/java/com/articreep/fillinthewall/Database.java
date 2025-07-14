@@ -365,11 +365,11 @@ public class Database {
         }
     }
 
-    public static void setBooleanSetting(UUID uuid, BooleanSetting setting, int value) {
+    public static void setBooleanSetting(UUID uuid, BooleanSetting setting, boolean value) {
         try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "UPDATE playerInfo SET " + setting.toString() + " = ? WHERE uuid = ?"
         )) {
-            stmt.setInt(1, value);
+            stmt.setBoolean(1, value);
             stmt.setString(2, uuid.toString());
             stmt.executeUpdate();
         } catch (SQLException e) {
