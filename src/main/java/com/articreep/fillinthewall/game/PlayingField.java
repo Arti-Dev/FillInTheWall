@@ -420,7 +420,7 @@ public class PlayingField implements Listener {
         }
 
         if (scorer.getGamemode() == Gamemode.SANDBOX) {
-            player.getInventory().setItem(5, sandboxMenuItem());
+            player.getInventory().setItem(7, sandboxMenuItem());
             Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () ->
                     sendTitleToPlayers(miniMessage.deserialize("<gradient:green:dark_green>Sandbox Mode"),
                     Component.text("Right click the nether star in your inventory to customize!"),
