@@ -6,10 +6,7 @@ import com.mysql.cj.jdbc.MysqlConnectionPoolDataSource;
 import com.mysql.cj.jdbc.MysqlDataSource;
 import org.bukkit.configuration.file.FileConfiguration;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.*;
 
 public class Database {
@@ -61,16 +58,16 @@ public class Database {
                 "MARATHON INT DEFAULT 0 NOT NULL," +
                 "SPRINT INT DEFAULT 12000 NOT NULL," +
                 "MEGA INT DEFAULT 12000 NOT NULL," +
-                "PRIMARY KEY (uuid));";
+                "FOREIGN KEY (uuid) REFERENCES playerInfo(uuid) ON DELETE CASCADE);";
         String sqlHotbars = "CREATE TABLE IF NOT EXISTS hotbars(" +
                 "uuid CHAR(36) NOT NULL," +
                 "hotbar CHAR(9) DEFAULT ? NOT NULL," +
-                "FOREIGN KEY (uuid) REFERENCES scores(uuid) ON DELETE CASCADE);";
+                "FOREIGN KEY (uuid) REFERENCES playerInfo(uuid) ON DELETE CASCADE);";
         String sqlPlayerInfo = "CREATE TABLE IF NOT EXISTS playerInfo(" +
                 "uuid CHAR(36) NOT NULL," +
                 "newcomer BIT DEFAULT 1 NOT NULL," +
                 "xp INT DEFAULT 0 NOT NULL," +
-                "FOREIGN KEY (uuid) REFERENCES scores(uuid) ON DELETE CASCADE);";
+                "PRIMARY KEY (uuid));";
         try (Connection conn = dataSource.getConnection()) {
             PreparedStatement stmt = conn.prepareStatement(sqlScores);
             stmt.executeUpdate();
@@ -84,6 +81,18 @@ public class Database {
         }
         offlineMode = false;
         return true;
+    }
+
+    private static void verifyColumn(String table, String column, String modifiers) throws SQLException {
+        try (Connection conn = dataSource.getConnection()) {
+            DatabaseMetaData meta = conn.getMetaData();
+            try (ResultSet result = meta.getColumns(null, null, table, column)) {
+                if (!result.next()) {
+                    Statement stmt = conn.createStatement();
+                    stmt.execute("ALTER TABLE " + table + " ADD " + column + " " + modifiers);
+                }
+            }
+        }
     }
 
     public static Connection getSQLConnection() throws SQLException {
