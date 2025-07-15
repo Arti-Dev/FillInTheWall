@@ -422,7 +422,7 @@ public class PlayingField implements Listener {
             } else if (c == 'C') {
                 player.getInventory().setItem(i, supportBlock);
             } else if (c == 'M') {
-                player.getInventory().setItem(i, meterItem());
+                player.getInventory().setItem(i, chargeItem());
             } else {
                 player.getInventory().setItem(i, new ItemStack(Material.AIR));
             }
@@ -436,7 +436,7 @@ public class PlayingField implements Listener {
         } if (!hotbar.contains("C")) {
             player.getInventory().addItem(supportBlock);
         } if (!hotbar.contains("M")) {
-            player.getInventory().addItem(meterItem());
+            player.getInventory().addItem(chargeItem());
         }
     }
 
@@ -627,6 +627,7 @@ public class PlayingField implements Listener {
         if (item.getType() == Material.AIR) return;
 
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            if (!hasStarted()) event.setCancelled(true);
             if (event.getClickedBlock().getType() == Material.CRACKED_STONE_BRICKS) {
                 Block clickedBlock = event.getClickedBlock();
                 // Check to make sure the block placement wasn't an accident
@@ -1315,12 +1316,12 @@ public class PlayingField implements Listener {
         return item;
     }
 
-    public static ItemStack meterItem() {
+    public static ItemStack chargeItem() {
         ItemStack item = new ItemStack(Material.FIREWORK_ROCKET);
         ItemMeta meta = item.getItemMeta();
         meta.displayName(miniMessage.deserialize("<gold><bold>Special Ability"));
-        meta.lore(Arrays.asList(miniMessage.deserialize("<gray>When your meter is full enough, hold this item"),
-                miniMessage.deserialize("<gray>and click to activate a <gold>special ability</gold>!")));
+        meta.lore(Arrays.asList(miniMessage.deserialize("<gray>Right-clicking this item uses a <aqua>charge"),
+                miniMessage.deserialize("<gray>to <aqua>freeze all active walls!")));
         meta.getPersistentDataContainer().set(meterKey, PersistentDataType.BOOLEAN, true);
         meta.getPersistentDataContainer().set(gameKey, PersistentDataType.BOOLEAN, true);
         item.setItemMeta(meta);
