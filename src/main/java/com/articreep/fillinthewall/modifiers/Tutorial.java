@@ -6,8 +6,6 @@ import com.articreep.fillinthewall.utils.CustomPathfinderGoal;
 import com.articreep.fillinthewall.utils.ToggleLookAtPlayerGoal;
 import com.articreep.fillinthewall.utils.Utils;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.minecraft.world.entity.ai.goal.GoalSelector;
 import net.minecraft.world.entity.monster.EnderMan;
@@ -34,9 +32,8 @@ public class Tutorial extends ModifierEvent implements Listener {
     ToggleLookAtPlayerGoal lookAtPlayerGoal = null;
     int ticksBeforeNextSlide = 0;
     int currentSlide = 0;
-    double fakeMeter = 0;
-    int fakeMeterMax = 2;
     boolean error = false;
+    int chargesAvailable = 2;
 
     private final static MiniMessage miniMessage = MiniMessage.miniMessage();
 
@@ -83,7 +80,7 @@ public class Tutorial extends ModifierEvent implements Listener {
     @Override
     public Component actionBarOverride() {
         if (currentSlide >= 11) return getFormattedFakeMeter();
-        return MiniMessage.miniMessage().deserialize("<bold>Press F to insta-send walls");
+        return MiniMessage.miniMessage().deserialize("<bold>Press <key:key.swapOffhand> to insta-send walls");
     }
 
     @Override
@@ -246,11 +243,10 @@ public class Tutorial extends ModifierEvent implements Listener {
                 field.sendTitleToPlayers(Component.empty(), miniMessage.deserialize("<green>Try it with this wall!"), 10, 40, 10);
             }
         } else if (slideToPlay == 11) {
-            fakeMeter = 0;
-            field.sendTitleToPlayers(Component.empty(), Component.text("Lastly, let's talk about the Meter on your action bar."), 10, 40, 10);
+            field.sendTitleToPlayers(Component.empty(), Component.text("Lastly, let's talk about the Charges on your action bar."), 10, 40, 10);
             ticksBeforeNextSlide = 20 * 3;
         } else if (slideToPlay == 12) {
-            field.sendTitleToPlayers(Component.empty(), Component.text("You can use it to activate a special effect, like freezing all walls."), 10, 40, 10);
+            field.sendTitleToPlayers(Component.empty(), Component.text("You can use it at any time to activate a special effect, like freezing all walls."), 10, 40, 10);
             ticksBeforeNextSlide = 20 * 3;
         } else if (slideToPlay == 13) {
             // move enderman out of the way
@@ -275,9 +271,8 @@ public class Tutorial extends ModifierEvent implements Listener {
             field.getQueue().allowMultipleWalls(true);
             field.getQueue().setMaxSpawnCooldown(60);
 
-            // todo some gamemodes let you activate the event without filling the meter all the way - should elaborate
             field.sendTitleToPlayers(Component.empty(),
-                    Component.text("To fill the meter, clear walls with at least 50% accuracy!"), 10, 60, 10);
+                    miniMessage.deserialize("Try using one here by pressing <key:key.drop>!"), 10, 60, 10);
         } else if (slideToPlay == 14) {
             Location spawnpoint = field.getReferencePoint()
                     .add(field.getFieldDirection().multiply((field.getLength() - 1) / 2.0));
@@ -308,18 +303,6 @@ public class Tutorial extends ModifierEvent implements Listener {
                         () -> playSlide(currentSlide, true, tip), 20);
             }
         }
-
-        if (currentSlide >= 11 && !wallFreeze) {
-            if (percent >= 0.5) fakeMeter += percent;
-            else fakeMeter -= 1;
-            if (fakeMeter >= fakeMeterMax) {
-                Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> {
-                    field.sendTitleToPlayers(Component.empty(), Component.text("Press your drop key to activate the Meter and freeze all walls!"), 10, 60, 10);
-                });
-                fakeMeter = fakeMeterMax;
-            }
-            if (fakeMeter < 0) fakeMeter = 0;
-        }
     }
 
     private void tryAgainTitle(String tip) {
@@ -328,10 +311,9 @@ public class Tutorial extends ModifierEvent implements Listener {
                 miniMessage.deserialize("<red>" + tip), 10, 40, 10);
     }
 
-    public void onMeterActivate(Player player) {
-        if (currentSlide == 13 && fakeMeter >= fakeMeterMax) {
-            // A highly simplified version of the Freeze modifier
-            fakeMeter = 0;
+    public void onChargeActivate(Player player) {
+        if (currentSlide == 13 && chargesAvailable > 0) {
+            chargesAvailable--;
             wallFreeze = true;
             timeFreeze = true;
             field.sendTitleToPlayers(miniMessage.deserialize("<aqua>FREEZE!"),
@@ -344,25 +326,18 @@ public class Tutorial extends ModifierEvent implements Listener {
                 field.playSoundToPlayers(Sound.BLOCK_LAVA_EXTINGUISH, 0.5F, 1);
                 ticksBeforeNextSlide = 20 * 5;
             }, 20 * 5);
-        } else if (fakeMeter < fakeMeterMax) {
-            player.sendMessage(miniMessage.deserialize("<red>Your meter isn't full enough!"));
+        } else if (chargesAvailable <= 0) {
+            player.sendMessage(miniMessage.deserialize("<red>You're out of charges!"));
         } else {
             player.sendMessage(miniMessage.deserialize("<red>Don't worry about this yet!"));
         }
     }
 
     private Component getFormattedFakeMeter() {
-        double percentFilled = fakeMeter / fakeMeterMax;
-        TextColor color;
-        if (percentFilled <= 0.3) {
-            color = NamedTextColor.GRAY;
-        } else if (percentFilled <= 0.7) {
-            color = NamedTextColor.YELLOW;
-        } else {
-            color = NamedTextColor.GREEN;
+        if (chargesAvailable <= 0) {
+            return miniMessage.deserialize("<red>Out of charges!");
         }
-        return MiniMessage.miniMessage().deserialize("<" + color + ">" +
-                "<bold>Freeze Meter: " + String.format("%.2f", fakeMeter) + "/" + fakeMeterMax);
+        return miniMessage.deserialize("<aqua>" + "Freeze Charges: " + "✦".repeat(chargesAvailable)  + " <blue><bold>Press <key:key.drop>");
     }
 
     public Tutorial copy() {

@@ -100,9 +100,9 @@ public enum Gamemode {
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.CHARGES, 3);
 
         TUTORIAL.addAttribute(GamemodeAttribute.STARTING_WALL_ACTIVE_TIME, 20*30);
-        TUTORIAL.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
-        TUTORIAL.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.PERFECT_WALLS);
-        TUTORIAL.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.NONE);
+        TUTORIAL.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.NONE);
+        TUTORIAL.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.NONE);
+        TUTORIAL.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.TIME);
         TUTORIAL.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         TUTORIAL.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         TUTORIAL.addAttribute(GamemodeAttribute.CHARGE_EVENT, ModifierEvent.Type.TUTORIAL);

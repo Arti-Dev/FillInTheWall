@@ -138,6 +138,14 @@ public class WallQueue {
             return;
         }
 
+        // If walls are frozen, make particles and return
+        if (field.eventActive() && field.getEvent().wallFreeze) {
+            for (Wall wall : activeWalls) {
+                wall.frozenParticles();
+            }
+            return;
+        }
+
         if (hiddenWalls.isEmpty()) {
             // If there's an event going on that overrides generation, don't generate a new wall
             if (!(field.eventActive() && field.getEvent().overrideGeneration)) {
@@ -154,14 +162,6 @@ public class WallQueue {
         } else if (allowMultipleWalls && spawnCooldown-- <= 0) {
             spawnCooldown = maxSpawnCooldown;
             spawnNextWall();
-        }
-
-        // If walls are frozen, make particles and return
-        if (field.eventActive() && field.getEvent().wallFreeze) {
-            for (Wall wall : activeWalls) {
-                wall.frozenParticles();
-            }
-            return;
         }
 
         sortActiveWalls();

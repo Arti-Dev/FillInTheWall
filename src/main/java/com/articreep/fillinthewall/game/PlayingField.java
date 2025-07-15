@@ -937,7 +937,7 @@ public class PlayingField implements Listener {
                         setTipDisplay(miniMessage.deserialize("<gray>Tip: <yellow>You can fly!"));
                     }
                 } else if (ticksSinceOffhandSubmit % (30*20) == 0 && !hasSubmittedUsingOffhand) {
-                    setTipDisplay(miniMessage.deserialize("<gray>Tip: <yellow>Submit walls by pressing offhand (usually [F])!"));
+                    setTipDisplay(miniMessage.deserialize("<gray>Tip: <yellow>Submit walls by pressing <key:key.swapOffhand>!"));
                 }
 
                 if (eventActive() && event.actionBarOverride() != null) {

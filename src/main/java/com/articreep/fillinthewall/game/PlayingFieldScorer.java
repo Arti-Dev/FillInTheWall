@@ -335,7 +335,7 @@ public class PlayingFieldScorer {
 
     public void onChargeActivate(Player player) {
         if (field.getEvent() instanceof Tutorial tutorial) {
-            tutorial.onMeterActivate(player);
+            tutorial.onChargeActivate(player);
             return;
         }
 
