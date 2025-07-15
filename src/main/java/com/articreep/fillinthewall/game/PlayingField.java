@@ -257,24 +257,30 @@ public class PlayingField implements Listener {
         spawnTextDisplays();
         for (Player player : players) {
             scorer.startTrackingStats(player);
+            addSpecialaGamemodeItems(player);
             player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, -1, 0, false, false));
-            formatInventory(player);
             player.setGameMode(GameMode.CREATIVE);
             if (infiniteReach) giveInfiniteReach(player);
-            try {
-                if (!Database.isOfflineMode() && Database.isNewcomer(player.getUniqueId())) {
-                    if (mode != Gamemode.TUTORIAL) Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> {
-                        Title.Times times = Title.Times.times(
-                                Duration.ofMillis(500), Duration.ofMillis(2000), Duration.ofMillis(1000));
-                        player.showTitle(Title.title(miniMessage.deserialize("<aqua>Place glass blocks"),
-                                miniMessage.deserialize("<dark_aqua>such that they <aqua>fill in the <dark_aqua>incoming <aqua>wall!"),
-                                times));
-                    }, 40);
-                    Database.setNewcomer(player.getUniqueId(), false);
+
+            // Newcomers will be shown a title - check asynchronously
+            Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> {
+                try {
+                    if (!Database.isOfflineMode() && Database.isNewcomer(player.getUniqueId())) {
+                        if (mode != Gamemode.TUTORIAL) {
+                            Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> {
+                                Title.Times times = Title.Times.times(
+                                        Duration.ofMillis(500), Duration.ofMillis(2000), Duration.ofMillis(1000));
+                                player.showTitle(Title.title(miniMessage.deserialize("<aqua>Place glass blocks"),
+                                        miniMessage.deserialize("<dark_aqua>such that they <aqua>fill in the <dark_aqua>incoming <aqua>wall!"),
+                                        times));
+                            }, 40);
+                        }
+                        Database.setNewcomer(player.getUniqueId(), false);
+                    }
+                } catch (SQLException e) {
+                    FillInTheWall.getInstance().getSLF4JLogger().error("Something went wrong while trying to fetch newcomer status.");
                 }
-            } catch (SQLException e) {
-                FillInTheWall.getInstance().getSLF4JLogger().error("Something went wrong while trying to fetch newcomer status.");
-            }
+            });
         }
         task = tickLoop();
     }
@@ -302,6 +308,7 @@ public class PlayingField implements Listener {
         player.setInvulnerable(true);
         player.setAllowFlight(true);
         previousGamemodes.put(player, player.getGameMode());
+        Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> loadSavedHotbar(player));
         if (!hasStarted() && !hasMenu() && !multiplayerMode) {
             // Display a new menu
             createMenu();
@@ -309,7 +316,7 @@ public class PlayingField implements Listener {
         } else if (hasStarted()) {
             latePlayers.add(player);
             scorer.startTrackingStats(player);
-            formatInventory(player);
+            addSpecialaGamemodeItems(player);
             player.setGameMode(GameMode.CREATIVE);
             if (infiniteReach) giveInfiniteReach(player);
             player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, -1, 0, false, false));
@@ -380,24 +387,32 @@ public class PlayingField implements Listener {
         return playerOrder.getFirst();
     }
 
-    public void formatInventory(Player player) {
-        player.getInventory().clear();
-        player.setItemOnCursor(null);
+    private void loadSavedHotbar(Player player) {
         String hotbar;
-        ItemStack supportBlock;
+        boolean altBlock;
         try {
             if (Database.isOfflineMode()) hotbar = DEFAULT_HOTBAR;
             else hotbar = Database.getHotbar(player.getUniqueId());
-            boolean altBlock = PlayerSettings.getBooleanSetting(player.getUniqueId(), PlayerSettings.BooleanSetting.ALT_SUPPORT_BLOCK);
-            if (altBlock) supportBlock = stoneSupportItem();
-            else supportBlock = copperSupportItem();
+            altBlock = PlayerSettings.getBooleanSetting(player.getUniqueId(), PlayerSettings.BooleanSetting.ALT_SUPPORT_BLOCK);
         } catch (SQLException e) {
             FillInTheWall.getInstance().getSLF4JLogger().error("Something went wrong while trying to fetch saved hotbar.");
             e.printStackTrace();
             hotbar = DEFAULT_HOTBAR;
-            supportBlock = copperSupportItem();
-
+            altBlock = false;
         }
+
+        String finalHotbar = hotbar;
+        boolean finalAltBlock = altBlock;
+        Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> formatInventory(player, finalHotbar, finalAltBlock));
+    }
+
+    private void formatInventory(Player player, String hotbar, boolean altSupportBlock) {
+        player.getInventory().clear();
+        player.setItemOnCursor(null);
+        ItemStack supportBlock;
+        if (altSupportBlock) supportBlock = stoneSupportItem();
+        else supportBlock = copperSupportItem();
+
         for (int i = 0; i < hotbar.length(); i++) {
             char c = hotbar.charAt(i);
             if (c == 'P') {
@@ -423,19 +438,20 @@ public class PlayingField implements Listener {
         } if (!hotbar.contains("M")) {
             player.getInventory().addItem(meterItem());
         }
+    }
 
+    private void addSpecialaGamemodeItems(Player player) {
         if (scorer.getGamemode() == Gamemode.SANDBOX) {
             player.getInventory().setItem(7, sandboxMenuItem());
             Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () ->
                     sendTitleToPlayers(miniMessage.deserialize("<gradient:green:dark_green>Sandbox Mode"),
-                    Component.text("Right click the nether star in your inventory to customize!"),
-                    10, 80, 20), 40);
+                            Component.text("Right click the nether star in your inventory to customize!"),
+                            10, 80, 20), 40);
         }
         // todo temporary
         if (scorer.getSettings().getBooleanAttribute(GamemodeAttribute.DO_CLEARING_MODES)) {
             player.getInventory().addItem(new ItemStack(Material.FIREWORK_STAR));
         }
-
     }
 
     private void giveInfiniteReach(Player player) {

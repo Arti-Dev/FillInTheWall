@@ -112,6 +112,7 @@ public class GlobalListeners implements Listener {
             Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> {
                 try {
                     PlayerLevels.getRawXP(event.getPlayer().getUniqueId());
+                    PlayerSettings.loadSettings(event.getPlayer().getUniqueId());
                 } catch (SQLException e) {
                     FillInTheWall.getInstance().getSLF4JLogger().error("Failed to cache player level for {}", event.getPlayer().getName());
                     e.printStackTrace();

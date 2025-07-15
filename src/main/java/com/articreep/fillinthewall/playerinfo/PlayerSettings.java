@@ -4,9 +4,7 @@ import com.articreep.fillinthewall.Database;
 import com.articreep.fillinthewall.FillInTheWall;
 
 import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class PlayerSettings {
 
@@ -14,6 +12,7 @@ public class PlayerSettings {
         // Prevent instantiation
     }
 
+    private static final Set<UUID> loadedPlayers = new HashSet<>();
     private static final Map<UUID, Map<BooleanSetting, Boolean>> booleanSettingCache = new HashMap<>();
 
     public enum StringSetting {
@@ -54,6 +53,12 @@ public class PlayerSettings {
             }
         }
         booleanSettingCache.put(uuid, settings);
+
+        loadedPlayers.add(uuid);
+    }
+
+    public static boolean statsLoaded(UUID uuid) {
+        return loadedPlayers.contains(uuid);
     }
 
     public static boolean getBooleanSetting(UUID uuid, BooleanSetting setting) throws SQLException {
@@ -85,7 +90,7 @@ public class PlayerSettings {
 
     public static void writeToDatabase(UUID uuid) {
         if (Database.isOfflineMode()) return;
-        Map<BooleanSetting, Boolean> settings = booleanSettingCache.get(uuid);
+        Map<BooleanSetting, Boolean> settings = booleanSettingCache.remove(uuid);
         if (settings == null) {
             return;
         }

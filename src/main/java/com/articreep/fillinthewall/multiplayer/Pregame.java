@@ -241,12 +241,8 @@ public class Pregame implements Listener {
 
                 for (Player player : world.getPlayers()) {
                     player.setScoreboard(scoreboard);
-                    if (!PlayerSettings.getBooleanSettingOrDefault(
-                            player.getUniqueId(), PlayerSettings.BooleanSetting.MUSIC)) {
-                        songPlayer.removePlayer(player);
-                    } else if (songPlayer != null && !songPlayer.getPlayerUUIDs().contains(player.getUniqueId())) {
-                        songPlayer.addPlayer(player);
-                    }
+                    if (songPlayer == null) continue;
+                    asyncMusicSettingCheck(player);
                 }
 
                 if (world.getPlayers().size() < minPlayers) {
@@ -259,6 +255,19 @@ public class Pregame implements Listener {
                 updateScoreboard();
             }
         }.runTaskTimer(FillInTheWall.getInstance(), 0, 20);
+    }
+
+    private void asyncMusicSettingCheck(Player player) {
+        Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> {
+
+            if (!PlayerSettings.getBooleanSettingOrDefault(
+                    player.getUniqueId(), PlayerSettings.BooleanSetting.MUSIC)) {
+                Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> songPlayer.removePlayer(player));
+            } else if (!songPlayer.getPlayerUUIDs().contains(player.getUniqueId())) {
+                Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> songPlayer.addPlayer(player));
+            }
+
+        });
     }
 
     public void createScoreboard() {
