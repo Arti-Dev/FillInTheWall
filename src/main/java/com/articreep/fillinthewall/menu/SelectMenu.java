@@ -46,13 +46,16 @@ public class SelectMenu implements Listener {
         this.location = location;
         this.field = field;
         if (field.getPlayers().size() == 1 && !Database.isOfflineMode()) {
-            for (Gamemode mode : Database.getSupportedGamemodes()) {
-                try {
-                    personalBests.put(mode, Database.getRecord(field.getPlayers().iterator().next().getUniqueId(), mode));
-                } catch (SQLException e) {
-                    e.printStackTrace();
+            UUID uuid = field.getPlayers().iterator().next().getUniqueId();
+            Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> {
+                for (Gamemode mode : Database.getSupportedGamemodes()) {
+                    try {
+                        personalBests.put(mode, Database.getRecord(uuid, mode));
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
                 }
-            }
+            });
         }
         if (!Database.isOfflineMode()) {
             for (Player player : field.getPlayers()) {

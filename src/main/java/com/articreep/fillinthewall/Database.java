@@ -89,6 +89,7 @@ public class Database {
             e.printStackTrace();
         }
 
+        verifyColumn(conn, "playerInfo", "xp", "INT DEFAULT 0 NOT NULL");
         for (StringSetting setting : StringSetting.values()) {
             verifyColumn(conn, "playerInfo", setting.toString(), "VARCHAR(32) DEFAULT '" + setting.getDefault() + "' NOT NULL");
         }
