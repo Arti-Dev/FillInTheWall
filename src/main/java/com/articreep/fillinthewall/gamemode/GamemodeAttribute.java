@@ -1,6 +1,7 @@
 package com.articreep.fillinthewall.gamemode;
 
 import com.articreep.fillinthewall.game.DisplayType;
+import com.articreep.fillinthewall.game.PlayingFieldScorer;
 import com.articreep.fillinthewall.modifiers.ModifierEvent;
 
 public enum GamemodeAttribute {
@@ -17,9 +18,9 @@ public enum GamemodeAttribute {
     DISPLAY_SLOT_1(DisplayType.class, DisplayType.PERFECT_WALLS),
     DISPLAY_SLOT_2(DisplayType.class, DisplayType.LEVEL),
     DISPLAY_SLOT_3(DisplayType.class, DisplayType.SCORE),
+    ACTIONBAR_DISPLAY(PlayingFieldScorer.ActionBarType.class, PlayingFieldScorer.ActionBarType.NONE),
     SINGLEPLAYER(Boolean.class, false),
     MULTIPLAYER(Boolean.class, false),
-    AUTOMATIC_METER(Boolean.class, false),
     DO_GARBAGE_WALLS(Boolean.class, false),
     DO_GARBAGE_ATTACK(Boolean.class, false),
     GARBAGE_WALL_HARDNESS(Integer.class, 3),
@@ -30,7 +31,8 @@ public enum GamemodeAttribute {
     MODIFIER_EVENT_CAP(Integer.class, -1),
     HIGHLIGHT_INCORRECT_BLOCKS(Boolean.class, false),
     INFINITE_BLOCK_REACH(Boolean.class, false),
-    ABILITY_EVENT(ModifierEvent.Type.class, ModifierEvent.Type.NONE),
+    CHARGE_EVENT(ModifierEvent.Type.class, ModifierEvent.Type.NONE),
+    CHARGES(Integer.class, 0),
     MULTI_EVENT_0(ModifierEvent.Type.class, ModifierEvent.Type.NONE),
     MULTI_EVENT_1(ModifierEvent.Type.class, ModifierEvent.Type.NONE),
     SINGULAR_EVENT(ModifierEvent.Type.class, ModifierEvent.Type.NONE),

@@ -655,7 +655,7 @@ public class PlayingField implements Listener {
                     || event.getAction() == Action.RIGHT_CLICK_AIR
                     || event.getAction() == Action.LEFT_CLICK_AIR) {
                 event.setCancelled(true);
-                scorer.onAbilityActivate(player);
+                scorer.onChargeActivate(player);
             }
         }
 
@@ -686,7 +686,7 @@ public class PlayingField implements Listener {
         if (!players.contains(event.getPlayer())) return;
         Player player = event.getPlayer();
         event.setCancelled(true);
-        scorer.onAbilityActivate(player);
+        scorer.onChargeActivate(player);
     }
 
     public void refreshIncorrectBlockHighlights(Wall wall) {
@@ -942,7 +942,7 @@ public class PlayingField implements Listener {
                 if (eventActive() && event.actionBarOverride() != null) {
                     sendActionBarToPlayers(event.actionBarOverride());
                 } else {
-                    sendActionBarToPlayers(scorer.getLevelProgress());
+                    actionBar();
                 }
                 queue.tick();
                 if (eventActive()) {
@@ -998,6 +998,16 @@ public class PlayingField implements Listener {
                 ticks++;
             }
         }.runTaskTimer(FillInTheWall.getInstance(), 0, 1);
+    }
+
+    public void actionBar() {
+        PlayingFieldScorer.ActionBarType type = scorer.getSettings().getActionBarTypeAttribute(GamemodeAttribute.ACTIONBAR_DISPLAY);
+        switch (type) {
+            case LEVEL_PROGRESS -> sendActionBarToPlayers(scorer.getLevelProgressActionbar());
+            case ENDLESS_LEVEL_PROGRESS -> sendActionBarToPlayers(scorer.getEndlessLevelProgressActionbar());
+            case PERFECT_WALLS -> sendActionBarToPlayers(scorer.getPerfectWallsActionbar());
+            case CHARGES -> sendActionBarToPlayers(scorer.getChargesActionbar());
+        }
     }
 
     public boolean arePlayersFlying() {

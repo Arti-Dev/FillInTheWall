@@ -86,11 +86,11 @@ public class PlayingFieldScorer {
     private EndlessRun endlessRun = null;
 
     // Stats
-    private Map<UUID, Long> playerStartTimes = new HashMap<>();
+    private final Map<UUID, Long> playerStartTimes = new HashMap<>();
     /** Stores the number of perfect walls cleared when each player first joined.
      * This will be 0 for people who were here since the beginning, and could be higher for others.
      */
-    private Map<UUID, Integer> perfectWallsOnJoin = new HashMap<>();
+    private final Map<UUID, Integer> perfectWallsOnJoin = new HashMap<>();
 
     public PlayingFieldScorer(PlayingField field) {
         this.field = field;
@@ -328,19 +328,28 @@ public class PlayingFieldScorer {
         }
     }
 
-    public void onAbilityActivate(Player player) {
+    public void onChargeActivate(Player player) {
         if (field.getEvent() instanceof Tutorial tutorial) {
             tutorial.onMeterActivate(player);
             return;
         }
 
-        if (settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT).createEvent() == null) {
+        if (settings.getModifierEventTypeAttribute(GamemodeAttribute.CHARGE_EVENT).createEvent() == null) {
             player.sendMessage(miniMessage.deserialize("<red>No event to activate!"));
             return;
         }
+
+        ModifierEvent event = field.getEvent();
+        if (event != null && event.isChargeEvent) return;
+
         if (chargesAvailable > 0) {
-            ModifierEvent newEvent = activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT));
+            ModifierEvent newEvent = activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.CHARGE_EVENT));
             newEvent.allowMeterAccumulation = false;
+            newEvent.isChargeEvent = true;
+
+            // todo lol hardcoded
+            if (newEvent instanceof Freeze) newEvent.setTicksRemaining(20 * 10);
+
             hasUsedCharge = true;
             chargesAvailable--;
         } else {
@@ -807,6 +816,9 @@ public class PlayingFieldScorer {
                 case WALL_TIME_DECREASE_AMOUNT -> {
                     if (doLevels) wallTimeDecreaseAmount = (int) value;
                 }
+                case CHARGES -> {
+                    chargesAvailable = (int) value;
+                }
             }
         }
         if (!settings.getBooleanAttribute(GamemodeAttribute.MULTIPLAYER) &&
@@ -843,7 +855,11 @@ public class PlayingFieldScorer {
         this.levelProgressMax = meterMax;
     }
 
-    public Component getLevelProgress() {
+    public enum ActionBarType {
+        LEVEL_PROGRESS, PERFECT_WALLS, ENDLESS_LEVEL_PROGRESS, CHARGES, NONE
+    }
+
+    public Component getLevelProgressActionbar() {
         double percentFilled = levelProgress / levelProgressMax;
 
         TextColor color;
@@ -857,6 +873,29 @@ public class PlayingFieldScorer {
         }
         return Component.text(modifier + " Next level: " + String.format("%.2f", levelProgress) + "/" + levelProgressMax, color);
     }
+
+    public Component getPerfectWallsActionbar() {
+        int perfectWallsRequired = settings.getIntAttribute(GamemodeAttribute.PERFECT_WALL_CAP);
+        return miniMessage.deserialize("<aqua>Perfect Walls: " + perfectWallsCleared + "/" + perfectWallsRequired);
+    }
+
+    public Component getEndlessLevelProgressActionbar() {
+        if (endlessRun == null) return Component.empty();
+        int pointsRemaining = endlessRun.scoreToNextLevel - score;
+        return miniMessage.deserialize("<gray>" + pointsRemaining + " points to next level");
+    }
+
+    public Component getChargesActionbar() {
+        String event = "";
+        ModifierEvent.Type type = settings.getModifierEventTypeAttribute(GamemodeAttribute.CHARGE_EVENT);
+        if (type != ModifierEvent.Type.NONE && type != null) event = type.getClazz().getSimpleName();
+        if (chargesAvailable <= 0) {
+            return miniMessage.deserialize("<red>Out of charges!");
+        }
+        return miniMessage.deserialize("<aqua>" + event + " Charges: " + "✦".repeat(chargesAvailable)  + " <blue><bold>Press <key:key.drop>");
+    }
+
+
 
     public void setLevel(int level) {
         levelProgress = 0;

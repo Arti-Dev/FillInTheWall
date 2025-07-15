@@ -1,6 +1,7 @@
 package com.articreep.fillinthewall.gamemode;
 
 import com.articreep.fillinthewall.game.DisplayType;
+import com.articreep.fillinthewall.game.PlayingFieldScorer;
 import com.articreep.fillinthewall.modifiers.ModifierEvent;
 
 import java.util.HashMap;
@@ -45,6 +46,10 @@ public class GamemodeSettings {
 
     public DisplayType getDisplayTypeAttribute(GamemodeAttribute attribute) {
         return (DisplayType) getAttribute(attribute);
+    }
+
+    public PlayingFieldScorer.ActionBarType getActionBarTypeAttribute(GamemodeAttribute attribute) {
+        return (PlayingFieldScorer.ActionBarType) getAttribute(attribute);
     }
 
 

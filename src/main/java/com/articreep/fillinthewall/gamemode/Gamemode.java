@@ -1,6 +1,7 @@
 package com.articreep.fillinthewall.gamemode;
 
 import com.articreep.fillinthewall.game.DisplayType;
+import com.articreep.fillinthewall.game.PlayingFieldScorer;
 import com.articreep.fillinthewall.modifiers.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -26,9 +27,10 @@ public enum Gamemode {
         ENDLESS.addAttribute(GamemodeAttribute.STARTING_WALL_ACTIVE_TIME, 160);
         ENDLESS.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
         ENDLESS.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.PERFECT_WALLS);
-        ENDLESS.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.SCORE_TO_NEXT_LEVEL);
+        ENDLESS.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.SPEED);
         ENDLESS.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         ENDLESS.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
+        ENDLESS.addAttribute(GamemodeAttribute.ACTIONBAR_DISPLAY, PlayingFieldScorer.ActionBarType.ENDLESS_LEVEL_PROGRESS);
 
         SCORE_ATTACK.addAttribute(GamemodeAttribute.TIME_LIMIT, 20*120);
         SCORE_ATTACK.addAttribute(GamemodeAttribute.DO_LEVELS, true);
@@ -38,6 +40,7 @@ public enum Gamemode {
         SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         SCORE_ATTACK.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         SCORE_ATTACK.addAttribute(GamemodeAttribute.WALL_TIME_DECREASE_AMOUNT, 18);
+        SCORE_ATTACK.addAttribute(GamemodeAttribute.ACTIONBAR_DISPLAY, PlayingFieldScorer.ActionBarType.LEVEL_PROGRESS);
 
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.DO_LEVELS, false);
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP, 5);
@@ -48,20 +51,21 @@ public enum Gamemode {
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.SPEED);
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
-        RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.AUTOMATIC_METER, true);
+        RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.ACTIONBAR_DISPLAY, PlayingFieldScorer.ActionBarType.NONE);
 
         SPRINT.addAttribute(GamemodeAttribute.CONSISTENT_HOLE_COUNT, true);
         SPRINT.addAttribute(GamemodeAttribute.RANDOM_HOLE_COUNT, 1);
         SPRINT.addAttribute(GamemodeAttribute.CONNECTED_HOLE_COUNT, 4);
         SPRINT.addAttribute(GamemodeAttribute.STARTING_WALL_ACTIVE_TIME, 160);
         SPRINT.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
-        SPRINT.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.PERFECT_WALLS);
+        SPRINT.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.NONE);
         SPRINT.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.SPEED);
         SPRINT.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.NONE);
         SPRINT.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         SPRINT.addAttribute(GamemodeAttribute.PERFECT_WALL_CAP, 20);
         SPRINT.addAttribute(GamemodeAttribute.SCORE_BY_TIME, true);
         SPRINT.addAttribute(GamemodeAttribute.REFUSE_IMPERFECT_WALLS, true);
+        SPRINT.addAttribute(GamemodeAttribute.ACTIONBAR_DISPLAY, PlayingFieldScorer.ActionBarType.PERFECT_WALLS);
 
         MEGA.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         MEGA.addAttribute(GamemodeAttribute.STARTING_WALL_ACTIVE_TIME, 20*60*5);
@@ -76,6 +80,7 @@ public enum Gamemode {
         MEGA.addAttribute(GamemodeAttribute.HIGHLIGHT_INCORRECT_BLOCKS, true);
         MEGA.addAttribute(GamemodeAttribute.REFUSE_IMPERFECT_WALLS, true);
         MEGA.addAttribute(GamemodeAttribute.TEAM_EFFORT, true);
+        MEGA.addAttribute(GamemodeAttribute.ACTIONBAR_DISPLAY, PlayingFieldScorer.ActionBarType.NONE);
 
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.TIME_LIMIT, 20*150);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.RANDOM_HOLE_COUNT, 3);
@@ -87,10 +92,12 @@ public enum Gamemode {
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.WALL_TIME_DECREASE_AMOUNT, 10);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.MULTIPLAYER, true);
-        MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.ABILITY_EVENT, ModifierEvent.Type.FREEZE);
+        MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.CHARGE_EVENT, ModifierEvent.Type.FREEZE);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.MULTI_EVENT_0, ModifierEvent.Type.RANDOM);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.MULTI_EVENT_1, ModifierEvent.Type.RANDOM);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.FINALS_TIME_LIMIT, 20*150);
+        MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.ACTIONBAR_DISPLAY, PlayingFieldScorer.ActionBarType.CHARGES);
+        MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.CHARGES, 3);
 
         TUTORIAL.addAttribute(GamemodeAttribute.STARTING_WALL_ACTIVE_TIME, 20*30);
         TUTORIAL.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
@@ -98,7 +105,7 @@ public enum Gamemode {
         TUTORIAL.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.NONE);
         TUTORIAL.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         TUTORIAL.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
-        TUTORIAL.addAttribute(GamemodeAttribute.ABILITY_EVENT, ModifierEvent.Type.TUTORIAL);
+        TUTORIAL.addAttribute(GamemodeAttribute.CHARGE_EVENT, ModifierEvent.Type.TUTORIAL);
         TUTORIAL.addAttribute(GamemodeAttribute.HIGHLIGHT_INCORRECT_BLOCKS, true);
         TUTORIAL.addAttribute(GamemodeAttribute.SINGULAR_EVENT, ModifierEvent.Type.TUTORIAL);
 
@@ -110,6 +117,7 @@ public enum Gamemode {
         MARATHON.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         MARATHON.addAttribute(GamemodeAttribute.DO_GARBAGE_WALLS, true);
         MARATHON.addAttribute(GamemodeAttribute.WALL_TIME_DECREASE_AMOUNT, 14);
+        MARATHON.addAttribute(GamemodeAttribute.ACTIONBAR_DISPLAY, PlayingFieldScorer.ActionBarType.LEVEL_PROGRESS);
         MARATHON.setLevelReq(3);
 
         VERSUS.addAttribute(GamemodeAttribute.CONSISTENT_HOLE_COUNT, false);
@@ -128,6 +136,7 @@ public enum Gamemode {
 
         SANDBOX.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         SANDBOX.setLevelReq(10);
+        SANDBOX.addAttribute(GamemodeAttribute.ACTIONBAR_DISPLAY, PlayingFieldScorer.ActionBarType.NONE);
 
 
     }

@@ -36,6 +36,7 @@ public abstract class ModifierEvent {
     public boolean fillFieldAfterSubmission = false;
     public boolean modifyWalls = false;
     public boolean allowMeterAccumulation = true;
+    public boolean isChargeEvent = false;
     /**
      * For use with endless mode. Some events (like Multiplace) come with specially designed walls
      * This setting tells them to double the amount of priority walls added to the queue
