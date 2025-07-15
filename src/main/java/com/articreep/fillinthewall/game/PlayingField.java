@@ -330,8 +330,10 @@ public class PlayingField implements Listener {
     /** Returns true if the player was removed, false if unable to (locked to field) */
     public boolean removePlayer(Player player, boolean force) {
         if (multiplayerMode && !force) return false;
-        saveHotbar(player);
-        scorer.updateStats(player);
+        Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> {
+            saveHotbar(player);
+            scorer.updateStats(player);
+        });
 
         // If this will be our last player, shut the game down and mark the game as incomplete
         if (playerCount() == 1) {
