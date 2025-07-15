@@ -1,5 +1,6 @@
 package com.articreep.fillinthewall.utils;
 
+import com.articreep.fillinthewall.FillInTheWall;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
@@ -10,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
 import org.joml.Vector3f;
@@ -72,7 +74,11 @@ public class Utils {
     }
 
     public static void resetScoreboard(Player player) {
-        player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+        player.setScoreboard(FillInTheWall.getBlankScoreboard());
+        Team team = FillInTheWall.getBlankScoreboard().getTeam(FillInTheWall.NO_COLLISION_TEAM_NAME);
+        if (team != null) {
+            team.addEntity(player);
+        }
     }
 
     public static String getFormattedTime(int ticks) {

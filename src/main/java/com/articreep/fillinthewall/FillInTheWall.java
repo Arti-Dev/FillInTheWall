@@ -28,6 +28,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Transformation;
 import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
@@ -36,6 +38,8 @@ import java.io.File;
 import java.util.*;
 
 public final class FillInTheWall extends JavaPlugin implements Listener {
+    public static final String NO_COLLISION_TEAM_NAME = "fitw_no_collision";
+    private static Scoreboard blankScoreboard;
     private static FillInTheWall instance = null;
     private FileConfiguration playingFieldConfig;
     private final Set<Entity> displays = new HashSet<>();
@@ -69,6 +73,10 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
         Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
             loadPlayingFieldConfig();
             saveDefaultConfig();
+
+            blankScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+            Team team = blankScoreboard.registerNewTeam(FillInTheWall.NO_COLLISION_TEAM_NAME);
+            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
 
             // Create directories
             File customWallFolder = new File(getDataFolder(), "custom");
@@ -254,5 +262,9 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
 
     public Location getSpectatorFinalsSpawn() {
         return spectatorFinalsSpawn.clone();
+    }
+
+    public static Scoreboard getBlankScoreboard() {
+        return blankScoreboard;
     }
 }

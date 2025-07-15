@@ -241,6 +241,10 @@ public class Pregame implements Listener {
 
                 for (Player player : world.getPlayers()) {
                     player.setScoreboard(scoreboard);
+                    Team team = scoreboard.getTeam(FillInTheWall.NO_COLLISION_TEAM_NAME);
+                    if (team != null) {
+                        team.addEntity(player);
+                    }
                     if (songPlayer == null) continue;
                     asyncMusicSettingCheck(player);
                 }
@@ -262,9 +266,13 @@ public class Pregame implements Listener {
 
             if (!PlayerSettings.getBooleanSettingOrDefault(
                     player.getUniqueId(), PlayerSettings.BooleanSetting.MUSIC)) {
-                Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> songPlayer.removePlayer(player));
+                Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> {
+                    if (songPlayer != null) songPlayer.removePlayer(player);
+                });
             } else if (!songPlayer.getPlayerUUIDs().contains(player.getUniqueId())) {
-                Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> songPlayer.addPlayer(player));
+                Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> {
+                    if (songPlayer != null) songPlayer.addPlayer(player);
+                });
             }
 
         });
@@ -274,6 +282,8 @@ public class Pregame implements Listener {
         Bukkit.getPluginManager().registerEvents(this, FillInTheWall.getInstance());
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         scoreboard = manager.getNewScoreboard();
+        Team team = scoreboard.registerNewTeam(FillInTheWall.NO_COLLISION_TEAM_NAME);
+        team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
         objective = scoreboard.registerNewObjective("fillinthewall", Criteria.DUMMY,
                 MiniMessage.miniMessage().deserialize("<yellow><bold>Fill in the Wall"));
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
@@ -286,6 +296,7 @@ public class Pregame implements Listener {
 
         for (Player player : world.getPlayers()) {
             player.setScoreboard(scoreboard);
+            team.addEntity(player);
         }
     }
 

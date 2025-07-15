@@ -569,6 +569,8 @@ public class PlayingFieldScorer {
     public void createScoreboard() {
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         scoreboard = manager.getNewScoreboard();
+        Team team = scoreboard.registerNewTeam(FillInTheWall.NO_COLLISION_TEAM_NAME);
+        team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
         objective = scoreboard.registerNewObjective("fillinthewall", Criteria.DUMMY,
                 miniMessage.deserialize("<yellow><bold>Fill in the Wall"));
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
@@ -586,6 +588,7 @@ public class PlayingFieldScorer {
 
         for (Player player : field.getPlayers()) {
             player.setScoreboard(scoreboard);
+            team.addEntity(player);
         }
     }
 
