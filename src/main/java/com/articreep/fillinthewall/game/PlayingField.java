@@ -1455,7 +1455,7 @@ public class PlayingField implements Listener {
                     cancel();
                     return;
                 }
-                Component component = DisplayType.SCORE.getFormattedText(Component.text(scorer.getScore()));
+                Component component = DisplayType.LEVEL.getFormattedText(Component.text(scorer.getLevel()));
                 String text = ((net.kyori.adventure.text.TextComponent) component).content();
                 Component formattedComponent = flashTextFormat(text, cover, flash, primary, accent);
                 modifyOverridenDisplayText(DisplayType.LEVEL, formattedComponent);
