@@ -259,7 +259,10 @@ public class InventoryMenus implements Listener {
     private static ItemStack othersJoinToggleItem(boolean enabled) {
         ItemStack item = Utils.createGuiItem(Material.PLAYER_HEAD,
                 miniMessage.deserialize("<!italic><yellow>Allow other players to join your games"),
-                miniMessage.deserialize("<gray>Disable this if you hate people"),
+                miniMessage.deserialize("<gray>This is automatically enabled when starting"),
+                miniMessage.deserialize("<gray>singleplayer games that have leaderboards."),
+                miniMessage.deserialize("<gray>You can get around this by starting the game once all players are"),
+                miniMessage.deserialize("<gray>standing on the playing field."),
                 Component.empty(), Utils.statusComponent(enabled),
                 miniMessage.deserialize("<!italic><yellow>Click to toggle"));
         ItemMeta itemMeta = item.getItemMeta();
