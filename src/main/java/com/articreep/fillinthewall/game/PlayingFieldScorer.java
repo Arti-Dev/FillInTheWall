@@ -142,6 +142,11 @@ public class PlayingFieldScorer {
             awardLevelPoints(percent);
         }
 
+        // Start Rush on Rush score attack if perfect
+        if (gamemode == Gamemode.RUSH_SCORE_ATTACK && (!field.eventActive()) && judgement == Judgement.PERFECT) {
+            activateEvent(ModifierEvent.Type.RUSH);
+        }
+
         // Garbage wall rules
         if (settings.getBooleanAttribute(GamemodeAttribute.DO_GARBAGE_WALLS)) {
             if (percent >= Judgement.COOL.getPercent()) {
