@@ -37,12 +37,9 @@ public class PlayingFieldScorer {
     PlayingField field;
     private static final MiniMessage miniMessage = MiniMessage.miniMessage();
     private int score = 0;
-    private double meter = 0;
     private int perfectWallsCleared = 0;
     private int perfectWallChain = 0;
-    private int wallsClearedWithMeterFull = 0;
-    private boolean hasUsedMeter = false;
-    private boolean hasImportedCustomWalls = false;
+    private boolean hasUsedCharge = false;
     private double blocksPlaced = 0;
     // time in ticks (this is displayed on the text display)
     private int time = 0;
@@ -59,8 +56,11 @@ public class PlayingFieldScorer {
     // this is only for score attack/marathon
     boolean doLevels = false;
     private int level = 1;
-    private int meterMax = 10;
+    private int levelProgressMax = 10;
+    private double levelProgress = 0;
     private int wallTimeDecreaseAmount = 20;
+
+    private int chargesAvailable = 0;
 
     // todo garbage clearing power "storage", subject to change
     private int garbagePoints = 0;
@@ -139,7 +139,7 @@ public class PlayingFieldScorer {
 
         // Add/subtract to bonus
         if ((!field.eventActive() || field.getEvent().allowMeterAccumulation) && clearingMode) {
-            awardMeterPoints(percent);
+            awardLevelPoints(percent);
         }
 
         // Garbage wall rules
@@ -161,9 +161,6 @@ public class PlayingFieldScorer {
         } else if (field.getQueue().countHardenedWalls() > 0) {
             awardGarbagePoints(judgement);
         }
-
-        // Update meter item
-        setMeterItemGlint(isMeterFilledEnough(meter / meterMax));
 
         // Custom walls tip display
 //        if (gamemode == Gamemode.CUSTOM && !hasImportedCustomWalls) {
@@ -202,44 +199,22 @@ public class PlayingFieldScorer {
     }
 
     /**
-     * Takes a % accuracy on the scored wall and awards meter points based on that.
-     * Updates and activates meter-related items/UI as well.
-     * This includes leveling if enabled.
+     * Takes a % accuracy on the scored wall and awards level points based on that.
      * @param percent Percent score of the last wall
      */
-    private void awardMeterPoints(double percent) {
+    private void awardLevelPoints(double percent) {
         if (percent >= Judgement.COOL.getPercent()) {
-            meter += percent;
-            if (meter > meterMax) {
-                meter = meterMax;
-
-                wallsClearedWithMeterFull++;
-                ModifierEvent.Type abilityEvent = settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT);
-                if (abilityEvent != ModifierEvent.Type.NONE && !hasUsedMeter && wallsClearedWithMeterFull >= 4) {
-                    if (abilityEvent == ModifierEvent.Type.FREEZE) {
-                        field.setTipDisplay(miniMessage.deserialize(
-                                "<gray>Tip: <yellow>Press your drop key to <aqua>freeze <yellow>all active walls!"));
-                    } else {
-                        field.setTipDisplay(miniMessage.deserialize("<gray>Tip: <yellow>Press your drop key to activate a special ability!"));
-                    }
-                }
+            levelProgress += percent;
+            if (levelProgress > levelProgressMax) {
+                levelProgress = levelProgressMax;
             }
-        } else if (!field.eventActive() && clearingMode) {
-            // You cannot lose progress if levels are enabled
-            if (!doLevels) {
-                meter -= 1;
-            }
-            if (meter < 0) meter = 0;
         }
 
         // Activate meter/level up
-        if (meter >= meterMax && doLevels) {
+        if (doLevels && levelProgress >= levelProgressMax) {
             setLevel(level + 1);
             field.flashLevel(80);
             levelUpSound();
-        } else if (meter >= meterMax && ((boolean) settings.getAttribute(GamemodeAttribute.AUTOMATIC_METER))) {
-            ModifierEvent newEvent = activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT), true);
-            newEvent.allowMeterAccumulation = false;
         }
     }
 
@@ -266,6 +241,7 @@ public class PlayingFieldScorer {
         }.runTaskTimer(FillInTheWall.getInstance(), 0, 2);
     }
 
+    // Unused
     private void attackOrDefend(Wall wall, Judgement judgement) {
         if (clearingMode) {
             // attack
@@ -277,11 +253,11 @@ public class PlayingFieldScorer {
             // if wall was a garbage wall, attack
             if (wall.wasHardened()) opponent.getScorer().addGarbageToQueue(createAttackGarbageWall(wall));
             // decrement meter
-            meter -= 1;
-            if (meter <= 0) {
+            levelProgress -= 1;
+            if (levelProgress <= 0) {
                 clearingMode = true;
                 field.sendMessageToPlayers("Meter empty! Switched to attack mode!");
-                meter = 0;
+                levelProgress = 0;
             }
         }
     }
@@ -336,7 +312,7 @@ public class PlayingFieldScorer {
         if (!settings.getBooleanAttribute(GamemodeAttribute.DO_CLEARING_MODES)) return;
 
         // Meter has to be at least 25% full to switch to defense
-        double percent = meter / meterMax;
+        double percent = levelProgress / levelProgressMax;
 
         if (!clearingMode) {
             clearingMode = true;
@@ -352,7 +328,7 @@ public class PlayingFieldScorer {
         }
     }
 
-    public void onMeterActivate(Player player) {
+    public void onAbilityActivate(Player player) {
         if (field.getEvent() instanceof Tutorial tutorial) {
             tutorial.onMeterActivate(player);
             return;
@@ -362,45 +338,34 @@ public class PlayingFieldScorer {
             player.sendMessage(miniMessage.deserialize("<red>No event to activate!"));
             return;
         }
-        if (isMeterFilledEnough(meter / meterMax)) {
-            ModifierEvent newEvent = activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT), true);
+        if (chargesAvailable > 0) {
+            ModifierEvent newEvent = activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT));
             newEvent.allowMeterAccumulation = false;
-            hasUsedMeter = true;
+            hasUsedCharge = true;
+            chargesAvailable--;
         } else {
-            player.sendMessage(miniMessage.deserialize("<red>Your meter isn't full enough!"));
+            player.sendMessage(miniMessage.deserialize("<red>You're out of charges!"));
         }
     }
 
     /**
      * Attempts to activate the event associated with the current gamemode.
      */
-    public ModifierEvent activateEvent(ModifierEvent.Type type, boolean resetMeter) {
+    public ModifierEvent activateEvent(ModifierEvent.Type type) {
         if (type == null || type == ModifierEvent.Type.NONE) {
             return null;
         }
         ModifierEvent event = type.createEvent();
-        return activateEvent(event, resetMeter);
+        return activateEvent(event);
     }
 
-    public ModifierEvent activateEvent(ModifierEvent.Type type) {
-        return activateEvent(type, false);
-    }
-
-    public ModifierEvent activateEvent(ModifierEvent event, boolean resetMeter) {
+    public ModifierEvent activateEvent(ModifierEvent event) {
         Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> {
             event.setPlayingField(field);
             event.activate();
             eventCount++;
-
-            // Update meter item
-            setMeterItemGlint(isMeterFilledEnough(meter / meterMax));
-            if (resetMeter) meter = 0;
         });
         return event;
-    }
-
-    public ModifierEvent activateEvent(ModifierEvent event) {
-        return activateEvent(event, false);
     }
 
     public void displayScoreTitle(Judgement judgement, int score, Map<BonusType, Integer> bonusMap) {
@@ -412,11 +377,6 @@ public class PlayingFieldScorer {
 
     public static Title.Times getScoreTitleTimes() {
         return Title.Times.times(Duration.ZERO, Duration.ofMillis(500), Duration.ofMillis(250));
-    }
-
-    public boolean isMeterFilledEnough(double percent) {
-        ModifierEvent.Type type = settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT);
-        return percent >= type.getMeterPercentRequired();
     }
 
     public void playJudgementSound(Judgement judgement) {
@@ -844,9 +804,6 @@ public class PlayingFieldScorer {
                 case STARTING_WALL_ACTIVE_TIME -> {
                     if (!doLevels) field.getQueue().setWallActiveTime((int) value);
                 }
-                case METER_MAX -> {
-                    if (!doLevels) setMeterMax((int) value);
-                }
                 case WALL_TIME_DECREASE_AMOUNT -> {
                     if (doLevels) wallTimeDecreaseAmount = (int) value;
                 }
@@ -882,17 +839,15 @@ public class PlayingFieldScorer {
     }
 
     // levels
-    public void setMeterMax(int meterMax) {
-        this.meterMax = meterMax;
+    public void setLevelProgressMax(int meterMax) {
+        this.levelProgressMax = meterMax;
     }
 
-    public Component getFormattedMeter() {
-        double percentFilled = meter / meterMax;
+    public Component getLevelProgress() {
+        double percentFilled = levelProgress / levelProgressMax;
 
         TextColor color;
         String modifier = "";
-        ModifierEvent.Type type = settings.getModifierEventTypeAttribute(GamemodeAttribute.ABILITY_EVENT);
-        if (type != ModifierEvent.Type.NONE && type != null) modifier = type.getClazz().getSimpleName();
         if (percentFilled <= 0.3) {
             color = NamedTextColor.GRAY;
         } else if (percentFilled <= 0.7) {
@@ -900,19 +855,15 @@ public class PlayingFieldScorer {
         } else {
             color = NamedTextColor.GREEN;
         }
-        Component message = Component.text(modifier + " Meter: " + String.format("%.2f", meter) + "/" + meterMax, color);
-        if (isMeterFilledEnough(percentFilled)) {
-            return message.append(miniMessage.deserialize(" <blue><bold>Ready! Press <key:key.drop>"));
-        }
-        return message;
+        return Component.text(modifier + " Next level: " + String.format("%.2f", levelProgress) + "/" + levelProgressMax, color);
     }
 
     public void setLevel(int level) {
-        meter = 0;
+        levelProgress = 0;
         field.getQueue().setRandomizeFurther(false);
         this.level = level;
         setDifficulty(level);
-        setMeterMax(level);
+        setLevelProgressMax(level);
         // when we level up, delete all pending walls in the queue which forces a new wall to be made.
         field.getQueue().clearHiddenWalls();
     }
@@ -1029,11 +980,7 @@ public class PlayingFieldScorer {
     }
 
     public double getMeterPercentFilled() {
-        return meter / meterMax;
-    }
-
-    public void setHasImportedCustomWalls(boolean bool) {
-        hasImportedCustomWalls = bool;
+        return levelProgress / levelProgressMax;
     }
 
     public void setPlayersOnGameStart(int playersOnGameStart) {

@@ -13,7 +13,6 @@ public enum GamemodeAttribute {
     RANDOM_HOLE_COUNT(Integer.class, 2),
     CONNECTED_HOLE_COUNT(Integer.class, 4),
     STARTING_WALL_ACTIVE_TIME(Integer.class, 160),
-    METER_MAX(Integer.class, 10),
     DISPLAY_SLOT_0(DisplayType.class, DisplayType.TIME),
     DISPLAY_SLOT_1(DisplayType.class, DisplayType.PERFECT_WALLS),
     DISPLAY_SLOT_2(DisplayType.class, DisplayType.LEVEL),

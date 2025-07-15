@@ -102,7 +102,6 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                             field.getQueue().clearAllWalls();
                             walls.forEach(field.getQueue()::addWall);
                             sender.sendMessage(miniMessage.deserialize("<green>Imported " + walls.size() + " walls"));
-                            field.getScorer().setHasImportedCustomWalls(true);
                         }
                     } else {
                         sender.sendMessage(miniMessage.deserialize("<red>You can only use this command in custom mode."));

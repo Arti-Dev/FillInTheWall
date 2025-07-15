@@ -655,7 +655,7 @@ public class PlayingField implements Listener {
                     || event.getAction() == Action.RIGHT_CLICK_AIR
                     || event.getAction() == Action.LEFT_CLICK_AIR) {
                 event.setCancelled(true);
-                scorer.onMeterActivate(player);
+                scorer.onAbilityActivate(player);
             }
         }
 
@@ -686,7 +686,7 @@ public class PlayingField implements Listener {
         if (!players.contains(event.getPlayer())) return;
         Player player = event.getPlayer();
         event.setCancelled(true);
-        scorer.onMeterActivate(player);
+        scorer.onAbilityActivate(player);
     }
 
     public void refreshIncorrectBlockHighlights(Wall wall) {
@@ -942,7 +942,7 @@ public class PlayingField implements Listener {
                 if (eventActive() && event.actionBarOverride() != null) {
                     sendActionBarToPlayers(event.actionBarOverride());
                 } else {
-                    sendActionBarToPlayers(scorer.getFormattedMeter());
+                    sendActionBarToPlayers(scorer.getLevelProgress());
                 }
                 queue.tick();
                 if (eventActive()) {

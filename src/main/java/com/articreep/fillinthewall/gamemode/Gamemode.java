@@ -24,7 +24,6 @@ public enum Gamemode {
         ENDLESS.addAttribute(GamemodeAttribute.RANDOM_HOLE_COUNT, 2);
         ENDLESS.addAttribute(GamemodeAttribute.CONNECTED_HOLE_COUNT, 4);
         ENDLESS.addAttribute(GamemodeAttribute.STARTING_WALL_ACTIVE_TIME, 160);
-        ENDLESS.addAttribute(GamemodeAttribute.METER_MAX, 0);
         ENDLESS.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
         ENDLESS.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.PERFECT_WALLS);
         ENDLESS.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.SCORE_TO_NEXT_LEVEL);
@@ -44,20 +43,17 @@ public enum Gamemode {
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP, 5);
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.RANDOM_HOLE_COUNT, 1);
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.CONNECTED_HOLE_COUNT, 0);
-        RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.METER_MAX, 1);
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.EVENTS);
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.SPEED);
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.AUTOMATIC_METER, true);
-        RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.ABILITY_EVENT, ModifierEvent.Type.RUSH);
 
         SPRINT.addAttribute(GamemodeAttribute.CONSISTENT_HOLE_COUNT, true);
         SPRINT.addAttribute(GamemodeAttribute.RANDOM_HOLE_COUNT, 1);
         SPRINT.addAttribute(GamemodeAttribute.CONNECTED_HOLE_COUNT, 4);
         SPRINT.addAttribute(GamemodeAttribute.STARTING_WALL_ACTIVE_TIME, 160);
-        SPRINT.addAttribute(GamemodeAttribute.METER_MAX, 0);
         SPRINT.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
         SPRINT.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.PERFECT_WALLS);
         SPRINT.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.SPEED);
@@ -71,7 +67,6 @@ public enum Gamemode {
         MEGA.addAttribute(GamemodeAttribute.STARTING_WALL_ACTIVE_TIME, 20*60*5);
         MEGA.addAttribute(GamemodeAttribute.RANDOM_HOLE_COUNT, 50);
         MEGA.addAttribute(GamemodeAttribute.CONNECTED_HOLE_COUNT, 150);
-        MEGA.addAttribute(GamemodeAttribute.METER_MAX, 0);
         MEGA.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
         MEGA.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.NONE);
         MEGA.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.SPEED);
@@ -86,7 +81,6 @@ public enum Gamemode {
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.RANDOM_HOLE_COUNT, 3);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.CONNECTED_HOLE_COUNT, 0);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.STARTING_WALL_ACTIVE_TIME, 160);
-        MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.METER_MAX, 5);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.PERFECT_WALLS);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.SPEED);
