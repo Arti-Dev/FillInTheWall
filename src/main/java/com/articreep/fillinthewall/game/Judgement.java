@@ -9,7 +9,7 @@ import org.bukkit.Sound;
 
 public enum Judgement {
     // It's pretty important that these are ordered from best to worst.
-    PERFECT(1, "<gold><bold>PERFECT!", NamedTextColor.GOLD, Sound.ENTITY_PLAYER_LEVELUP, Material.GLOWSTONE),
+    PERFECT(1, "<gradient:gold:yellow><bold>PERFECT!", NamedTextColor.GOLD, Sound.ENTITY_PLAYER_LEVELUP, Material.GLOWSTONE),
     COOL(0.5, "<green>Cool!", NamedTextColor.GREEN, Sound.BLOCK_NOTE_BLOCK_PLING, Material.LIME_CONCRETE),
     MISS(0, "<red>Miss..", NamedTextColor.RED, Sound.BLOCK_ANVIL_LAND, Material.RED_CONCRETE);
 
