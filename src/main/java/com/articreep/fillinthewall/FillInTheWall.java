@@ -99,7 +99,7 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
             PlayingFieldManager.parseConfig(getPlayingFieldConfig());
             spawnPortals();
             Leaderboards.spawnLeaderboards(getConfig());
-            leaderboardUpdateTask = Bukkit.getScheduler().runTaskTimer(this, Leaderboards::updateLeaderboards, 0, 20 * 30);
+            leaderboardUpdateTask = Bukkit.getScheduler().runTaskTimerAsynchronously(this, Leaderboards::updateLeaderboards, 0, 20 * 30);
             multiplayerSpawn = getConfig().getLocation("multiplayer-spawn");
             spectatorFinalsSpawn = getConfig().getLocation("spectator-finals-spawn");
         }, 1);
@@ -228,7 +228,10 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
         NBSMusic.loadConfig(getConfig());
         spawnPortals();
         Leaderboards.spawnLeaderboards(getConfig());
-        leaderboardUpdateTask = Bukkit.getScheduler().runTaskTimer(this, Leaderboards::updateLeaderboards, 0, 20 * 30);
+        if (leaderboardUpdateTask != null) {
+            leaderboardUpdateTask.cancel();
+        }
+        leaderboardUpdateTask = Bukkit.getScheduler().runTaskTimerAsynchronously(this, Leaderboards::updateLeaderboards, 0, 20 * 30);
         multiplayerSpawn = getConfig().getLocation("multiplayer-spawn");
         spectatorFinalsSpawn = getConfig().getLocation("spectator-finals-spawn");
         loadPlayingFieldConfig();

@@ -1,6 +1,7 @@
 package com.articreep.fillinthewall.infodisplay;
 
 import com.articreep.fillinthewall.Database;
+import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.playerinfo.PlayerLevels;
@@ -80,7 +81,7 @@ public class Leaderboards {
             levelLeaderboard.text(Component.text("Level Leaderboard"));
             levelLeaderboard.setBillboard(Display.Billboard.VERTICAL);
         }
-        updateLeaderboards();
+        Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), Leaderboards::updateLeaderboards);
     }
 
     public static void removeLeaderboards() {
@@ -104,7 +105,8 @@ public class Leaderboards {
 
             if (Database.isOfflineMode()) {
                 stringBuilder.append("\n<gray>Database is currently offline.\nPlease check back later.</gray>");
-                display.text(miniMessage.deserialize(stringBuilder.toString()));
+                Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () ->
+                        display.text(miniMessage.deserialize(stringBuilder.toString())));
                 continue;
             }
 
@@ -134,7 +136,8 @@ public class Leaderboards {
                 stringBuilder.append("\n").append("<red>Error loading scores</red>");
             } finally {
                 stringBuilder.append("\n\n").append("<gray>Updates every 30 seconds</gray>");
-                display.text(miniMessage.deserialize(stringBuilder.toString()));
+                Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () ->
+                        display.text(miniMessage.deserialize(stringBuilder.toString())));
             }
         }
 
@@ -143,7 +146,8 @@ public class Leaderboards {
         TextComponent.Builder builder = Component.text("Level Leaderboard\n", NamedTextColor.AQUA).toBuilder();
         if (Database.isOfflineMode()) {
             builder.append(Component.text("\nDatabase is currently offline.\nPlease check back later.", NamedTextColor.GRAY));
-            levelLeaderboard.text(builder.build());
+            Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () ->
+                    levelLeaderboard.text(builder.build()));
             return;
         }
 
@@ -169,7 +173,8 @@ public class Leaderboards {
             builder.append(Component.text("\nError loading scores", NamedTextColor.RED));
         } finally {
             builder.append(Component.text("\n\nUpdates every 30 seconds", NamedTextColor.GRAY));
-            levelLeaderboard.text(builder.build());
+            Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () ->
+                    levelLeaderboard.text(builder.build()));
         }
 
     }
