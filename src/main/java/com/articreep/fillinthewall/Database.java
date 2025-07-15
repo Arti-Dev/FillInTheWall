@@ -68,6 +68,8 @@ public class Database {
                 "uuid CHAR(36) NOT NULL," +
                 "newcomer BIT DEFAULT 1 NOT NULL," +
                 "xp INT DEFAULT 0 NOT NULL," +
+                "playtime BIGINT DEFAULT 0 NOT NULL," +
+                "perfectWalls INT DEFAULT 0 NOT NULL," +
                 "PRIMARY KEY (uuid));";
         try {
             conn.setAutoCommit(false);
@@ -94,6 +96,8 @@ public class Database {
             // thanks copilot
             verifyColumn(conn, "playerInfo", setting.toString(), "BIT DEFAULT " + (setting.getDefault() ? 1 : 0) + " NOT NULL");
         }
+        verifyColumn(conn, "playerInfo", "playtime", "BIGINT DEFAULT 0 NOT NULL");
+        verifyColumn(conn, "playerInfo", "perfectWalls", "INT DEFAULT 0 NOT NULL");
 
         try {
             conn.commit();
@@ -412,6 +416,68 @@ public class Database {
         } catch (SQLException e) {
             e.printStackTrace();
             throw new SQLException("Error while getting user setting from database!");
+        }
+    }
+
+    public static void setPlaytime(UUID uuid, long playtime) {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "UPDATE playerInfo SET playtime = ? WHERE uuid = ?"
+        )) {
+            stmt.setLong(1, playtime);
+            stmt.setString(2, uuid.toString());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static long getPlaytime(UUID uuid) throws SQLException {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "SELECT playtime FROM playerInfo WHERE uuid = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return result.getLong("playtime");
+            } else {
+                // If they didn't exist before, add them!
+                addPlayerInfo(uuid);
+                return 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error while getting user playtime from database!");
+        }
+    }
+
+    public static void setPerfectWalls(UUID uuid, int perfectWalls) {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "UPDATE playerInfo SET perfectWalls = ? WHERE uuid = ?"
+        )) {
+            stmt.setInt(1, perfectWalls);
+            stmt.setString(2, uuid.toString());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static int getPerfectWalls(UUID uuid) throws SQLException {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "SELECT perfectWalls FROM playerInfo WHERE uuid = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return result.getInt("perfectWalls");
+            } else {
+                // If they didn't exist before, add them!
+                addPlayerInfo(uuid);
+                return 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error while getting user perfect walls from database!");
         }
     }
 }

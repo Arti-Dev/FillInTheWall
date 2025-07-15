@@ -30,6 +30,7 @@ import org.javatuples.Pair;
 
 import java.sql.SQLException;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 
 public class PlayingFieldScorer {
@@ -83,6 +84,13 @@ public class PlayingFieldScorer {
     private boolean incompleteGame = false;
 
     private EndlessRun endlessRun = null;
+
+    // Stats
+    private Map<UUID, Long> playerStartTimes = new HashMap<>();
+    /** Stores the number of perfect walls cleared when each player first joined.
+     * This will be 0 for people who were here since the beginning, and could be higher for others.
+     */
+    private Map<UUID, Integer> perfectWallsOnJoin = new HashMap<>();
 
     public PlayingFieldScorer(PlayingField field) {
         this.field = field;
@@ -698,29 +706,41 @@ public class PlayingFieldScorer {
         } else {
             field.sendMessageToPlayers(miniMessage.deserialize("<green>Your final score is <bold>" + score));
         }
-        if (!Database.isOfflineMode() && Database.isSupported(gamemode) && (teamEffort || solo)) {
-            ArrayList<Player> players = new ArrayList<>();
-            if (gamemode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.TEAM_EFFORT)) {
-                players.addAll(field.getPlayers());
-            } else if (field.getPlayers().size() == 1) {
-                players.add(field.getPlayers().iterator().next());
-            }
-            if (scoreByTime) {
-                // Check that clear conditions have been met
-                if (perfectWallsCleared < gamemode.getDefaultSettings().getIntAttribute(GamemodeAttribute.PERFECT_WALL_CAP))
-                    return;
-                if (eventCount < gamemode.getDefaultSettings().getIntAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP))
-                    return;
-            }
-            for (Player player : players) {
-                try {
-                    int record = Database.getRecord(player.getUniqueId(), gamemode);
-                    if ((scoreByTime && time < record) || (!scoreByTime && score > record)) {
-                        if (scoreByTime) {
-                            Database.updateRecord(player.getUniqueId(), gamemode, time);
-                        } else {
-                            Database.updateRecord(player.getUniqueId(), gamemode, score);
-                        }
+        if (!Database.isOfflineMode()) {
+            Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> {
+                if (Database.isSupported(gamemode) && (teamEffort || solo)) submitScores(scoreByTime);
+                for (Player player : field.getPlayers()) {;
+                    updateStats(player);
+                }
+            });
+        }
+    }
+
+    private void submitScores(boolean scoreByTime) {
+        ArrayList<Player> players = new ArrayList<>();
+        if (gamemode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.TEAM_EFFORT)) {
+            players.addAll(field.getPlayers());
+        } else if (field.getPlayers().size() == 1) {
+            players.add(field.getPlayers().iterator().next());
+        }
+        if (scoreByTime) {
+            // Check that clear conditions have been met
+            if (perfectWallsCleared < gamemode.getDefaultSettings().getIntAttribute(GamemodeAttribute.PERFECT_WALL_CAP))
+                return;
+            if (eventCount < gamemode.getDefaultSettings().getIntAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP))
+                return;
+        }
+        for (Player player : players) {
+            try {
+                int record = Database.getRecord(player.getUniqueId(), gamemode);
+                if ((scoreByTime && time < record) || (!scoreByTime && score > record)) {
+                    if (scoreByTime) {
+                        Database.updateRecord(player.getUniqueId(), gamemode, time);
+                    } else {
+                        Database.updateRecord(player.getUniqueId(), gamemode, score);
+                    }
+
+                    Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> {
                         player.sendMessage(miniMessage.deserialize("<gold>New personal best!"));
                         player.getWorld().spawnParticle(Particle.TRIAL_SPAWNER_DETECTION_OMINOUS, player.getLocation(), 200, 0, 0, 0, 0.2);
                         player.playSound(player, Sound.UI_TOAST_CHALLENGE_COMPLETE, 1, 1);
@@ -728,7 +748,9 @@ public class PlayingFieldScorer {
                         player.showTitle(Title.title(
                                 miniMessage.deserialize("<aqua>PERSONAL BEST"), Component.empty(),
                                 times));
-                    } else {
+                    });
+                } else {
+                    Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> {
                         if (scoreByTime) {
                             player.sendMessage(miniMessage.deserialize(
                                     "<aqua>Personal best: <bold>" + Utils.getPreciseFormattedTime(record)));
@@ -737,12 +759,41 @@ public class PlayingFieldScorer {
                         }
                         player.getWorld().spawnParticle(Particle.TRIAL_SPAWNER_DETECTION, player.getLocation(), 200, 0, 0, 0, 0.2);
                         player.playSound(player, Sound.BLOCK_VAULT_OPEN_SHUTTER, 1, 1);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    player.sendMessage(miniMessage.deserialize("<red>Error while updating time!"));
+                    });
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
+                Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () ->
+                        player.sendMessage(miniMessage.deserialize("<red>Error while updating time!")));
             }
+        }
+    }
+
+    public void startTrackingStats(Player player) {
+        if (player == null || !field.getPlayers().contains(player)) return;
+        Instant now = Instant.now();
+        playerStartTimes.put(player.getUniqueId(), now.getEpochSecond());
+        perfectWallsOnJoin.put(player.getUniqueId(), perfectWallsCleared);
+    }
+
+    protected void updateStats(Player player) {
+        if (Database.isOfflineMode()) return;
+        UUID uuid = player.getUniqueId();
+        try {
+            if (playerStartTimes.containsKey(uuid)) {
+                long timeElapsed = Instant.now().getEpochSecond() - playerStartTimes.remove(uuid);
+                long currentPlaytime = Database.getPlaytime(uuid);
+                Database.setPlaytime(uuid, currentPlaytime + timeElapsed);
+            }
+            if (perfectWallsOnJoin.containsKey(uuid) && gamemode != Gamemode.SANDBOX) {
+                int perfects = perfectWallsCleared - perfectWallsOnJoin.remove(uuid);
+                int currentPerfects = Database.getPerfectWalls(uuid);
+                Database.setPerfectWalls(uuid, currentPerfects + perfects);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () ->
+                    player.sendMessage(miniMessage.deserialize("<red>Error while updating stats!")));
         }
     }
 

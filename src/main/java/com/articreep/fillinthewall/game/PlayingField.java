@@ -256,6 +256,7 @@ public class PlayingField implements Listener {
         removeEndScreen();
         spawnTextDisplays();
         for (Player player : players) {
+            scorer.startTrackingStats(player);
             player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, -1, 0, false, false));
             formatInventory(player);
             player.setGameMode(GameMode.CREATIVE);
@@ -291,11 +292,11 @@ public class PlayingField implements Listener {
         if (multiplayerMode && reason != AddReason.MULTIPLAYER) return false;
         if (player.getGameMode() == GameMode.SPECTATOR) return false;
         if (!players.isEmpty() && !allowOthersJoin && reason == AddReason.IN_RANGE) return false;
-
         Gamemode mode = scorer.getGamemode();
         // Do not add extra players to singleplayer leaderboard games
         if (hasStarted() && !players.isEmpty() && Database.isSupported(mode) &&
                 !mode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.TEAM_EFFORT)) return false;
+
         players.add(player);
         playerOrder.add(player.getUniqueId());
         player.setInvulnerable(true);
@@ -303,10 +304,11 @@ public class PlayingField implements Listener {
         previousGamemodes.put(player, player.getGameMode());
         if (!hasStarted() && !hasMenu() && !multiplayerMode) {
             // Display a new menu
-            allowOthersJoin = PlayerSettings.getBooleanSettingOrDefault(player.getUniqueId(), PlayerSettings.BooleanSetting.OTHERS_JOIN);
             createMenu();
+            allowOthersJoin = PlayerSettings.getBooleanSettingOrDefault(player.getUniqueId(), PlayerSettings.BooleanSetting.OTHERS_JOIN);
         } else if (hasStarted()) {
             latePlayers.add(player);
+            scorer.startTrackingStats(player);
             formatInventory(player);
             player.setGameMode(GameMode.CREATIVE);
             if (infiniteReach) giveInfiniteReach(player);
@@ -329,6 +331,7 @@ public class PlayingField implements Listener {
     public boolean removePlayer(Player player, boolean force) {
         if (multiplayerMode && !force) return false;
         saveHotbar(player);
+        scorer.updateStats(player);
 
         // If this will be our last player, shut the game down and mark the game as incomplete
         if (playerCount() == 1) {
