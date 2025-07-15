@@ -1,5 +1,6 @@
 package com.articreep.fillinthewall.playerinfo;
 
+import com.articreep.fillinthewall.Database;
 import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.lobby.LobbyItems;
 import com.articreep.fillinthewall.utils.Utils;
@@ -24,10 +25,8 @@ import org.bukkit.persistence.PersistentDataType;
 import org.javatuples.Pair;
 
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
+
 import com.articreep.fillinthewall.playerinfo.PlayerSettings.*;
 
 public class InventoryMenus implements Listener {
@@ -49,24 +48,14 @@ public class InventoryMenus implements Listener {
         meta.setOwningPlayer(Bukkit.getOfflinePlayer(uuid));
         meta.displayName(Component.text(playername, NamedTextColor.WHITE)
                 .decoration(TextDecoration.ITALIC, false));
-
-        Component levelText;
-        try {
-            Pair<Integer, Integer> levelPair = PlayerLevels.getLevel(uuid);
-            int bracketXP = PlayerLevels.getBracketXP(levelPair.getValue0());
-            Component prefix = PlayerLevels.getPrefix(uuid);
-
-            levelText = prefix
-                    .append(Component.text(" " + levelPair.getValue1() + "/" + bracketXP, NamedTextColor.AQUA))
-                    .decoration(TextDecoration.ITALIC, false);
-        } catch (SQLException e) {
-            levelText = Component.text("Error getting level", NamedTextColor.RED);
-        }
-
-        // todo playtime and perfect walls cleared
-        meta.lore(Arrays.asList(levelText));
+        meta.lore(List.of(Component.text("Loading...")));
         playerHead.setItemMeta(meta);
         inventory.setItem(12, playerHead);
+
+        // Start async task
+        Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> {
+            profileItem(player, inventory);
+        });
 
         ItemStack settings = Utils.createGuiItem(Material.TEST_INSTANCE_BLOCK, Component.text("Settings")
                         .decoration(TextDecoration.ITALIC, false),
@@ -80,6 +69,46 @@ public class InventoryMenus implements Listener {
 
         inventoryMappings.put(inventory, MenuType.PROFILE);
         player.openInventory(inventory);
+    }
+
+    private static void profileItem(Player player, Inventory inventory) {
+        UUID uuid = player.getUniqueId();
+        String playername = player.getName();
+
+        Component levelText;
+        Component playtimeText;
+        Component perfectWallsText;
+        List<Component> lore;
+
+        try {
+            Pair<Integer, Integer> levelPair = PlayerLevels.getLevel(uuid);
+            int bracketXP = PlayerLevels.getBracketXP(levelPair.getValue0());
+            Component prefix = PlayerLevels.getPrefix(uuid);
+            levelText = miniMessage.deserialize("<!italic>" +
+                    miniMessage.serialize(prefix) + " <aqua>" +
+                    levelPair.getValue1() + "/" + bracketXP);
+
+            long playtime = Database.getPlaytime(uuid);
+            playtimeText = miniMessage.deserialize("<!italic><gray>Playtime: " + Utils.secondsTohms(playtime));
+
+            int perfectWalls = Database.getPerfectWalls(uuid);
+            perfectWallsText = miniMessage.deserialize("<!italic><gold>Perfect Walls: " + perfectWalls);
+
+            lore = Arrays.asList(levelText, playtimeText, perfectWallsText);
+        } catch (SQLException e) {
+            lore = List.of(Component.text("Error getting level", NamedTextColor.RED));
+        }
+
+        List<Component> finalLore = lore;
+        Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> {
+            ItemStack playerHead = new ItemStack(Material.PLAYER_HEAD);
+            SkullMeta meta = (SkullMeta) playerHead.getItemMeta();
+            meta.setOwningPlayer(player);
+            meta.displayName(miniMessage.deserialize("<!italic><white>" + playername));
+            meta.lore(finalLore);
+            playerHead.setItemMeta(meta);
+            inventory.setItem(12, playerHead);
+        });
     }
 
     public static void settingsInventory(Player player) {
@@ -247,7 +276,7 @@ public class InventoryMenus implements Listener {
     private static ItemStack altSupportToggleItem(boolean enabled) {
         ItemStack item = Utils.createGuiItem(Material.CRACKED_STONE_BRICKS,
                 miniMessage.deserialize("<!italic><yellow>Alternate Support Block"),
-                miniMessage.deserialize("<gray>Use the first iteration of the support block"),
+                miniMessage.deserialize("<gray>Use the first iteration of the support block."),
                 Component.empty(), Utils.statusComponent(enabled),
                 miniMessage.deserialize("<!italic><yellow>Click to toggle"));
         ItemMeta itemMeta = item.getItemMeta();
@@ -261,8 +290,9 @@ public class InventoryMenus implements Listener {
                 miniMessage.deserialize("<!italic><yellow>Allow other players to join your games"),
                 miniMessage.deserialize("<gray>This is automatically enabled when starting"),
                 miniMessage.deserialize("<gray>singleplayer games that have leaderboards."),
-                miniMessage.deserialize("<gray>You can get around this by starting the game once all players are"),
-                miniMessage.deserialize("<gray>standing on the playing field."),
+                Component.empty(),
+                miniMessage.deserialize("<gray>You can get around this by starting the game once"),
+                miniMessage.deserialize("<gray>all players are standing on the playing field."),
                 Component.empty(), Utils.statusComponent(enabled),
                 miniMessage.deserialize("<!italic><yellow>Click to toggle"));
         ItemMeta itemMeta = item.getItemMeta();
