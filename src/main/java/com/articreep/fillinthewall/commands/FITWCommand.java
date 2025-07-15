@@ -248,6 +248,17 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                 } else {
                     sender.sendMessage("/fitw swap <buildname>");
                 }
+            } else if (args[0].equalsIgnoreCase("hotbar")) {
+                if (sender instanceof Player player) {
+                    if (PlayingFieldManager.isInGame(player)) {
+                        PlayingField field = PlayingFieldManager.activePlayingFields.get(player);
+                        field.loadSavedHotbar(player);
+                    } else {
+                        sender.sendMessage("You are not in a game!");
+                    }
+                } else {
+                    sender.sendMessage("This command can only be used by players!");
+                }
             } else {
                 return false;
             }
@@ -276,6 +287,7 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                 strings.add("demomode");
                 strings.add("endcredits");
                 strings.add("swap");
+                strings.add("hotbar");
             }
             StringUtil.copyPartialMatches(args[0], strings, completions);
         } else if (args.length == 2) {

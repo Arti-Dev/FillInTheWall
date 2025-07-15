@@ -6,7 +6,7 @@ softdepend: [NoteBlockAPI]
 commands:
   fillinthewall:
     description: testing commands
-    usage: /fillinthewall <spawn/custom>
+    usage: /fillinthewall <spawn/custom/hotbar>
     aliases: [hitw, holeinthewall, fitw]
   registerplayingfield:
     description: Used to create a playing field and register it to config

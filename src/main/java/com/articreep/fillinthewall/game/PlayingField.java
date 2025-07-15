@@ -35,6 +35,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
@@ -105,6 +106,7 @@ public class PlayingField implements Listener {
     private boolean hasFlownBefore = false;
     private int ticksSinceOffhandSubmit = 0;
     private boolean hasSubmittedUsingOffhand = false;
+    private boolean hotbarTipShown = false;
     private final Set<TextDisplay> tipDisplays = new HashSet<>();
 
     private PlayingFieldScorer scorer;
@@ -230,6 +232,7 @@ public class PlayingField implements Listener {
         hasFlownBefore = false;
         hasSubmittedUsingOffhand = false;
         resetRecently = true;
+        hotbarTipShown = false;
     }
 
     // Running this method will create new scorer and queue objects
@@ -253,6 +256,7 @@ public class PlayingField implements Listener {
         if (scorer.getSettings().getBooleanAttribute(GamemodeAttribute.HIGHLIGHT_INCORRECT_BLOCKS)) highlightIncorrectBlocks = true;
         setDisplaySlots(settings);
         removeMenu();
+        clearField();
         removeEndScreen();
         spawnTextDisplays();
         for (Player player : players) {
@@ -387,7 +391,7 @@ public class PlayingField implements Listener {
         return playerOrder.getFirst();
     }
 
-    private void loadSavedHotbar(Player player) {
+    public void loadSavedHotbar(Player player) {
         String hotbar;
         boolean altBlock;
         try {
@@ -679,6 +683,14 @@ public class PlayingField implements Listener {
                 event.setCancelled(true);
                 SandboxMenu.sandboxInventory(event.getPlayer(), this);
             }
+        }
+    }
+
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+        if (event.getClickedInventory() instanceof PlayerInventory && !hotbarTipShown) {
+            hotbarTipShown = true;
+            setTipDisplay(miniMessage.deserialize("<yellow>Tip: If you delete an item, use /fitw hotbar to restore it!"));
         }
     }
 
