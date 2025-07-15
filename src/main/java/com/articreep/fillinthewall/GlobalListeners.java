@@ -124,7 +124,9 @@ public class GlobalListeners implements Listener {
     public void onPLayerQuit(PlayerQuitEvent event) {
         if (!Database.isOfflineMode()) {
             PlayerLevels.removeFromXPCache(event.getPlayer());
-            PlayerSettings.writeToDatabase(event.getPlayer().getUniqueId());
+            Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> {
+                PlayerSettings.writeToDatabase(event.getPlayer().getUniqueId());
+            });
         }
     }
 
