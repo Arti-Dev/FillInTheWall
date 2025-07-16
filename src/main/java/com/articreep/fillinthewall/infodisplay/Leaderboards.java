@@ -22,11 +22,14 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.BiFunction;
 
 public class Leaderboards {
 
     private static final Map<TextDisplay, Gamemode> scoreLeaderboards = new HashMap<>();
     private static TextDisplay levelLeaderboard = null;
+    private static TextDisplay playtimeLeaderboard = null;
+    private static TextDisplay perfectWallsLeaderboard = null;
     private static final MiniMessage miniMessage = MiniMessage.miniMessage();
 
     public static void spawnLeaderboards(FileConfiguration config) {
@@ -38,6 +41,8 @@ public class Leaderboards {
         Location sprintLocation = config.getLocation("leaderboards.sprint");
         Location megaLocation = config.getLocation("leaderboards.mega");
         Location levelLocation = config.getLocation("leaderboards.level");
+        Location playtimeLocation = config.getLocation("leaderboards.playtime");
+        Location perfectWallsLocation = config.getLocation("leaderboards.perfect-walls");
 
         if (scoreAttackLocation != null) {
             TextDisplay scoreAttackDisplay = (TextDisplay) scoreAttackLocation.getWorld().spawnEntity(
@@ -81,6 +86,20 @@ public class Leaderboards {
             levelLeaderboard.text(Component.text("Level Leaderboard"));
             levelLeaderboard.setBillboard(Display.Billboard.VERTICAL);
         }
+
+        if (playtimeLocation != null) {
+            playtimeLeaderboard = (TextDisplay) playtimeLocation.getWorld().spawnEntity(
+                    playtimeLocation, EntityType.TEXT_DISPLAY);
+            playtimeLeaderboard.text(Component.text("Playtime Leaderboard"));
+            playtimeLeaderboard.setBillboard(Display.Billboard.VERTICAL);
+        }
+
+        if (perfectWallsLocation != null) {
+            perfectWallsLeaderboard = (TextDisplay) perfectWallsLocation.getWorld().spawnEntity(
+                    perfectWallsLocation, EntityType.TEXT_DISPLAY);
+            perfectWallsLeaderboard.text(Component.text("Perfect Walls Cleared Leaderboard"));
+            perfectWallsLeaderboard.setBillboard(Display.Billboard.VERTICAL);
+        }
         Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), Leaderboards::updateLeaderboards);
     }
 
@@ -94,19 +113,25 @@ public class Leaderboards {
             levelLeaderboard.remove();
             levelLeaderboard = null;
         }
+        if (playtimeLeaderboard != null) {
+            playtimeLeaderboard.remove();
+            playtimeLeaderboard = null;
+        }
+        if (perfectWallsLeaderboard != null) {
+            perfectWallsLeaderboard.remove();
+            perfectWallsLeaderboard = null;
+        }
     }
 
     public static void updateLeaderboards() {
         for (Map.Entry<TextDisplay, Gamemode> entry : scoreLeaderboards.entrySet()) {
             TextDisplay display = entry.getKey();
             Gamemode gamemode = entry.getValue();
-            StringBuilder stringBuilder = new StringBuilder(miniMessage.serialize(gamemode.getTitle()));
-            stringBuilder.append("\n<gray>Top Scores</gray>\n");
+            TextComponent title = (TextComponent) miniMessage.deserialize(
+                    miniMessage.serialize(gamemode.getTitle()) + "\n<gray>Top Scores</gray>\n");
 
             if (Database.isOfflineMode()) {
-                stringBuilder.append("\n<gray>Database is currently offline.\nPlease check back later.</gray>");
-                Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () ->
-                        display.text(miniMessage.deserialize(stringBuilder.toString())));
+                offlineLeaderboard(display, title);
                 continue;
             }
 
@@ -118,64 +143,104 @@ public class Leaderboards {
                 } else {
                     topScores = Database.getTopScores(gamemode);
                 }
-                int i = 1;
-                for (Map.Entry<UUID, Integer> score : topScores.entrySet()) {
-                    stringBuilder.append("\n<yellow>")
-                            .append("#").append(i).append(" ")
-                            .append(Bukkit.getOfflinePlayer(score.getKey()).getName()).append(": ");
+                populateLeaderboard(display, topScores, title,
+                        (score, playerName) -> {
+                    StringBuilder builder = new StringBuilder("<yellow>" + playerName + ": ");
                     if (scoreByTime) {
-                        stringBuilder.append(Utils.getPreciseFormattedTime(score.getValue()));
+                        builder.append(Utils.getPreciseFormattedTime(score));
                     } else {
-                        stringBuilder.append(score.getValue());
+                        builder.append(score);
                     }
-                    stringBuilder.append("</yellow>");
-                    i++;
-                }
+                    builder.append("</yellow>");
+                    return miniMessage.deserialize(builder.toString());
+                        });
             } catch (SQLException e) {
                 e.printStackTrace();
-                stringBuilder.append("\n").append("<red>Error loading scores</red>");
-            } finally {
-                stringBuilder.append("\n\n").append("<gray>Updates every 30 seconds</gray>");
-                Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () ->
-                        display.text(miniMessage.deserialize(stringBuilder.toString())));
+                errorLeaderboard(display, title);
             }
         }
 
         // Level leaderboard
-        // todo this is ad-hoc - make a more robust system
-        TextComponent.Builder builder = Component.text("Level Leaderboard\n", NamedTextColor.AQUA).toBuilder();
+        TextComponent levelTitle = Component.text("Level Leaderboard\n", NamedTextColor.AQUA);
         if (Database.isOfflineMode()) {
-            builder.append(Component.text("\nDatabase is currently offline.\nPlease check back later.", NamedTextColor.GRAY));
-            Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () ->
-                    levelLeaderboard.text(builder.build()));
-            return;
+            offlineLeaderboard(levelLeaderboard, levelTitle);
+        } else {
+            try {
+                LinkedHashMap<UUID, Integer> topLevels = Database.getTopXP();
+                populateLeaderboard(levelLeaderboard, topLevels, levelTitle,
+                        (xp, playerName) -> miniMessage.deserialize(
+                                miniMessage.serialize(PlayerLevels.getPrefix(xp)) + " <yellow>" + playerName + ": <aqua>" + xp + "XP"));
+            } catch (SQLException e) {
+                e.printStackTrace();
+                errorLeaderboard(levelLeaderboard, levelTitle);
+            }
         }
 
-        try {
-            LinkedHashMap<UUID, Integer> topLevels = Database.getTopXP();
+        // Playtime leaderboard
+
+        TextComponent playtimeTitle = (TextComponent) miniMessage.deserialize("<gray>Playtime Leaderboard\n");
+        if (Database.isOfflineMode()) {
+            offlineLeaderboard(playtimeLeaderboard, playtimeTitle);
+        } else {
+            try {
+                LinkedHashMap<UUID, Long> topPlaytime = Database.getTopPlaytime();
+                populateLeaderboard(playtimeLeaderboard, topPlaytime, playtimeTitle,
+                        (playtime, playerName) -> miniMessage.deserialize(
+                                "<yellow>" + playerName + ": <gray>" + Utils.secondsTohms(playtime)));
+            } catch (SQLException e) {
+                e.printStackTrace();
+                errorLeaderboard(playtimeLeaderboard, playtimeTitle);
+            }
+        }
+
+        // Perfect walls leaderboard
+
+        TextComponent perfectWallsTitle = (TextComponent) miniMessage.deserialize("<gradient:gold:yellow>Perfect Walls Cleared Leaderboard\n");
+        if (Database.isOfflineMode()) {
+            offlineLeaderboard(perfectWallsLeaderboard, perfectWallsTitle);
+        } else {
+            try {
+                LinkedHashMap<UUID, Integer> topPerfectWalls = Database.getTopPerfectWalls();
+                populateLeaderboard(perfectWallsLeaderboard, topPerfectWalls, perfectWallsTitle,
+                        (perfectWalls, playerName) -> miniMessage.deserialize(
+                                "<yellow>" + playerName + ": <gold>" + perfectWalls + " walls"));
+            } catch (SQLException e) {
+                e.printStackTrace();
+                errorLeaderboard(perfectWallsLeaderboard, perfectWallsTitle);
+            }
+        }
+    }
+
+    public static <T> void populateLeaderboard(TextDisplay leaderboard, LinkedHashMap<UUID, T> topScores, TextComponent title,
+                                               BiFunction<T, String, Component> func) {
+        Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> {
+            TextComponent.Builder builder = title.toBuilder();
             int i = 1;
-            for (Map.Entry<UUID, Integer> entry : topLevels.entrySet()) {
+            for (Map.Entry<UUID, T> entry : topScores.entrySet()) {
                 String name = Bukkit.getOfflinePlayer(entry.getKey()).getName();
                 if (name == null) name = "null";
-                builder.append(Component.text("\n")
-                        .append(Component.text("#", NamedTextColor.YELLOW).append(Component.text(i, NamedTextColor.YELLOW)))
-                        .append(Component.text(" "))
-                        .append(PlayerLevels.getPrefix(entry.getValue()))
-                        .append(Component.text(" "))
-                        .append(Component.text(name, NamedTextColor.YELLOW))
-                        .append(Component.text(": ", NamedTextColor.YELLOW))
-                        .append(Component.text(entry.getValue(), NamedTextColor.AQUA))
-                        .append(Component.text("XP", NamedTextColor.AQUA)));
+                builder.append(miniMessage.deserialize("\n<yellow>#" + i + " "));
+                builder.append(func.apply(entry.getValue(), name));
                 i++;
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            builder.append(Component.text("\nError loading scores", NamedTextColor.RED));
-        } finally {
             builder.append(Component.text("\n\nUpdates every 30 seconds", NamedTextColor.GRAY));
-            Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () ->
-                    levelLeaderboard.text(builder.build()));
-        }
+            leaderboard.text(builder.build());
+        });
+    }
 
+    public static void offlineLeaderboard(TextDisplay leaderboard, TextComponent title) {
+        Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> {
+            TextComponent.Builder builder = title.toBuilder();
+            builder.append(Component.text("\nDatabase is currently offline.\nPlease check back later.", NamedTextColor.GRAY));
+            leaderboard.text(builder.build());
+        });
+    }
+
+    public static void errorLeaderboard(TextDisplay leaderboard, TextComponent title) {
+        Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> {
+            TextComponent.Builder builder = title.toBuilder();
+            builder.append(Component.text("\nError loading scores", NamedTextColor.RED));
+            leaderboard.text(builder.build());
+        });
     }
 }

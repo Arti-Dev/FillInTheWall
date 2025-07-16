@@ -84,6 +84,22 @@ leaderboards:
     z: 12.5
     pitch: 0.0
     yaw: -270.0
+  playtime:
+    ==: org.bukkit.Location
+    world: multi
+    x: 4.5
+    y: 102.5
+    z: 17.5
+    pitch: 0.0
+    yaw: -270.0
+  perfect-walls:
+    ==: org.bukkit.Location
+    world: multi
+    x: -3.5
+    y: 102.5
+    z: 17.5
+    pitch: 0.0
+    yaw: -270.0
 
 database:
     host: localhost

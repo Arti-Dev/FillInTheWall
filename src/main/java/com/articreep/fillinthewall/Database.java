@@ -245,6 +245,38 @@ public class Database {
         }
     }
 
+    public static LinkedHashMap<UUID, Long> getTopPlaytime() throws SQLException {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "SELECT uuid, playtime FROM playerInfo ORDER BY playtime DESC LIMIT 10"
+        )) {
+            ResultSet result = stmt.executeQuery();
+            LinkedHashMap<UUID, Long> topTimeOrdered = new LinkedHashMap<>();
+            while (result.next()) {
+                topTimeOrdered.put(UUID.fromString(result.getString("uuid")), result.getLong("playtime"));
+            }
+            return topTimeOrdered;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error while getting top playtime from database!");
+        }
+    }
+
+    public static LinkedHashMap<UUID, Integer> getTopPerfectWalls() throws SQLException {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "SELECT uuid, perfectWalls FROM playerInfo ORDER BY perfectWalls DESC LIMIT 10"
+        )) {
+            ResultSet result = stmt.executeQuery();
+            LinkedHashMap<UUID, Integer> topPerfectWallsOrdered = new LinkedHashMap<>();
+            while (result.next()) {
+                topPerfectWallsOrdered.put(UUID.fromString(result.getString("uuid")), result.getInt("perfectWalls"));
+            }
+            return topPerfectWallsOrdered;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error while getting top perfect walls from database!");
+        }
+    }
+
     public static void updateHotbar(UUID uuid, String hotbar) {
         try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "UPDATE hotbars SET hotbar = ? WHERE uuid = ?"
