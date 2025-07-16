@@ -80,7 +80,7 @@ public class Tutorial extends ModifierEvent implements Listener {
     @Override
     public Component actionBarOverride() {
         if (currentSlide >= 11) return getFormattedFakeMeter();
-        return MiniMessage.miniMessage().deserialize("<bold>Press <key:key.swapOffhand> to insta-send walls");
+        return MiniMessage.miniMessage().deserialize("<bold>To leave, walk off the playing field");
     }
 
     @Override
