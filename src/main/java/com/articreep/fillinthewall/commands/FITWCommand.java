@@ -4,6 +4,7 @@ import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.game.*;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.modifiers.ModifierEvent;
+import com.articreep.fillinthewall.multiplayer.Pregame;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.minecraft.network.protocol.game.ClientboundGameEventPacket;
 import org.bukkit.Bukkit;
@@ -291,6 +292,18 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                 } else {
                     sender.sendMessage("/fitw pair <player>/leave");
                 }
+            } else if (args[0].equalsIgnoreCase("spectate")) {
+                if (sender instanceof Player player) {
+                    Pregame pregame = PlayingFieldManager.pregame;
+                    if (pregame.isExcludedPlayer(player)) {
+                        pregame.removeExcludedPlayer(player);
+                        player.sendMessage(miniMessage.deserialize("<green>You are now participating in multiplayer games."));
+                    } else {
+                        pregame.addExcludedPlayer(player);
+                        player.sendMessage(miniMessage.deserialize("<yellow>You are now spectating multiplayer games."));
+                        player.sendMessage(miniMessage.deserialize("<yellow>Run /fitw spectate to rejoin"));
+                    }
+                }
             } else {
                 return false;
             }
@@ -307,6 +320,7 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
             strings.add("custom");
             strings.add("hotbar");
             strings.add("pair");
+            strings.add("spectate");
 
             if (sender.isOp()) {
                 strings.add("reload");

@@ -43,6 +43,7 @@ public class Pregame implements Listener {
     private final ArrayList<ScoreboardEntry> scoreboardEntries = new ArrayList<>();
 
     private final List<PlayingField> availablePlayingFields = new ArrayList<>();
+    private final Set<Player> excludedPlayers = new HashSet<>();
 
     private PositionSongPlayer songPlayer;
 
@@ -59,8 +60,7 @@ public class Pregame implements Listener {
     @EventHandler
     public void onPlayerLeaveWorld(PlayerChangedWorldEvent event) {
         if (event.getFrom().equals(world)) {
-            Utils.resetScoreboard(event.getPlayer());
-            if (songPlayer != null) songPlayer.removePlayer(event.getPlayer());
+            removeFromPregame(event.getPlayer());
         }
     }
 
@@ -115,7 +115,7 @@ public class Pregame implements Listener {
 
         cancelCountdown();
 
-        List<Player> players = world.getPlayers();
+        List<Player> players = getAvailablePlayers();
         // Attempt to remove all players from any games
         for (Player player : players) {
             if (PlayingFieldManager.isInGame(player)) {
@@ -126,8 +126,7 @@ public class Pregame implements Listener {
         int playersPerField = 1;
         if (settings.getBooleanAttribute(GamemodeAttribute.COOP)) playersPerField = 2;
         List<PlayingField> readyToGoPlayingFields =
-                // todo users will be able to exclude themselves
-                assignPlayersToPlayingFields(world.getPlayers(), availablePlayingFields, playersPerField);
+                assignPlayersToPlayingFields(getAvailablePlayers(), availablePlayingFields, playersPerField);
 
         for (PlayingField field : readyToGoPlayingFields) {
             for (Player player : field.getPlayers()) {
@@ -265,7 +264,7 @@ public class Pregame implements Listener {
                     return;
                 }
 
-                for (Player player : world.getPlayers()) {
+                for (Player player : getAvailablePlayers()) {
                     player.setScoreboard(scoreboard);
                     Team team = scoreboard.getTeam(FillInTheWall.NO_COLLISION_TEAM_NAME);
                     if (team != null) {
@@ -275,7 +274,7 @@ public class Pregame implements Listener {
                     asyncMusicSettingCheck(player);
                 }
 
-                if (world.getPlayers().size() < minPlayers) {
+                if (getAvailablePlayers().size() < minPlayers) {
                     countdown = -1;
                 } else {
                     if (countdown == -1) countdown = countdownMax;
@@ -320,7 +319,7 @@ public class Pregame implements Listener {
         addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.START_TIMER, 4));
         addScoreboardEntry(new ScoreboardEntry(ScoreboardEntryType.EMPTY, 5));
 
-        for (Player player : world.getPlayers()) {
+        for (Player player : getAvailablePlayers()) {
             player.setScoreboard(scoreboard);
             team.addEntity(player);
         }
@@ -342,14 +341,14 @@ public class Pregame implements Listener {
                         entry.update(scoreboard, objective, Component.text(countdown));
                     }
                 }
-                case PREGAME_PLAYERCOUNT -> entry.update(scoreboard, objective, Component.text(world.getPlayers().size()));
+                case PREGAME_PLAYERCOUNT -> entry.update(scoreboard, objective, Component.text(getAvailablePlayers().size()));
             }
         }
 
     }
 
     public void removeScoreboard() {
-        for (Player player : world.getPlayers()) {
+        for (Player player : getAvailablePlayers()) {
             Utils.resetScoreboard(player);
         }
         for (ScoreboardEntry entry : scoreboardEntries) {
@@ -378,5 +377,29 @@ public class Pregame implements Listener {
 
     public Gamemode getGamemode() {
         return gamemode;
+    }
+
+    public void addExcludedPlayer(Player player) {
+        excludedPlayers.add(player);
+        removeFromPregame(player);
+    }
+
+    private void removeFromPregame(Player player) {
+        Utils.resetScoreboard(player);
+        if (songPlayer != null) songPlayer.removePlayer(player);
+    }
+
+    public void removeExcludedPlayer(Player player) {
+        excludedPlayers.remove(player);
+    }
+
+    public boolean isExcludedPlayer(Player player) {
+        return excludedPlayers.contains(player);
+    }
+
+    private List<Player> getAvailablePlayers() {
+        List<Player> players = new ArrayList<>(world.getPlayers());
+        players.removeIf(excludedPlayers::contains);
+        return players;
     }
 }
