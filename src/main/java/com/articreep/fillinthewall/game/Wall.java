@@ -156,8 +156,8 @@ public class Wall {
         BlockDisplay bottomBorder = null;
         if (!hideBottomBorder) {
             bottomBorder = (BlockDisplay) world.spawnEntity(centerOfWall.clone()
-                    // dip down a little
-                    .subtract(0, ((double) height /2)+0.05, 0),
+                            // dip down a little
+                            .subtract(0, ((double) height / 2) + 0.05, 0),
                     EntityType.BLOCK_DISPLAY);
             bottomBorder.setTransformation(new Transformation(
                     // translation - half of the scale vectors and negative
@@ -168,8 +168,8 @@ public class Wall {
         }
 
         BlockDisplay topBorder = (BlockDisplay) world.spawnEntity(centerOfWall.clone()
-                // middle of the wall
-                .add(0, ((double) height/2)+0.05, 0),
+                        // middle of the wall
+                        .add(0, ((double) height / 2) + 0.05, 0),
                 // go up and go up a little more
                 EntityType.BLOCK_DISPLAY);
         topBorder.setTransformation(new Transformation(
@@ -189,8 +189,8 @@ public class Wall {
         Utils.vectorAbs(scaleVector);
 
         BlockDisplay leftBorder = (BlockDisplay) world.spawnEntity(centerOfWall.clone()
-                // left a little;
-                .subtract(field.getFieldDirection().multiply((double) length/2 + 0.05)),
+                        // left a little;
+                        .subtract(field.getFieldDirection().multiply((double) length / 2 + 0.05)),
                 EntityType.BLOCK_DISPLAY);
         leftBorder.setTransformation(new Transformation(
                 // translation - half of the scale vectors and negative
@@ -200,8 +200,8 @@ public class Wall {
         leftBorder.setBlock(Material.IRON_BLOCK.createBlockData());
 
         BlockDisplay rightBorder = (BlockDisplay) world.spawnEntity(centerOfWall.clone()
-                // right a little;
-                .add(field.getFieldDirection().multiply((double) length /2 + 0.05)),
+                        // right a little;
+                        .add(field.getFieldDirection().multiply((double) length / 2 + 0.05)),
                 EntityType.BLOCK_DISPLAY);
         rightBorder.setTransformation(new Transformation(
                 // translation - half of the scale vectors and negative
@@ -217,15 +217,18 @@ public class Wall {
         scaleVector.add(field.getFieldDirection().multiply(length));
         Utils.vectorAbs(scaleVector);
 
-        BlockDisplay backBorder = (BlockDisplay) world.spawnEntity(centerOfWall.clone()
-                // go back a little
-                .add(movementDirection.clone().multiply(-0.5)),
-                EntityType.BLOCK_DISPLAY);
-        backBorder.setTransformation(new Transformation(
-                scaleVector.clone().multiply(-0.5).toVector3f(),
-                new AxisAngle4f(0, 0, 0, 1), scaleVector.toVector3f(),
-                new AxisAngle4f(0, 0, 0, 1)));
-        backBorder.setBlock(Material.IRON_BLOCK.createBlockData());
+        BlockDisplay backBorder = null;
+        if (addBackBorder) {
+            backBorder = (BlockDisplay) world.spawnEntity(centerOfWall.clone()
+                            // go back a little
+                            .add(movementDirection.clone().multiply(-0.5)),
+                    EntityType.BLOCK_DISPLAY);
+            backBorder.setTransformation(new Transformation(
+                    scaleVector.clone().multiply(-0.5).toVector3f(),
+                    new AxisAngle4f(0, 0, 0, 1), scaleVector.toVector3f(),
+                    new AxisAngle4f(0, 0, 0, 1)));
+            backBorder.setBlock(Material.IRON_BLOCK.createBlockData());
+        }
 
 
         border.addAll(Arrays.asList(topBorder, leftBorder, rightBorder));
