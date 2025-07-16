@@ -1,6 +1,7 @@
 package com.articreep.fillinthewall;
 
 import com.articreep.fillinthewall.commands.FITWCommand;
+import com.articreep.fillinthewall.commands.PairUp;
 import com.articreep.fillinthewall.commands.RegisterPlayingField;
 import com.articreep.fillinthewall.environments.Finals;
 import com.articreep.fillinthewall.environments.TheVoid;
@@ -69,6 +70,7 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(new InventoryMenus(), this);
         getServer().getPluginManager().registerEvents(new LobbyItems(), this);
         getServer().getPluginManager().registerEvents(new SandboxMenu(), this);
+        getServer().getPluginManager().registerEvents(new PairUp(), this);
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
             loadPlayingFieldConfig();

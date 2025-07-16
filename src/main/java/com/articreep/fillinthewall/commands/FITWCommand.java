@@ -263,6 +263,34 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                 } else {
                     sender.sendMessage("This command can only be used by players!");
                 }
+            } else if (args[0].equalsIgnoreCase("pair")) {
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage("This command can only be used by players!");
+                    return true;
+                }
+                // Commands: any player - send them a request, cannot do this if already paired, and any new requests overwrite old ones
+                // Check if the argument is a player who's sent them a request, and if so, pair them up
+                // "leave": leave any pairing
+                if (args.length >= 2) {
+                    Player otherPlayer = Bukkit.getPlayer(args[1]);
+
+                    if (player.equals(otherPlayer)) {
+                        sender.sendMessage("bruh");
+                        return true;
+                    }
+                    if (otherPlayer == null && !args[1].equalsIgnoreCase("leave")) {
+                        sender.sendMessage("/fitw pair <player>/leave");
+                        return true;
+
+                    } else if (args[1].equalsIgnoreCase("leave")) {
+                        PairUp.leave(player);
+                        return true;
+                    }
+
+                    PairUp.request(player, otherPlayer);
+                } else {
+                    sender.sendMessage("/fitw pair <player>/leave");
+                }
             } else {
                 return false;
             }
@@ -277,6 +305,8 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
         if (args.length == 1) {
             strings.add("spawn");
             strings.add("custom");
+            strings.add("hotbar");
+            strings.add("pair");
 
             if (sender.isOp()) {
                 strings.add("reload");
@@ -291,7 +321,6 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                 strings.add("demomode");
                 strings.add("endcredits");
                 strings.add("swap");
-                strings.add("hotbar");
             }
             StringUtil.copyPartialMatches(args[0], strings, completions);
         } else if (args.length == 2) {
@@ -306,6 +335,12 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                 StringUtil.copyPartialMatches(args[1], strings, completions);
             } else if (args[0].equalsIgnoreCase("swap")) {
                 StringUtil.copyPartialMatches(args[1], BuildSwapper.getAvailableSchematics(), completions);
+            } else if (args[0].equalsIgnoreCase("pair")) {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    strings.add(player.getName());
+                }
+                strings.add("leave");
+                StringUtil.copyPartialMatches(args[1], strings, completions);
             }
         } else if (args.length == 3) {
             if (args[0].equalsIgnoreCase("modifier")) {

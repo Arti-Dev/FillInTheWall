@@ -1,5 +1,6 @@
 package com.articreep.fillinthewall.multiplayer;
 
+import com.articreep.fillinthewall.commands.PairUp;
 import com.articreep.fillinthewall.lobby.NBSMusic;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.FillInTheWall;
@@ -125,7 +126,8 @@ public class Pregame implements Listener {
         int playersPerField = 1;
         if (settings.getBooleanAttribute(GamemodeAttribute.COOP)) playersPerField = 2;
         List<PlayingField> readyToGoPlayingFields =
-                assignPlayersToPlayingFields(new ArrayList<>(world.getPlayers()), availablePlayingFields, playersPerField);
+                // todo users will be able to exclude themselves
+                assignPlayersToPlayingFields(world.getPlayers(), availablePlayingFields, playersPerField);
 
         for (PlayingField field : readyToGoPlayingFields) {
             for (Player player : field.getPlayers()) {
@@ -213,11 +215,26 @@ public class Pregame implements Listener {
     }
 
     public static List<PlayingField> assignPlayersToPlayingFields(List<Player> players, List<PlayingField> availablePlayingFields, int playersPerField) {
+        // clone
+        players = new ArrayList<>(players);
+        Set<PairUp.PlayerPair> pairs = new HashSet<>();
         if (playersPerField < 1) {
             throw new IllegalArgumentException("Can't have less than 1 player per playing field!");
         }
         List<Set<Player>> playerSets = new ArrayList<>();
         Collections.shuffle(players);
+
+        // Remove pairs from initial player list
+        Iterator<Player> it = players.iterator();
+        while (it.hasNext()) {
+            Player player = it.next();
+            if (PairUp.isPaired(player)) {
+                pairs.add(PairUp.getPair(player));
+                it.remove();
+            }
+        }
+
+        // Add solo players
         for (int i = 0; i < players.size(); i += playersPerField) {
             Set<Player> playerSet = new HashSet<>();
             for (int j = 0; j < playersPerField && i+j < players.size(); j++) {
@@ -225,6 +242,15 @@ public class Pregame implements Listener {
             }
             playerSets.add(playerSet);
         }
+
+        // Add paired players
+        for (PairUp.PlayerPair pair : pairs) {
+            Set<Player> playerSet = new HashSet<>();
+            playerSet.add(pair.player1());
+            playerSet.add(pair.player2());
+            playerSets.add(playerSet);
+        }
+
         return assignPlayerSetsToPlayingFields(playerSets, availablePlayingFields);
     }
 
