@@ -15,8 +15,8 @@ public enum Gamemode {
     RUSH_SCORE_ATTACK("<red>Rush Score Attack", "Use Rush Attacks to score as much as you can!", Material.REDSTONE_BLOCK),
     SPRINT("<aqua>Sprint", "Perfect clear 20 walls as fast as you can!", Material.DIAMOND_BLOCK),
     MULTIPLAYER_SCORE_ATTACK("<aqua>Multiplayer Score Attack", "Hypixel-style game", Material.BAMBOO_BLOCK),
-    MARATHON("<gray>Endless Survival", "Survive as long as you can!", Material.COBBLED_DEEPSLATE),
     CAPPED_MARATHON("<gray>Marathon", "Aim to clear level 15!", Material.COBBLESTONE),
+    MARATHON("<gray>Endless Survival", "Survive as long as you can!", Material.COBBLED_DEEPSLATE),
     VERSUS("<blue>2-player Versus", "Experimental versus system with garbage walls", Material.TNT),
     SANDBOX("<gradient:green:dark_green>Sandbox", "...like the video game Minecraft?", Material.CHAIN_COMMAND_BLOCK),
     MEGA("<dark_aqua>Mega", "Work with others to fill 200 holes!", Material.LIGHT_BLUE_CONCRETE);

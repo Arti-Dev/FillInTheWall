@@ -43,6 +43,7 @@ public class Leaderboards {
         Location levelLocation = config.getLocation("leaderboards.level");
         Location playtimeLocation = config.getLocation("leaderboards.playtime");
         Location perfectWallsLocation = config.getLocation("leaderboards.perfect-walls");
+        Location cappedMarathonLocation = config.getLocation("leaderboards.capped-marathon");
 
         if (scoreAttackLocation != null) {
             TextDisplay scoreAttackDisplay = (TextDisplay) scoreAttackLocation.getWorld().spawnEntity(
@@ -61,7 +62,7 @@ public class Leaderboards {
         if (marathonLocation != null) {
             TextDisplay marathonDisplay = (TextDisplay) marathonLocation.getWorld().spawnEntity(
                     marathonLocation, EntityType.TEXT_DISPLAY);
-            marathonDisplay.text(Component.text("Marathon Leaderboard"));
+            marathonDisplay.text(Component.text("Endless Survival Leaderboard"));
             marathonDisplay.setBillboard(Display.Billboard.VERTICAL);
             scoreLeaderboards.put(marathonDisplay, Gamemode.MARATHON);
         }
@@ -99,6 +100,14 @@ public class Leaderboards {
                     perfectWallsLocation, EntityType.TEXT_DISPLAY);
             perfectWallsLeaderboard.text(Component.text("Perfect Walls Cleared Leaderboard"));
             perfectWallsLeaderboard.setBillboard(Display.Billboard.VERTICAL);
+        }
+
+        if (cappedMarathonLocation != null) {
+            TextDisplay cappedMarathonDisplay = (TextDisplay) cappedMarathonLocation.getWorld().spawnEntity(
+                    cappedMarathonLocation, EntityType.TEXT_DISPLAY);
+            cappedMarathonDisplay.text(Component.text("Marathon Leaderboard"));
+            cappedMarathonDisplay.setBillboard(Display.Billboard.VERTICAL);
+            scoreLeaderboards.put(cappedMarathonDisplay, Gamemode.CAPPED_MARATHON);
         }
         Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), Leaderboards::updateLeaderboards);
     }

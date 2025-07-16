@@ -25,6 +25,7 @@ public class Database {
         supportedGamemodes.add(Gamemode.MARATHON);
         supportedGamemodes.add(Gamemode.SPRINT);
         supportedGamemodes.add(Gamemode.MEGA);
+        supportedGamemodes.add(Gamemode.CAPPED_MARATHON);
     }
 
     public static boolean loadSQL() {
@@ -99,6 +100,7 @@ public class Database {
         }
         verifyColumn(conn, "playerInfo", "playtime", "BIGINT DEFAULT 0 NOT NULL");
         verifyColumn(conn, "playerInfo", "perfectWalls", "INT DEFAULT 0 NOT NULL");
+        verifyColumn(conn, "scores", Gamemode.CAPPED_MARATHON.toString(), "INT DEFAULT 0 NOT NULL");
 
         try {
             conn.commit();
