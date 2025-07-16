@@ -711,7 +711,6 @@ public class PlayingFieldScorer {
             }
         }
 
-        FillInTheWall.getInstance().getSLF4JLogger().info("playersize: {}", eligiblePlayers.size());
         for (Player player : eligiblePlayers) {
             try {
                 int record = Database.getRecord(player.getUniqueId(), gamemode);
