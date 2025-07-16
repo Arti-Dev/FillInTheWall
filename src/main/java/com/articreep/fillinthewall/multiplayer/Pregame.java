@@ -23,6 +23,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.*;
@@ -44,6 +45,7 @@ public class Pregame implements Listener {
 
     private final List<PlayingField> availablePlayingFields = new ArrayList<>();
     private final Set<Player> excludedPlayers = new HashSet<>();
+    private static final Set<Player> gimmicklessPlayers = new HashSet<>();
 
     private PositionSongPlayer songPlayer;
 
@@ -62,6 +64,12 @@ public class Pregame implements Listener {
         if (event.getFrom().equals(world)) {
             removeFromPregame(event.getPlayer());
         }
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        excludedPlayers.remove(event.getPlayer());
+        gimmicklessPlayers.remove(event.getPlayer());
     }
 
     public void unregisterEvents() {
@@ -171,7 +179,7 @@ public class Pregame implements Listener {
             while (playerIterator.hasNext()) {
                 Player player = playerIterator.next();
                 if (PlayingFieldManager.isInGame(player)) {
-                    FillInTheWall.getInstance().getSLF4JLogger().info(player.getName() + " is already in a game - skipping (remove them first!)");
+                    FillInTheWall.getInstance().getSLF4JLogger().info("{} is already in a game - skipping (remove them first!)", player.getName());
                     playerIterator.remove();
                 }
             }
@@ -193,6 +201,7 @@ public class Pregame implements Listener {
                 currentPlayingField.setMultiplayerMode(true);
                 for (Player player : currentPlayerSet) {
                     currentPlayingField.addPlayer(player, PlayingField.AddReason.MULTIPLAYER);
+                    if (gimmicklessPlayers.contains(player)) currentPlayingField.getScorer().setGimmickless(true);
                 }
                 readyToGoPlayingFields.add(currentPlayingField);
 
@@ -401,5 +410,17 @@ public class Pregame implements Listener {
         List<Player> players = new ArrayList<>(world.getPlayers());
         players.removeIf(excludedPlayers::contains);
         return players;
+    }
+
+    public static void addGimmicklessPlayer(Player player) {
+        gimmicklessPlayers.add(player);
+    }
+
+    public static void removeGimmicklessPlayer(Player player) {
+        gimmicklessPlayers.remove(player);
+    }
+
+    public static boolean isGimmicklessPlayer(Player player) {
+        return gimmicklessPlayers.contains(player);
     }
 }

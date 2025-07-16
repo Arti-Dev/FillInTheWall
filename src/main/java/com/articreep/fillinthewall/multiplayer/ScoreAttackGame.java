@@ -226,7 +226,12 @@ public class ScoreAttackGame extends MultiplayerGame {
         Bukkit.broadcast(Component.empty());
         for (int i = 0; i < rankings.size(); i++) {
             if (i == 0) rankings.get(i).fireworks();
-            Bukkit.broadcast(miniMessage.deserialize("#" + (i+1) + " - <green>" + Utils.playersToString(rankings.get(i).getPlayers()) + " with " + rankings.get(i).getScorer().getScore() + " points"));
+            String message = "#" + (i+1) + " - <green>" +
+                    Utils.playersToString(rankings.get(i).getPlayers()) + " with " + rankings.get(i).getScorer().getScore() + " points";
+            if (rankings.get(i).getScorer().isGimmickless()) {
+                message += " <dark_gray>(gimmickless)";
+            }
+            Bukkit.broadcast(miniMessage.deserialize(message));
         }
         Bukkit.broadcast(Component.empty());
         Bukkit.broadcast(Component.text("---"));

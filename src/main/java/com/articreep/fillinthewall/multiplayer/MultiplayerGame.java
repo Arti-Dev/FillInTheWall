@@ -299,6 +299,7 @@ public abstract class MultiplayerGame implements Listener {
         // Hold an event for each playing field until they're ready to be activated
         HashSet<ModifierEvent> events = new HashSet<>();
         for (PlayingField field : playingFields) {
+            if (field.getScorer().isGimmickless()) continue;
             ModifierEvent copy = event.copy();
             copy.setPlayingField(field);
             events.add(copy);

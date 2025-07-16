@@ -105,8 +105,8 @@ public class GlobalListeners implements Listener {
     @EventHandler(priority = EventPriority.LOW)
     public void onPlayerJoin(PlayerJoinEvent event) {
         if (!event.getPlayer().isOp()) event.getPlayer().teleport(FillInTheWall.getInstance().getMultiplayerSpawn());
-        if (!LobbyItems.checkInventoryForItem(event.getPlayer(), "PROFILE_LOBBY_ITEM"))
-            LobbyItems.giveProfileMenuItem(event.getPlayer());
+        LobbyItems.giveProfileMenuItem(event.getPlayer());
+        LobbyItems.giveGimmicklessMenuItem(event.getPlayer());
         // load level in cache
         if (!Database.isOfflineMode()) {
             Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> {

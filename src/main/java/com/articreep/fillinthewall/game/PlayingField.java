@@ -345,8 +345,8 @@ public class PlayingField implements Listener {
     /** Returns true if the player was removed, false if unable to (locked to field) */
     public boolean removePlayer(Player player, boolean force) {
         if (multiplayerMode && !force) return false;
+        saveHotbar(player);
         Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> {
-            saveHotbar(player);
             scorer.updateStats(player);
         });
 
@@ -371,9 +371,8 @@ public class PlayingField implements Listener {
             GameMode previousGamemode = previousGamemodes.get(player);
             if (previousGamemode != null) player.setGameMode(previousGamemode);
             if (previousGamemode != GameMode.CREATIVE) player.setAllowFlight(false);
-            if (!LobbyItems.checkInventoryForItem(player, "PROFILE_LOBBY_ITEM")) {
-                LobbyItems.giveProfileMenuItem(player);
-            }
+            LobbyItems.giveProfileMenuItem(player);
+            LobbyItems.giveGimmicklessMenuItem(player);
         }
         previousGamemodes.remove(player);
         removeInfiniteReach(player);
@@ -1686,7 +1685,9 @@ public class PlayingField implements Listener {
             }
         }
 
-        Database.updateHotbar(player.getUniqueId(), hotbar.toString());
+        Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> {
+            Database.updateHotbar(player.getUniqueId(), hotbar.toString());
+        });
     }
 
     public boolean isLatePlayer(Player player) {

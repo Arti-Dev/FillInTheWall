@@ -70,6 +70,8 @@ public class PlayingFieldScorer {
     private Scoreboard scoreboard = null;
     private Objective objective = null;
     private final List<ScoreboardEntry> scoreboardEntries = new ArrayList<>();
+    // Prevents gimmicks from happening in multiplayer but reduces score by 1 for every wall cleared
+    private boolean gimmickless = false;
     
     // todo add the ability to neutralize garbage
     private final Deque<Wall> garbageQueue = new ArrayDeque<>();
@@ -97,7 +99,7 @@ public class PlayingFieldScorer {
     }
 
     public enum BonusType {
-        PERFECT, FIRE, STRIPE, PLAYER, CHAIN
+        PERFECT, FIRE, STRIPE, PLAYER, CHAIN, GIMMICKLESS
     }
 
     public Judgement scoreWall(Wall wall, PlayingField field) {
@@ -191,6 +193,12 @@ public class PlayingFieldScorer {
         } else {
             perfectWallChain = 0;
             bonusMap.put(BonusType.PERFECT, 0);
+        }
+
+        if (gimmickless) {
+            bonusMap.put(BonusType.GIMMICKLESS, -1);
+        } else {
+            bonusMap.put(BonusType.GIMMICKLESS, 0);
         }
         return bonusMap;
     }
@@ -418,7 +426,8 @@ public class PlayingFieldScorer {
 
     public void displayScoreTitle(Judgement judgement, int score, Map<BonusType, Integer> bonusMap) {
         Title title = Title.title(judgement.getFormattedText(),
-                Component.text(score + bonusMap.get(BonusType.PERFECT) + " points", judgement.getColor()),
+                // todo I shouldn't have to manually use the bonus map, I should just know what the x+y score is
+                Component.text(score + bonusMap.get(BonusType.PERFECT) + bonusMap.get(BonusType.GIMMICKLESS) + " points", judgement.getColor()),
                 getScoreTitleTimes());
         field.sendTitleToPlayers(title);
     }
@@ -1095,5 +1104,13 @@ public class PlayingFieldScorer {
     public int getScoreToNextLevel() {
         if (endlessRun == null) return -1;
         else return endlessRun.scoreToNextLevel;
+    }
+
+    public boolean isGimmickless() {
+        return gimmickless;
+    }
+
+    public void setGimmickless(boolean gimmickless) {
+        this.gimmickless = gimmickless;
     }
 }
