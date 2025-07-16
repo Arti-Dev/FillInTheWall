@@ -684,8 +684,9 @@ public class PlayingFieldScorer {
             field.sendMessageToPlayers(miniMessage.deserialize("<green>Your final score is <bold>" + score));
         }
         if (!Database.isOfflineMode()) {
+            Set<Player> playersCopy = new HashSet<>(field.getPlayers());
             Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> {
-                if (Database.isSupported(gamemode) && (teamEffort || solo)) submitScores(scoreByTime);
+                if (Database.isSupported(gamemode) && (teamEffort || solo)) submitScores(scoreByTime, playersCopy);
                 for (Player player : field.getPlayers()) {;
                     updateStats(player);
                 }
@@ -693,21 +694,25 @@ public class PlayingFieldScorer {
         }
     }
 
-    private void submitScores(boolean scoreByTime) {
-        ArrayList<Player> players = new ArrayList<>();
+    private void submitScores(boolean scoreByTime, Set<Player> players) {
+        ArrayList<Player> eligiblePlayers = new ArrayList<>();
         if (gamemode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.TEAM_EFFORT)) {
-            players.addAll(field.getPlayers());
-        } else if (field.getPlayers().size() == 1) {
-            players.add(field.getPlayers().iterator().next());
+            eligiblePlayers.addAll(players);
+        } else if (players.size() == 1) {
+            eligiblePlayers.add(players.iterator().next());
         }
         if (scoreByTime) {
             // Check that clear conditions have been met
-            if (perfectWallsCleared < gamemode.getDefaultSettings().getIntAttribute(GamemodeAttribute.PERFECT_WALL_CAP))
+            if (perfectWallsCleared < gamemode.getDefaultSettings().getIntAttribute(GamemodeAttribute.PERFECT_WALL_CAP)) {
                 return;
-            if (eventCount < gamemode.getDefaultSettings().getIntAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP))
+            }
+            if (eventCount < gamemode.getDefaultSettings().getIntAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP)) {
                 return;
+            }
         }
-        for (Player player : players) {
+
+        FillInTheWall.getInstance().getSLF4JLogger().info("playersize: {}", eligiblePlayers.size());
+        for (Player player : eligiblePlayers) {
             try {
                 int record = Database.getRecord(player.getUniqueId(), gamemode);
                 if ((scoreByTime && time < record) || (!scoreByTime && score > record)) {
