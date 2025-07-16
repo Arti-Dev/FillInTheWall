@@ -35,6 +35,7 @@ public enum GamemodeAttribute {
     CHARGES(Integer.class, 0),
     MULTI_EVENT_0(ModifierEvent.Type.class, ModifierEvent.Type.NONE),
     MULTI_EVENT_1(ModifierEvent.Type.class, ModifierEvent.Type.NONE),
+    MULTI_EVENT_FINALS(ModifierEvent.Type.class, ModifierEvent.Type.NONE),
     SINGULAR_EVENT(ModifierEvent.Type.class, ModifierEvent.Type.NONE),
     /**
      * Whether to generate co-op walls. If enabled, the consistent and random hole counts are combined to form

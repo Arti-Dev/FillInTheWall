@@ -29,6 +29,7 @@ public class ScoreAttackGame extends MultiplayerGame {
     private final ArrayList<PlayingField> finalStageBoards;
     private final int eventTime0;
     private final int eventTime1;
+    private final int eventTimeFinals;
     private final Sound[] possibleQualificationsMusic = {Sound.MUSIC_DISC_BLOCKS, Sound.MUSIC_DISC_CHIRP, Sound.MUSIC_DISC_FAR,
     Sound.MUSIC_DISC_STAL, Sound.MUSIC_DISC_WAIT};
     private final Sound[] possibleFinalsMusic = {Sound.MUSIC_DISC_PRECIPICE};
@@ -42,6 +43,7 @@ public class ScoreAttackGame extends MultiplayerGame {
         Random random = new Random();
         eventTime0 = random.nextInt(20 * 80, 20 * 100);
         eventTime1 = random.nextInt(20 * 20, 20 * 60);
+        eventTimeFinals = 20 * 90;
         this.settings = settings;
     }
 
@@ -87,6 +89,11 @@ public class ScoreAttackGame extends MultiplayerGame {
                         deployEventWithSignals(settings.getModifierEventTypeAttribute(GamemodeAttribute.MULTI_EVENT_0));
                     } else if (time == eventTime1) {
                         deployEventWithSignals(settings.getModifierEventTypeAttribute(GamemodeAttribute.MULTI_EVENT_1));
+                    }
+                } else if (stage == Stage.FINALS && settings.getModifierEventTypeAttribute(GamemodeAttribute.SINGULAR_EVENT)
+                        == ModifierEvent.Type.NONE) {
+                    if (time == eventTimeFinals) {
+                        deployEventWithSignals(settings.getModifierEventTypeAttribute(GamemodeAttribute.MULTI_EVENT_FINALS));
                     }
                 }
 

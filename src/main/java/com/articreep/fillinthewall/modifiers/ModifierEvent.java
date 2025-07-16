@@ -103,6 +103,7 @@ public abstract class ModifierEvent {
         RANDOM(null),
         // Exclusively for endless mode
         RANDOM_ENDLESS(null),
+        RANDOM_FINALS(null),
         NONE(null);
 
         final Class<? extends ModifierEvent> clazz;
@@ -135,6 +136,16 @@ public abstract class ModifierEvent {
                 types.remove(FREEZE);
                 types.remove(NONE);
                 types.remove(RUSH);
+                Type type = types.get((int) (Math.random() * types.size()));
+                return type.createEvent();
+            } else if (this == RANDOM_FINALS) {
+                // 50% chance of no event
+                if (Math.random() < 0.5) return null;
+                ArrayList<Type> types = new ArrayList<>();
+                types.add(FIREINTHEHOLE);
+                types.add(INVERTED);
+                types.add(POPIN);
+                types.add(SCALE);
                 Type type = types.get((int) (Math.random() * types.size()));
                 return type.createEvent();
             }

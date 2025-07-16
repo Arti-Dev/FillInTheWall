@@ -97,6 +97,7 @@ public enum Gamemode {
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.MULTI_EVENT_0, ModifierEvent.Type.RANDOM);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.MULTI_EVENT_1, ModifierEvent.Type.RANDOM);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.FINALS_TIME_LIMIT, 20*150);
+        MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.MULTI_EVENT_FINALS, ModifierEvent.Type.RANDOM_FINALS);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.ACTIONBAR_DISPLAY, PlayingFieldScorer.ActionBarType.CHARGES);
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.CHARGES, 3);
 
