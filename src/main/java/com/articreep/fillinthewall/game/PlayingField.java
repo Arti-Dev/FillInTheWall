@@ -852,6 +852,7 @@ public class PlayingField implements Listener {
 
         if (scorer.getSettings().getIntAttribute(GamemodeAttribute.PERFECT_WALL_CAP) > 0) {
             if (scorer.getPerfectWallsCleared() >= scorer.getSettings().getIntAttribute(GamemodeAttribute.PERFECT_WALL_CAP)) {
+                scorer.playGameEnd();
                 stop(false, true);
             }
         }
@@ -1064,6 +1065,7 @@ public class PlayingField implements Listener {
         }
         if (scorer.getSettings().getIntAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP) > 0) {
             if (scorer.getEventCount() >= (int) scorer.getSettings().getAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP)) {
+                scorer.playGameEnd();
                 stop();
             }
         }

@@ -219,7 +219,6 @@ public class PlayingFieldScorer {
         if (doLevels && levelProgress >= levelProgressMax) {
             setLevel(level + 1);
             field.flashLevel(80);
-            levelUpSound();
         }
     }
 
@@ -244,6 +243,41 @@ public class PlayingFieldScorer {
                 i++;
             }
         }.runTaskTimer(FillInTheWall.getInstance(), 0, 2);
+    }
+
+    private final static float E1 = (float) Math.pow(2, (float) -2/12);
+    private final static float C1 = (float) Math.pow(2, (float) -6/12);
+
+    private final static float B1 = (float) Math.pow(2, (float) -7/12);
+    private final static float D1 = (float) Math.pow(2, (float) -4/12);
+    private final static float F1 = (float) Math.pow(2, (float) -1/12);
+    private final static float G2 = (float) Math.pow(2, (float) 1/12);
+    private final static float A2 = (float) Math.pow(2, (float) 3/12);
+
+    // Taken from advancement bingo on FACT MC which I contributed to
+    public void playGameEnd() {
+        new BukkitRunnable() {
+            int i = 0;
+            @Override
+            public void run() {
+                if (i >= 8) {
+                    cancel();
+                } else if (i == 0 || i == 1 || i == 3 || i == 7) {
+                    field.playSoundToPlayers(Sound.BLOCK_NOTE_BLOCK_PLING, 1, C1);
+                    field.playSoundToPlayers(Sound.BLOCK_NOTE_BLOCK_PLING, 1, E1);
+                    field.playSoundToPlayers(Sound.BLOCK_NOTE_BLOCK_PLING, 1, G2);
+                } else if (i == 2) {
+                    field.playSoundToPlayers(Sound.BLOCK_NOTE_BLOCK_PLING, 1, D1);
+                    field.playSoundToPlayers(Sound.BLOCK_NOTE_BLOCK_PLING, 1, F1);
+                    field.playSoundToPlayers(Sound.BLOCK_NOTE_BLOCK_PLING, 1, A2);
+                } else if (i == 5) {
+                    field.playSoundToPlayers(Sound.BLOCK_NOTE_BLOCK_PLING, 1, B1);
+                    field.playSoundToPlayers(Sound.BLOCK_NOTE_BLOCK_PLING, 1, D1);
+                    field.playSoundToPlayers(Sound.BLOCK_NOTE_BLOCK_PLING, 1, F1);
+                }
+                i++;
+            }
+        }.runTaskTimer(FillInTheWall.getInstance(), 0, 3);
     }
 
     // Unused
@@ -913,10 +947,19 @@ public class PlayingFieldScorer {
 
     public void setLevel(int level) {
         levelProgress = 0;
+        int maxLevel = settings.getIntAttribute(GamemodeAttribute.LEVEL_CAP);
         field.getQueue().setRandomizeFurther(false);
         this.level = level;
+
+        if (maxLevel > 0 && level > maxLevel) {
+            field.sendMessageToPlayers(miniMessage.deserialize("<gold>Congratulations!"));
+            playGameEnd();
+            field.stop(false, true);
+            return;
+        }
         setDifficulty(level);
         setLevelProgressMax(level);
+        if (level != 1) levelUpSound();
         // when we level up, delete all pending walls in the queue which forces a new wall to be made.
         field.getQueue().clearHiddenWalls();
     }

@@ -42,6 +42,7 @@ public enum GamemodeAttribute {
      */
     COOP(Boolean.class, false),
     PERFECT_WALL_CAP(Integer.class, -1),
+    LEVEL_CAP(Integer.class, -1),
     SCORE_BY_TIME(Boolean.class, false),
     REFUSE_IMPERFECT_WALLS(Boolean.class, false),
     /**

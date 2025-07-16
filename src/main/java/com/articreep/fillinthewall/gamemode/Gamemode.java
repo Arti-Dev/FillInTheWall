@@ -15,7 +15,8 @@ public enum Gamemode {
     RUSH_SCORE_ATTACK("<red>Rush Score Attack", "Use Rush Attacks to score as much as you can!", Material.REDSTONE_BLOCK),
     SPRINT("<aqua>Sprint", "Perfect clear 20 walls as fast as you can!", Material.DIAMOND_BLOCK),
     MULTIPLAYER_SCORE_ATTACK("<aqua>Multiplayer Score Attack", "Hypixel-style game", Material.BAMBOO_BLOCK),
-    MARATHON("<gray>Marathon", "Survive as long as you can!", Material.STONE),
+    MARATHON("<gray>Endless Survival", "Survive as long as you can!", Material.COBBLED_DEEPSLATE),
+    CAPPED_MARATHON("<gray>Marathon", "Aim to clear level 15!", Material.COBBLESTONE),
     VERSUS("<blue>2-player Versus", "Experimental versus system with garbage walls", Material.TNT),
     SANDBOX("<gradient:green:dark_green>Sandbox", "...like the video game Minecraft?", Material.CHAIN_COMMAND_BLOCK),
     MEGA("<dark_aqua>Mega", "Work with others to fill 200 holes!", Material.LIGHT_BLUE_CONCRETE);
@@ -39,7 +40,7 @@ public enum Gamemode {
         SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.LEVEL);
         SCORE_ATTACK.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         SCORE_ATTACK.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
-        SCORE_ATTACK.addAttribute(GamemodeAttribute.WALL_TIME_DECREASE_AMOUNT, 18);
+        SCORE_ATTACK.addAttribute(GamemodeAttribute.WALL_TIME_DECREASE_AMOUNT, 17);
         SCORE_ATTACK.addAttribute(GamemodeAttribute.ACTIONBAR_DISPLAY, PlayingFieldScorer.ActionBarType.LEVEL_PROGRESS);
 
         RUSH_SCORE_ATTACK.addAttribute(GamemodeAttribute.DO_LEVELS, false);
@@ -116,9 +117,20 @@ public enum Gamemode {
         MARATHON.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
         MARATHON.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
         MARATHON.addAttribute(GamemodeAttribute.DO_GARBAGE_WALLS, true);
-        MARATHON.addAttribute(GamemodeAttribute.WALL_TIME_DECREASE_AMOUNT, 14);
+        MARATHON.addAttribute(GamemodeAttribute.WALL_TIME_DECREASE_AMOUNT, 12);
         MARATHON.addAttribute(GamemodeAttribute.ACTIONBAR_DISPLAY, PlayingFieldScorer.ActionBarType.LEVEL_PROGRESS);
         MARATHON.setLevelReq(3);
+
+        CAPPED_MARATHON.addAttribute(GamemodeAttribute.DO_LEVELS, true);
+        CAPPED_MARATHON.addAttribute(GamemodeAttribute.DISPLAY_SLOT_0, DisplayType.TIME);
+        CAPPED_MARATHON.addAttribute(GamemodeAttribute.DISPLAY_SLOT_1, DisplayType.PERFECT_WALLS);
+        CAPPED_MARATHON.addAttribute(GamemodeAttribute.DISPLAY_SLOT_2, DisplayType.LEVEL);
+        CAPPED_MARATHON.addAttribute(GamemodeAttribute.DISPLAY_SLOT_3, DisplayType.SCORE);
+        CAPPED_MARATHON.addAttribute(GamemodeAttribute.SINGLEPLAYER, true);
+        CAPPED_MARATHON.addAttribute(GamemodeAttribute.DO_GARBAGE_WALLS, true);
+        CAPPED_MARATHON.addAttribute(GamemodeAttribute.WALL_TIME_DECREASE_AMOUNT, 12);
+        CAPPED_MARATHON.addAttribute(GamemodeAttribute.ACTIONBAR_DISPLAY, PlayingFieldScorer.ActionBarType.LEVEL_PROGRESS);
+        CAPPED_MARATHON.addAttribute(GamemodeAttribute.LEVEL_CAP, 15);
 
         VERSUS.addAttribute(GamemodeAttribute.CONSISTENT_HOLE_COUNT, false);
         VERSUS.addAttribute(GamemodeAttribute.STARTING_WALL_ACTIVE_TIME, 2000);
