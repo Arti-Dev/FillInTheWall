@@ -116,6 +116,7 @@ public class PlayingField implements Listener {
     private WallQueue queue;
     private final Material wallMaterial;
     private final boolean hideBottomBorder;
+    private final boolean addBackBorder;
 
     /** The scorer and queue should be reset before each game starts. */
     private boolean resetRecently = false;
@@ -146,7 +147,7 @@ public class PlayingField implements Listener {
 
     public PlayingField(Location referencePoint, Vector direction, Vector incomingDirection, int standingDistance,
                         WorldBoundingBox boundingBox, WorldBoundingBox effectBox, String defaultEnvironment, int length, int height,
-                        Material wallMaterial, Material playerMaterial, boolean hideBottomBorder) {
+                        Material wallMaterial, Material playerMaterial, boolean hideBottomBorder, boolean addBackBorder) {
         // define playing field in a very scuffed way
         this.fieldReferencePoint = Utils.centralizeLocation(referencePoint);
         this.fieldDirection = direction;
@@ -154,7 +155,7 @@ public class PlayingField implements Listener {
         if (!fieldDirection.isZero()) fieldDirection.normalize();
         if (!incomingDirection.isZero()) incomingDirection.normalize();
         this.scorer = new PlayingFieldScorer(this);
-        this.queue = new WallQueue(this, wallMaterial, WallGenerator.defaultGenerator(length, height), hideBottomBorder);
+        this.queue = new WallQueue(this, wallMaterial, WallGenerator.defaultGenerator(length, height), hideBottomBorder, addBackBorder);
         this.boundingBox = boundingBox;
         this.effectBox = effectBox;
         this.playerMaterial = playerMaterial;
@@ -164,6 +165,7 @@ public class PlayingField implements Listener {
         environment = defaultEnvironment;
         if (this.environment == null) this.environment = "";
         this.hideBottomBorder = hideBottomBorder;
+        this.addBackBorder = addBackBorder;
         this.wallMaterial = wallMaterial;
         this.standingDistance = standingDistance;
         setDefaultDisplaySlots();
@@ -228,7 +230,7 @@ public class PlayingField implements Listener {
 
     public void reset() {
         scorer = new PlayingFieldScorer(this);
-        queue = new WallQueue(this, wallMaterial, WallGenerator.defaultGenerator(length, height), hideBottomBorder);
+        queue = new WallQueue(this, wallMaterial, WallGenerator.defaultGenerator(length, height), hideBottomBorder, addBackBorder);
         ticksSinceOffhandSubmit = 0;
         ticksSinceFlying = 0;
         hasFlownBefore = false;

@@ -154,6 +154,7 @@ public class PlayingFieldManager implements Listener {
             int fieldHeight = config.getInt(key + ".field_height");
             String environment = config.getString(key + ".environment");
             boolean hideBottomBorder = config.getBoolean(key + ".hide_bottom_border");
+            boolean addBackBorder = config.getBoolean(key + ".add_back_border");
             String wallMaterialName = config.getString(key + ".wall_material");
             String playerMaterialName = config.getString(key + ".player_material");
             Material wallMaterial;
@@ -175,7 +176,7 @@ public class PlayingFieldManager implements Listener {
             WorldBoundingBox effectBox = effectBox(refPoint, incomingDirection, fieldDirection, queueLength, fieldLength, fieldHeight);
 
             PlayingField field = new PlayingField(
-                    refPoint, fieldDirection, incomingDirection, standingDistance, box, effectBox, environment, fieldLength, fieldHeight, wallMaterial, playerMaterial, hideBottomBorder);
+                    refPoint, fieldDirection, incomingDirection, standingDistance, box, effectBox, environment, fieldLength, fieldHeight, wallMaterial, playerMaterial, hideBottomBorder, addBackBorder);
             playingFieldLocations.put(box, field);
 
             // todo temporary

@@ -97,7 +97,7 @@ public class Wall {
         return state;
     }
 
-    public void spawnWall(PlayingField field, WallQueue queue, WallState nextState, boolean hideBottomBorder) {
+    public void spawnWall(PlayingField field, WallQueue queue, WallState nextState, boolean hideBottomBorder, boolean addBackBorder) {
         if (state != WallState.HIDDEN) return;
         // go to the end of the queue
         // spawn block display entities
@@ -210,9 +210,29 @@ public class Wall {
                 new AxisAngle4f(0, 0, 0, 1)));
         rightBorder.setBlock(Material.IRON_BLOCK.createBlockData());
 
+        // back border
+        scaleVector = new Vector(0, 0, 0);
+        scaleVector.add(field.getIncomingDirection().multiply(0.1));
+        scaleVector.add(new Vector(0, height, 0));
+        scaleVector.add(field.getFieldDirection().multiply(length));
+        Utils.vectorAbs(scaleVector);
+
+        BlockDisplay backBorder = (BlockDisplay) world.spawnEntity(centerOfWall.clone()
+                // go back a little
+                .add(movementDirection.clone().multiply(-0.5)),
+                EntityType.BLOCK_DISPLAY);
+        backBorder.setTransformation(new Transformation(
+                scaleVector.clone().multiply(-0.5).toVector3f(),
+                new AxisAngle4f(0, 0, 0, 1), scaleVector.toVector3f(),
+                new AxisAngle4f(0, 0, 0, 1)));
+        backBorder.setBlock(Material.IRON_BLOCK.createBlockData());
+
 
         border.addAll(Arrays.asList(topBorder, leftBorder, rightBorder));
         if (!hideBottomBorder) border.add(bottomBorder);
+        if (addBackBorder) {
+            border.add(backBorder);
+        }
         entities.addAll(border);
 
         // Name label (if added)

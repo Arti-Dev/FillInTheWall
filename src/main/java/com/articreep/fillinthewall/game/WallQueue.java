@@ -41,14 +41,16 @@ public class WallQueue {
     // Wall generation settings
     private WallGenerator generator;
     boolean hideBottomBorder = false;
+    boolean addBackBorder = false;
     private Material wallMaterial = Material.BLUE_CONCRETE;
 
-    public WallQueue(PlayingField field, Material defaultWallMaterial, WallGenerator generator, boolean hideBottomBorder) {
+    public WallQueue(PlayingField field, Material defaultWallMaterial, WallGenerator generator, boolean hideBottomBorder, boolean addBackBorder) {
         setWallMaterial(defaultWallMaterial);
         setHideBottomBorder(hideBottomBorder);
         this.field = field;
         this.generator = generator;
         this.generator.addQueue(this);
+        this.addBackBorder = addBackBorder;
     }
 
     public void addWall(Wall wall) {
@@ -112,7 +114,7 @@ public class WallQueue {
             updateEffectiveLength();
             // Recalculate wall time
             animatingWall.setTimeRemaining(calculateWallActiveTime(animatingWall.getTimeRemaining()));
-            animatingWall.spawnWall(field, this, WallState.ANIMATING, hideBottomBorder);
+            animatingWall.spawnWall(field, this, WallState.ANIMATING, hideBottomBorder, addBackBorder);
         }
 
         animatingWall.setDistanceToTraverse(effectiveLength);
@@ -376,7 +378,7 @@ public class WallQueue {
         // Add to hardened walls list
         // Update effective length
 
-        wall.spawnWall(field, this, WallState.HARDENED, hideBottomBorder);
+        wall.spawnWall(field, this, WallState.HARDENED, hideBottomBorder, addBackBorder);
         wall.setHardness(hardness);
 
         hardenedWalls.push(wall);
