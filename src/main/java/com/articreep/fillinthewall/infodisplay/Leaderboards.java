@@ -30,6 +30,7 @@ public class Leaderboards {
     private static TextDisplay levelLeaderboard = null;
     private static TextDisplay playtimeLeaderboard = null;
     private static TextDisplay perfectWallsLeaderboard = null;
+    private static TextDisplay multiplayerLeaderboard = null;
     private static final MiniMessage miniMessage = MiniMessage.miniMessage();
 
     public static void spawnLeaderboards(FileConfiguration config) {
@@ -44,6 +45,7 @@ public class Leaderboards {
         Location playtimeLocation = config.getLocation("leaderboards.playtime");
         Location perfectWallsLocation = config.getLocation("leaderboards.perfect-walls");
         Location cappedMarathonLocation = config.getLocation("leaderboards.capped-marathon");
+        Location multiplayerLocation = config.getLocation("leaderboards.multiplayer");
 
         if (scoreAttackLocation != null) {
             TextDisplay scoreAttackDisplay = (TextDisplay) scoreAttackLocation.getWorld().spawnEntity(
@@ -109,6 +111,15 @@ public class Leaderboards {
             cappedMarathonDisplay.setBillboard(Display.Billboard.VERTICAL);
             scoreLeaderboards.put(cappedMarathonDisplay, Gamemode.CAPPED_MARATHON);
         }
+
+        if (multiplayerLocation != null) {
+            multiplayerLeaderboard = (TextDisplay) multiplayerLocation.getWorld().spawnEntity(
+                    multiplayerLocation, EntityType.TEXT_DISPLAY);
+            multiplayerLeaderboard.text(Component.text("Multiplayer Leaderboard"));
+            multiplayerLeaderboard.setBillboard(Display.Billboard.VERTICAL);
+        }
+
+
         Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), Leaderboards::updateLeaderboards);
     }
 
@@ -129,6 +140,11 @@ public class Leaderboards {
         if (perfectWallsLeaderboard != null) {
             perfectWallsLeaderboard.remove();
             perfectWallsLeaderboard = null;
+        }
+
+        if (multiplayerLeaderboard != null) {
+            multiplayerLeaderboard.remove();
+            multiplayerLeaderboard = null;
         }
     }
 
@@ -216,6 +232,23 @@ public class Leaderboards {
             } catch (SQLException e) {
                 e.printStackTrace();
                 errorLeaderboard(perfectWallsLeaderboard, perfectWallsTitle);
+            }
+        }
+
+        // Multiplayer leaderboard
+
+        TextComponent multiplayerTitle = (TextComponent) miniMessage.deserialize("<aqua>Multiplayer Leaderboard\n<gray>Top Combined Scores\n");
+        if (Database.isOfflineMode()) {
+            offlineLeaderboard(multiplayerLeaderboard, multiplayerTitle);
+        } else {
+            try {
+                LinkedHashMap<UUID, Integer> topMultiplayerScores = Database.getTopMultiplayerScores();
+                populateLeaderboard(multiplayerLeaderboard, topMultiplayerScores, multiplayerTitle,
+                        (score, playerName) -> miniMessage.deserialize(
+                                "<yellow>" + playerName + ": <aqua>" + score + " points"));
+            } catch (SQLException e) {
+                e.printStackTrace();
+                errorLeaderboard(multiplayerLeaderboard, multiplayerTitle);
             }
         }
     }

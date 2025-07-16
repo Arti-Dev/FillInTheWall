@@ -101,6 +101,7 @@ public class Database {
         verifyColumn(conn, "playerInfo", "playtime", "BIGINT DEFAULT 0 NOT NULL");
         verifyColumn(conn, "playerInfo", "perfectWalls", "INT DEFAULT 0 NOT NULL");
         verifyColumn(conn, "scores", Gamemode.CAPPED_MARATHON.toString(), "INT DEFAULT 0 NOT NULL");
+        verifyColumn(conn, "scores", "multiplayerScore", "INT DEFAULT 0 NOT NULL");
 
         try {
             conn.commit();
@@ -276,6 +277,22 @@ public class Database {
         } catch (SQLException e) {
             e.printStackTrace();
             throw new SQLException("Error while getting top perfect walls from database!");
+        }
+    }
+
+    public static LinkedHashMap<UUID, Integer> getTopMultiplayerScores() throws SQLException {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "SELECT uuid, multiplayerScore FROM scores ORDER BY multiplayerScore DESC LIMIT 10"
+        )) {
+            ResultSet result = stmt.executeQuery();
+            LinkedHashMap<UUID, Integer> topMultiplayerScoresOrdered = new LinkedHashMap<>();
+            while (result.next()) {
+                topMultiplayerScoresOrdered.put(UUID.fromString(result.getString("uuid")), result.getInt("multiplayerScore"));
+            }
+            return topMultiplayerScoresOrdered;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error while getting top multiplayer scores from database!");
         }
     }
 
@@ -513,6 +530,37 @@ public class Database {
         } catch (SQLException e) {
             e.printStackTrace();
             throw new SQLException("Error while getting user perfect walls from database!");
+        }
+    }
+
+    public static int getMultiplayerScore(UUID uuid) throws SQLException {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "SELECT multiplayerScore FROM scores WHERE uuid = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return result.getInt("multiplayerScore");
+            } else {
+                // If they didn't exist before, add them!
+                addPlayerToScores(uuid);
+                return 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error while getting multiplayer score from database!");
+        }
+    }
+
+    public static void updateMultiplayerScore(UUID uuid, int score) {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "UPDATE scores SET multiplayerScore = ? WHERE uuid = ?"
+        )) {
+            stmt.setInt(1, score);
+            stmt.setString(2, uuid.toString());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 }

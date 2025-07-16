@@ -19,6 +19,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.sql.SQLException;
 import java.time.Duration;
 import java.util.*;
 
@@ -35,6 +36,8 @@ public class ScoreAttackGame extends MultiplayerGame {
     private final Sound[] possibleFinalsMusic = {Sound.MUSIC_DISC_PRECIPICE};
     private final WallBundle customWallBundle = WallBundle.getWallBundle("finals");
     private final static MiniMessage miniMessage = MiniMessage.miniMessage();
+
+    private final Map<Player, Integer> savedQualificationScores = new HashMap<>();
 
     public ScoreAttackGame(List<PlayingField> fields, ArrayList<PlayingField> finalStageBoards, GamemodeSettings settings) {
         super(fields, settings);
@@ -117,6 +120,9 @@ public class ScoreAttackGame extends MultiplayerGame {
             sortTask.cancel();
         }
         if (markAsEnded) {
+            for (PlayingField field : playingFields) {
+                submitScores(field);
+            }
             PlayingFieldManager.pregame.startCountdown();
         }
     }
@@ -131,9 +137,13 @@ public class ScoreAttackGame extends MultiplayerGame {
             // record top players and put them in the finals
             for (int i = 0; i < rankings.size(); i++) {
                 if (i < finalStageBoards.size()) {
-                    qualifyingPlayers.add(new HashSet<>(rankings.get(i).getPlayers()));
+                    Set<Player> players = new HashSet<>(rankings.get(i).getPlayers());
+                    qualifyingPlayers.add(players);
+                    int score = rankings.get(i).getScorer().getScore();
+                    players.forEach((player) -> savedQualificationScores.put(player, score));
                 } else {
                     eliminatedPlayers.add(new HashSet<>(rankings.get(i).getPlayers()));
+                    submitScores(rankings.get(i));
                 }
             }
 
@@ -235,6 +245,37 @@ public class ScoreAttackGame extends MultiplayerGame {
         }
         Bukkit.broadcast(Component.empty());
         Bukkit.broadcast(Component.text("---"));
+    }
+
+    protected void submitScores(PlayingField field) {
+        if (stage == Stage.QUALIFICATIONS) {
+            int score = field.getScorer().getScore();
+            for (Player player : field.getPlayers()) {
+                if (!player.isOnline()) continue;
+                try {
+                    int best = Database.getMultiplayerScore(player.getUniqueId());
+                    if (score > best) {
+                        Database.updateMultiplayerScore(player.getUniqueId(), score);
+                    }
+                } catch (SQLException e) {
+                    FillInTheWall.getInstance().getSLF4JLogger().error("Something went wrong while updating multiplayer score for player {}", player.getName(), e);
+                }
+            }
+        } else if (stage == Stage.FINALS) {
+            int score = field.getScorer().getScore();
+            for (Player player : field.getPlayers()) {
+                if (!player.isOnline()) continue;
+                try {
+                    int best = Database.getMultiplayerScore(player.getUniqueId());
+                    int quali = savedQualificationScores.getOrDefault(player, 0);
+                    if (score + quali > best) {
+                        Database.updateMultiplayerScore(player.getUniqueId(), score + quali);
+                    }
+                } catch (SQLException e) {
+                    FillInTheWall.getInstance().getSLF4JLogger().error("Something went wrong while updating multiplayer score for player {}", player.getName(), e);
+                }
+            }
+        }
     }
 
     public Stage getStage() {
