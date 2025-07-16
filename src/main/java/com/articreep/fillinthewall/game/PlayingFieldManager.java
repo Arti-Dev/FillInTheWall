@@ -234,11 +234,11 @@ public class PlayingFieldManager implements Listener {
         box.getBoundingBox().expand(fieldDirection.clone().multiply(-1), 7);
 
         Location exclusionPoint1 = refPoint.clone()
-                .subtract(fieldDirection.clone().multiply(2));
+                .subtract(fieldDirection.clone().multiply(3));
         Location exclusionPoint2 = refPoint.clone()
                 .subtract(incomingDirection.clone().multiply(queueLength))
-                .add(fieldDirection.clone().multiply(fieldLength + 2))
-                .add(new Vector(0, fieldHeight * 1.5, 0));
+                .add(fieldDirection.clone().multiply(fieldLength + 3))
+                .add(new Vector(0, fieldHeight * 1.75, 0));
         box.addExclusionBox(exclusionPoint1, exclusionPoint2);
 
         return box;
