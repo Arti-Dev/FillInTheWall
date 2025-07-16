@@ -22,6 +22,7 @@ public class Rush extends ModifierEvent {
     private boolean firstWallCleared = false;
     private Wall nextWall;
     private int wallSpeed = 200;
+    private final int maxWallSpeed = 12;
     private int boardsCleared = 0;
     public Rush() {
         super();
@@ -37,7 +38,7 @@ public class Rush extends ModifierEvent {
         nextWall = generateNextWall();
         toAdd.setTimeRemaining(wallSpeed);
         wallSpeed -= 9;
-        if (wallSpeed < 7) wallSpeed = 7;
+        if (wallSpeed < maxWallSpeed) wallSpeed = maxWallSpeed;
 
         queue.addWall(toAdd);
     }
