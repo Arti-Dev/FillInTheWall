@@ -31,6 +31,7 @@ public class PlayingFieldManager implements Listener {
     public static VersusGame vsGame = null;
     public static Pregame vsPregame = null;
     public static final ArrayList<PlayingField> finalStageBoards = new ArrayList<>();
+    private static final ArrayList<PlayingField> soloPlayingFields = new ArrayList<>();
 
     @EventHandler
     public void onPlayerEnterField(PlayerMoveEvent event) {
@@ -184,10 +185,16 @@ public class PlayingFieldManager implements Listener {
                 vsPregame.addAvailablePlayingField(field);
             } else if (key.startsWith("field_finals")) {
                 finalStageBoards.add(field);
+            } else {
+                soloPlayingFields.add(field);
             }
 
 
         }
+    }
+
+    public static boolean isSoloPlayingField(PlayingField field) {
+        return soloPlayingFields.contains(field);
     }
 
     public static WorldBoundingBox playingFieldActivationBox(Location refPoint,

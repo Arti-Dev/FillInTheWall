@@ -13,7 +13,6 @@ import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.math.transform.AffineTransform;
-import com.sk89q.worldedit.math.transform.Transform;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.World;
 import org.apache.commons.io.FilenameUtils;
@@ -33,7 +32,7 @@ import java.util.List;
 
 public class BuildSwapper {
 
-    public static void swapBuild(PlayingField playingField, String name) {
+    public static void swapBuild(PlayingField playingField, String name, boolean teleportPlayers) {
         Clipboard clipboard;
         try {
             clipboard = getClipboard(name);
@@ -44,12 +43,14 @@ public class BuildSwapper {
 
         AffineTransform transform = getAffineTransform(playingField);
 
-        Location spawnLoc = playingField.getSpawnLocation();
-        PotionEffect blindness = new PotionEffect(PotionEffectType.BLINDNESS, 30, 0);
-        for (Player player : playingField.getPlayers()) {
-            if (player.getLocation().distance(spawnLoc) <= 5) continue;
-            player.teleport(spawnLoc);
-            player.addPotionEffect(blindness);
+        if (teleportPlayers) {
+            Location spawnLoc = playingField.getSpawnLocation();
+            PotionEffect blindness = new PotionEffect(PotionEffectType.BLINDNESS, 30, 0);
+            for (Player player : playingField.getPlayers()) {
+                if (player.getLocation().distance(spawnLoc) <= 5) continue;
+                player.teleport(spawnLoc);
+                player.addPotionEffect(blindness);
+            }
         }
 
         World world = BukkitAdapter.adapt(playingField.getWorld());
@@ -66,7 +67,11 @@ public class BuildSwapper {
             throw new RuntimeException(e);
         }
 
-        // todo change environment
+        playingField.setEnvironment(name);
+    }
+
+    public static void swapBuild(PlayingField playingField, String name) {
+        swapBuild(playingField, name, true);
     }
 
     private static @NotNull AffineTransform getAffineTransform(PlayingField playingField) {

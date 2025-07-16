@@ -243,8 +243,12 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                         sender.sendMessage("This player isn't in a game!");
                         return true;
                     }
-                    BuildSwapper.swapBuild(field, name);
-                    sender.sendMessage("Attempted a swap!");
+                    if (PlayingFieldManager.isSoloPlayingField(field)) {
+                        BuildSwapper.swapBuild(field, name);
+                        sender.sendMessage("Attempted a swap!");
+                    } else {
+                        sender.sendMessage("This playing field doesn't support swapping builds!");
+                    }
                 } else {
                     sender.sendMessage("/fitw swap <buildname>");
                 }

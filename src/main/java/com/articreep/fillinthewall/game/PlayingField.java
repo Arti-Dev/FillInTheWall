@@ -95,6 +95,7 @@ public class PlayingField implements Listener {
     private final WorldBoundingBox boundingBox;
     private final WorldBoundingBox effectBox;
     private String environment;
+    private String defaultEnvironment;
 
     private final int displaySlotsLength = 6;
     private final DisplayType[] displaySlots = new DisplayType[displaySlotsLength];
@@ -144,7 +145,7 @@ public class PlayingField implements Listener {
     private boolean multiplayerMode = false;
 
     public PlayingField(Location referencePoint, Vector direction, Vector incomingDirection, int standingDistance,
-                        WorldBoundingBox boundingBox, WorldBoundingBox effectBox, String environment, int length, int height,
+                        WorldBoundingBox boundingBox, WorldBoundingBox effectBox, String defaultEnvironment, int length, int height,
                         Material wallMaterial, Material playerMaterial, boolean hideBottomBorder) {
         // define playing field in a very scuffed way
         this.fieldReferencePoint = Utils.centralizeLocation(referencePoint);
@@ -159,7 +160,8 @@ public class PlayingField implements Listener {
         this.playerMaterial = playerMaterial;
         this.height = height;
         this.length = length;
-        this.environment = environment;
+        this.defaultEnvironment = defaultEnvironment;
+        environment = defaultEnvironment;
         if (this.environment == null) this.environment = "";
         this.hideBottomBorder = hideBottomBorder;
         this.wallMaterial = wallMaterial;
@@ -513,6 +515,9 @@ public class PlayingField implements Listener {
         task = null;
         for (TextDisplay display : textDisplays) {
             display.remove();
+        }
+        if (PlayingFieldManager.isSoloPlayingField(this) && !environment.equalsIgnoreCase(defaultEnvironment)) {
+            BuildSwapper.swapBuild(this, defaultEnvironment, false);
         }
         if (!tipDisplays.isEmpty()) clearTipDisplays();
         multiplayerMode = false;
@@ -1247,6 +1252,11 @@ public class PlayingField implements Listener {
 
     public String getEnvironment() {
         return environment;
+    }
+
+    public void setEnvironment(String environment) {
+        if (environment == null) return;
+        this.environment = environment;
     }
 
     public void removeMenu() {

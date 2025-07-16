@@ -889,8 +889,10 @@ public class PlayingFieldScorer {
 
     public Component getEndlessLevelProgressActionbar() {
         if (endlessRun == null) return Component.empty();
-        int pointsRemaining = endlessRun.scoreToNextLevel - score;
-        return miniMessage.deserialize("<gray>" + pointsRemaining + " points to next level");
+        int pointsRemaining = Math.max(endlessRun.scoreToNextLevel - score, 0);
+        String color = "<gray>";
+        if (pointsRemaining < 10) color = "<green>";
+        return miniMessage.deserialize(color + pointsRemaining + " points to next level");
     }
 
     public Component getChargesActionbar() {
