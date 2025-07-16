@@ -92,7 +92,7 @@ public class InventoryMenus implements Listener {
             playtimeText = miniMessage.deserialize("<!italic><gray>Playtime: " + Utils.secondsTohms(playtime));
 
             int perfectWalls = Database.getPerfectWalls(uuid);
-            perfectWallsText = miniMessage.deserialize("<!italic><gold>Perfect Walls: " + perfectWalls);
+            perfectWallsText = miniMessage.deserialize("<!italic><gold>Perfect Walls Cleared: " + perfectWalls);
 
             lore = Arrays.asList(levelText, playtimeText, perfectWallsText);
         } catch (SQLException e) {
