@@ -82,13 +82,14 @@ public class EndlessRun {
         increaseScoreToNextLevel();
 
         List<String> schematicList = BuildSwapper.getAvailableSchematics();
-        // todo do not pick a build that's already deployed on this playing field
+        // do not pick a build that's already deployed on this playing field
+        schematicList.remove(scorer.field.getEnvironment());
         String schematic = schematicList.get(random.nextInt(schematicList.size()));
         if (PlayingFieldManager.isSoloPlayingField(scorer.field)) {
             BuildSwapper.swapBuild(scorer.field, schematic);
         }
 
-        boolean alternateTitle = random.nextDouble() < 0.25;
+        boolean alternateTitle = false; //random.nextDouble() < 0.25;
         String title;
         if (alternateTitle) {
             title = possibleAlternateMessages[random.nextInt(possibleAlternateMessages.length)];
