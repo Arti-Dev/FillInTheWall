@@ -1,7 +1,7 @@
 package com.articreep.fillinthewall.modifiers;
 
-import com.articreep.fillinthewall.Wall;
-import org.bukkit.ChatColor;
+import com.articreep.fillinthewall.game.Wall;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.javatuples.Pair;
@@ -22,7 +22,8 @@ public class Inverted extends ModifierEvent {
         field.getQueue().instantSend(true);
         field.fillField(field.getPlayerMaterial());
         super.activate();
-        field.sendTitleToPlayers(ChatColor.BLACK + "Inverted!", "Left-click to win..?", 0, 40, 10);
+        field.sendTitleToPlayers(miniMessage.deserialize("<black>Inverted!"),
+                Component.text("Left-click to win..?"), 0, 40, 10);
     }
 
     @Override
@@ -51,7 +52,7 @@ public class Inverted extends ModifierEvent {
         }
         field.clearField();
         super.end();
-        field.sendTitleToPlayers("", "Walls are back to normal!", 0, 20, 10);
+        field.sendTitleToPlayers(Component.empty(), Component.text("Walls are back to normal!"), 0, 20, 10);
     }
 
     @Override

@@ -1,8 +1,8 @@
 package com.articreep.fillinthewall.environments;
 
 import com.articreep.fillinthewall.FillInTheWall;
-import com.articreep.fillinthewall.Judgement;
-import com.articreep.fillinthewall.PlayingField;
+import com.articreep.fillinthewall.game.Judgement;
+import com.articreep.fillinthewall.game.PlayingField;
 import com.articreep.fillinthewall.modifiers.Rush;
 import org.bukkit.*;
 import org.bukkit.entity.BlockDisplay;
@@ -43,8 +43,8 @@ public class TheVoid implements Listener {
 
         new BukkitRunnable() {
             double t = Math.PI / 3;
-            double tMax = Math.PI * 2;
-            double tIncrement = Math.PI / 3;
+            final double tMax = Math.PI * 2;
+            final double tIncrement = Math.PI / 3;
 
             @Override
             public void run() {

@@ -1,6 +1,14 @@
 package com.articreep.fillinthewall;
 
-import net.md_5.bungee.api.ChatColor;
+import com.articreep.fillinthewall.game.PlayingField;
+import com.articreep.fillinthewall.lobby.LobbyItems;
+import com.articreep.fillinthewall.playerinfo.PlayerLevels;
+import com.articreep.fillinthewall.playerinfo.PlayerSettings;
+import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
@@ -15,8 +23,11 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
+
+import java.sql.SQLException;
 
 public class GlobalListeners implements Listener {
 
@@ -70,9 +81,10 @@ public class GlobalListeners implements Listener {
         if (clickedItem != null && clickedItem.getType() != Material.AIR) {
             if (!clickedItem.getItemMeta().getPersistentDataContainer().has(PlayingField.gameKey, PersistentDataType.BOOLEAN)) {
                 event.setCancelled(true);
-                clickedItem.setType(Material.AIR);
+                // delete the item
+//                clickedItem.setType(Material.AIR);
                 clickedItem.setAmount(0);
-                event.getWhoClicked().sendMessage(ChatColor.DARK_GRAY + "Can't use this item!");
+                event.getWhoClicked().sendMessage(MiniMessage.miniMessage().deserialize("<gray>Can't use this item!"));
             }
         }
     }
@@ -86,17 +98,57 @@ public class GlobalListeners implements Listener {
         if (item.getType() == Material.AIR) return;
         if (!item.getItemMeta().getPersistentDataContainer().has(PlayingField.gameKey, PersistentDataType.BOOLEAN)) {
             player.getInventory().setItem(event.getNewSlot(), new ItemStack(Material.AIR));
-            player.sendMessage(ChatColor.DARK_GRAY + "Can't use this item!");
+            player.sendMessage(MiniMessage.miniMessage().deserialize("<gray>Can't use this item!"));
         }
     }
 
     @EventHandler(priority = EventPriority.LOW)
     public void onPlayerJoin(PlayerJoinEvent event) {
-        if (event.getPlayer().isOp()) return;
-        event.getPlayer().teleport(FillInTheWall.getInstance().getMultiplayerSpawn());
-
+        if (!event.getPlayer().isOp()) event.getPlayer().teleport(FillInTheWall.getInstance().getMultiplayerSpawn());
+        LobbyItems.giveProfileMenuItem(event.getPlayer());
+        LobbyItems.giveGimmicklessMenuItem(event.getPlayer());
+        // load level in cache
         if (!Database.isOfflineMode()) {
-            Database.addNewcomer(event.getPlayer().getUniqueId());
+            Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> {
+                try {
+                    PlayerLevels.getRawXP(event.getPlayer().getUniqueId());
+                    PlayerSettings.loadSettings(event.getPlayer().getUniqueId());
+                } catch (SQLException e) {
+                    FillInTheWall.getInstance().getSLF4JLogger().error("Failed to cache player level for {}", event.getPlayer().getName());
+                    e.printStackTrace();
+                }
+            });
         }
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void onPLayerQuit(PlayerQuitEvent event) {
+        if (!Database.isOfflineMode()) {
+            PlayerLevels.removeFromXPCache(event.getPlayer());
+            Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> {
+                PlayerSettings.writeToDatabase(event.getPlayer().getUniqueId());
+            });
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onChat(AsyncChatEvent event) {
+        if (event.isCancelled()) return;
+        if (Database.isOfflineMode()) return;
+        event.setCancelled(true);
+        Player player = event.getPlayer();
+        Component prefix;
+        try {
+            prefix = PlayerLevels.getPrefix(player.getUniqueId());
+        } catch (SQLException e) {
+            event.setCancelled(false);
+            return;
+        }
+        Bukkit.broadcast(Component.text("<")
+                .append(prefix)
+                .append(Component.text(" "))
+                .append(Component.text(player.getName(), NamedTextColor.WHITE))
+                .append(Component.text("> ", NamedTextColor.WHITE))
+                .append(event.message()).color(NamedTextColor.WHITE));
     }
 }

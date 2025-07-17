@@ -1,6 +1,9 @@
-package com.articreep.fillinthewall;
+package com.articreep.fillinthewall.game;
 
+import com.articreep.fillinthewall.FillInTheWall;
+import com.articreep.fillinthewall.modifiers.Cheese;
 import com.articreep.fillinthewall.utils.Utils;
+import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
@@ -94,7 +97,7 @@ public class Wall {
         return state;
     }
 
-    public void spawnWall(PlayingField field, WallQueue queue, WallState nextState, boolean hideBottomBorder) {
+    public void spawnWall(PlayingField field, WallQueue queue, WallState nextState, boolean hideBottomBorder, boolean addBackBorder) {
         if (state != WallState.HIDDEN) return;
         // go to the end of the queue
         // spawn block display entities
@@ -153,8 +156,8 @@ public class Wall {
         BlockDisplay bottomBorder = null;
         if (!hideBottomBorder) {
             bottomBorder = (BlockDisplay) world.spawnEntity(centerOfWall.clone()
-                    // dip down a little
-                    .subtract(0, ((double) height /2)+0.05, 0),
+                            // dip down a little
+                            .subtract(0, ((double) height / 2) + 0.05, 0),
                     EntityType.BLOCK_DISPLAY);
             bottomBorder.setTransformation(new Transformation(
                     // translation - half of the scale vectors and negative
@@ -165,8 +168,8 @@ public class Wall {
         }
 
         BlockDisplay topBorder = (BlockDisplay) world.spawnEntity(centerOfWall.clone()
-                // middle of the wall
-                .add(0, ((double) height/2)+0.05, 0),
+                        // middle of the wall
+                        .add(0, ((double) height / 2) + 0.05, 0),
                 // go up and go up a little more
                 EntityType.BLOCK_DISPLAY);
         topBorder.setTransformation(new Transformation(
@@ -186,8 +189,8 @@ public class Wall {
         Utils.vectorAbs(scaleVector);
 
         BlockDisplay leftBorder = (BlockDisplay) world.spawnEntity(centerOfWall.clone()
-                // left a little;
-                .subtract(field.getFieldDirection().multiply((double) length/2 + 0.05)),
+                        // left a little;
+                        .subtract(field.getFieldDirection().multiply((double) length / 2 + 0.05)),
                 EntityType.BLOCK_DISPLAY);
         leftBorder.setTransformation(new Transformation(
                 // translation - half of the scale vectors and negative
@@ -197,8 +200,8 @@ public class Wall {
         leftBorder.setBlock(Material.IRON_BLOCK.createBlockData());
 
         BlockDisplay rightBorder = (BlockDisplay) world.spawnEntity(centerOfWall.clone()
-                // right a little;
-                .add(field.getFieldDirection().multiply((double) length /2 + 0.05)),
+                        // right a little;
+                        .add(field.getFieldDirection().multiply((double) length / 2 + 0.05)),
                 EntityType.BLOCK_DISPLAY);
         rightBorder.setTransformation(new Transformation(
                 // translation - half of the scale vectors and negative
@@ -207,9 +210,32 @@ public class Wall {
                 new AxisAngle4f(0, 0, 0, 1)));
         rightBorder.setBlock(Material.IRON_BLOCK.createBlockData());
 
+        // back border
+        scaleVector = new Vector(0, 0, 0);
+        scaleVector.add(field.getIncomingDirection().multiply(0.1));
+        scaleVector.add(new Vector(0, height, 0));
+        scaleVector.add(field.getFieldDirection().multiply(length));
+        Utils.vectorAbs(scaleVector);
+
+        BlockDisplay backBorder = null;
+        if (addBackBorder) {
+            backBorder = (BlockDisplay) world.spawnEntity(centerOfWall.clone()
+                            // go back a little
+                            .add(movementDirection.clone().multiply(-0.5)),
+                    EntityType.BLOCK_DISPLAY);
+            backBorder.setTransformation(new Transformation(
+                    scaleVector.clone().multiply(-0.5).toVector3f(),
+                    new AxisAngle4f(0, 0, 0, 1), scaleVector.toVector3f(),
+                    new AxisAngle4f(0, 0, 0, 1)));
+            backBorder.setBlock(Material.IRON_BLOCK.createBlockData());
+        }
+
 
         border.addAll(Arrays.asList(topBorder, leftBorder, rightBorder));
         if (!hideBottomBorder) border.add(bottomBorder);
+        if (addBackBorder) {
+            border.add(backBorder);
+        }
         entities.addAll(border);
 
         // Name label (if added)
@@ -217,7 +243,7 @@ public class Wall {
             Location location = centerOfWall.clone().add(0, ((double) height/2)+0.5, 0);
             location.setDirection(movementDirection);
             TextDisplay nameDisplay = (TextDisplay) world.spawnEntity(location, EntityType.TEXT_DISPLAY);
-            nameDisplay.setText(name);
+            nameDisplay.text(Component.text(name));
             nameDisplay.setBillboard(Display.Billboard.HORIZONTAL);
             nameDisplay.setTransformation(new Transformation(
                     new Vector3f(0, 0, 0),
@@ -232,8 +258,14 @@ public class Wall {
         }
 
         if (nextState == WallState.HARDENED) {
-            for (BlockDisplay display : blocks.keySet()) {
-                display.setBlock(Material.GRAY_WOOL.createBlockData());
+            if (material == Cheese.cheeseMaterial) {
+                for (BlockDisplay display : blocks.keySet()) {
+                    display.setBlock(Cheese.cheeseMaterial.createBlockData());
+                }
+            } else {
+                for (BlockDisplay display : blocks.keySet()) {
+                    display.setBlock(Material.GRAY_WOOL.createBlockData());
+                }
             }
             for (BlockDisplay display : border) {
                 display.setBlock(Material.STONE.createBlockData());
@@ -440,13 +472,15 @@ public class Wall {
     public void insertHole(Pair<Integer, Integer> hole) {
         if (hole == null || this.holes.contains(hole)) {
             if (hole != null) {
-                Bukkit.getLogger().info("Hole already exists: (" + hole.getValue0() + ", " + hole.getValue1() + ")");
+                FillInTheWall.getInstance().getSLF4JLogger()
+                        .info("Hole already exists: ({}, {})", hole.getValue0(), hole.getValue1());
             }
             return;
         }
         // out of bounds check
         if (hole.getValue0() < 0 || hole.getValue0() >= length || hole.getValue1() < 0 || hole.getValue1() >= height) {
-            Bukkit.getLogger().info("Hole is out of bounds: (" + hole.getValue0() + ", " + hole.getValue1() + ")");
+            FillInTheWall.getInstance().getSLF4JLogger()
+                    .info("Hole is out of bounds: ({}, {})", hole.getValue0(), hole.getValue1());
             return;
         }
         this.holes.add(hole);
@@ -461,7 +495,7 @@ public class Wall {
         return Utils.randomSetElement(holes);
     }
 
-    public void insertRandomNewHole(int count, int filter) {
+    public void insertRandomNewHoles(int count, int filter) {
         if (holes.size() >= length * height) return;
         boolean even = (length % 2 == 0);
         Set<Pair<Integer, Integer>> possibleCoordinates = new HashSet<>();
@@ -478,7 +512,7 @@ public class Wall {
         possibleCoordinates.removeAll(holes);
         for (int i = 0; i < count; i++) {
             if (possibleCoordinates.isEmpty()) {
-                Bukkit.getLogger().info("Can't insert random hole");
+                FillInTheWall.getInstance().getSLF4JLogger().info("Can't insert random hole");
                 break;
             }
             Pair<Integer, Integer> hole = Utils.randomSetElement(possibleCoordinates);
@@ -536,7 +570,7 @@ public class Wall {
                 return possibleCoordinates.get(random.nextInt(possibleCoordinates.size()));
             }
         }
-        Bukkit.getLogger().info("Failed to generate a connected hole");
+        FillInTheWall.getInstance().getSLF4JLogger().info("Failed to generate a connected hole");
         return null;
     }
 
@@ -558,18 +592,25 @@ public class Wall {
      * Generate x randomCount holes on the wall.
      * Generate y holes that are connected to existing holes, either horizontally, vertically, or diagonally.
      * @param randomCount Number of random holes to generate
-     * @param clusterCount Number of connected holes to generate. This can be random as well with the next argument.
-     * @param randomizeFurther Whether to instead randomize the number of connected holes and use the given cluster
-     *                         parameter as an upper bound.
+     * @param clusterCount Number of connected holes to generate.
+     * @param randomizeFurther Whether to instead randomize the total amount of holes, with randomCount + clusterCount as an upper bound.
+     * @param minimumHoles If randomizeFurther is enabled, this is the minimum amount of holes that must be placed.
+     *                     This is ignored if randomizeFurther is false or the total possible holes is less than the minimum.
      */
-    public void generateHoles(int randomCount, int clusterCount, boolean randomizeFurther) {
-        insertRandomNewHole(randomCount, 0);
-
+    public void generateHoles(int randomCount, int clusterCount, boolean randomizeFurther, int minimumHoles) {
+        int totalHoles = randomCount + clusterCount;
         if (randomizeFurther) {
             Random rng = new Random();
-            clusterCount = rng.nextInt(0, clusterCount + 1);
+            if (totalHoles <= minimumHoles) {
+                totalHoles = rng.nextInt(0, totalHoles + 1);
+            } else {
+                totalHoles = rng.nextInt(minimumHoles, randomCount + clusterCount + 1);
+            }
         }
-        for (int i = 0; i < clusterCount; i++) {
+
+        insertRandomNewHoles(Math.min(randomCount, totalHoles), 0);
+
+        for (int i = 0; i < totalHoles - randomCount; i++) {
             Pair<Integer, Integer> hole = randomCoordinatesConnected();
             if (hole != null) {
                 insertHole(hole);
@@ -577,6 +618,20 @@ public class Wall {
                 break;
             }
         }
+    }
+
+    /**
+     * Generates holes on the wall.
+     * The algorithm works as follows:
+     * Generate x randomCount holes on the wall.
+     * Generate y holes that are connected to existing holes, either horizontally, vertically, or diagonally.
+     * @param randomCount Number of random holes to generate
+     * @param clusterCount Number of connected holes to generate.
+     * @param randomizeFurther Whether to instead randomize the total amount of holes, with randomCount + clusterCount as an upper bound
+     *                         and minimum three holes.
+     */
+    public void generateHoles(int randomCount, int clusterCount, boolean randomizeFurther) {
+        generateHoles(randomCount, clusterCount, randomizeFurther, 3);
     }
 
     // todo should test this rigorously, it's hard to tell if it's working
@@ -593,17 +648,17 @@ public class Wall {
             extra = count % 2;
         }
 
-        insertRandomNewHole(1, -1);
+        insertRandomNewHoles(1, -1);
         for (int i = 0; i < holesPerSide-1; i++) {
             insertHole(randomCoordinatesConnectedLeft());
         }
 
-        insertRandomNewHole(1, 1);
+        insertRandomNewHoles(1, 1);
         for (int i = 0; i < holesPerSide-1; i++) {
             insertHole(randomCoordinatesConnectedRight());
         }
 
-        insertRandomNewHole(extra, 0);
+        insertRandomNewHoles(extra, 0);
     }
 
     public void setMaterial(Material material) {

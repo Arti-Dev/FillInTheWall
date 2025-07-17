@@ -1,13 +1,23 @@
 package com.articreep.fillinthewall;
 
+import com.articreep.fillinthewall.game.PlayingField;
 import com.articreep.fillinthewall.gamemode.Gamemode;
+import com.mysql.cj.jdbc.MysqlConnectionPoolDataSource;
+import com.mysql.cj.jdbc.MysqlDataSource;
+import org.bukkit.configuration.file.FileConfiguration;
 
 import java.sql.*;
 import java.util.*;
+import com.articreep.fillinthewall.playerinfo.PlayerSettings.*;
 
 public class Database {
     private static final HashSet<Gamemode> supportedGamemodes = new HashSet<>();
+    private final static MysqlDataSource dataSource = new MysqlConnectionPoolDataSource();
     private static boolean offlineMode = false;
+
+    private Database() {
+        // prevent instantiation
+    }
 
     static {
         supportedGamemodes.add(Gamemode.SCORE_ATTACK);
@@ -15,6 +25,111 @@ public class Database {
         supportedGamemodes.add(Gamemode.MARATHON);
         supportedGamemodes.add(Gamemode.SPRINT);
         supportedGamemodes.add(Gamemode.MEGA);
+        supportedGamemodes.add(Gamemode.CAPPED_MARATHON);
+    }
+
+    public static boolean loadSQL() {
+        FileConfiguration config = FillInTheWall.getInstance().getConfig();
+        dataSource.setServerName(config.getString("database.host"));
+        dataSource.setPortNumber(config.getInt("database.port"));
+        dataSource.setDatabaseName(config.getString("database.database"));
+        dataSource.setUser(config.getString("database.username"));
+        dataSource.setPassword(config.getString("database.password"));
+
+        Connection conn;
+        // Test the connection
+        try {
+            conn = dataSource.getConnection();
+            if (!conn.isValid(1)) {
+                throw new SQLException("Could not establish database connection.");
+            }
+        } catch (SQLException e) {
+            FillInTheWall.getInstance().getSLF4JLogger().error("FillInTheWall: Could not establish database connection. " +
+                    "Please make sure you are using a MySQL server and that the config.yml is set up correctly." +
+                    "\nThe plugin will still work, but leaderboards will be disabled, scores will not submit, and player-saved " +
+                    "hotbars will not load");
+            e.printStackTrace();
+            offlineMode = true;
+            return false;
+        }
+
+        String sqlScores = "CREATE TABLE IF NOT EXISTS scores(" +
+                "uuid CHAR(36) NOT NULL," +
+                "SCORE_ATTACK INT DEFAULT 0 NOT NULL," +
+                "RUSH_SCORE_ATTACK INT DEFAULT 0 NOT NULL," +
+                "MARATHON INT DEFAULT 0 NOT NULL," +
+                "SPRINT INT DEFAULT 12000 NOT NULL," +
+                "MEGA INT DEFAULT 12000 NOT NULL," +
+                "FOREIGN KEY (uuid) REFERENCES playerInfo(uuid) ON DELETE CASCADE);";
+        String sqlHotbars = "CREATE TABLE IF NOT EXISTS hotbars(" +
+                "uuid CHAR(36) NOT NULL," +
+                "hotbar CHAR(9) DEFAULT ? NOT NULL," +
+                "FOREIGN KEY (uuid) REFERENCES playerInfo(uuid) ON DELETE CASCADE);";
+        String sqlPlayerInfo = "CREATE TABLE IF NOT EXISTS playerInfo(" +
+                "uuid CHAR(36) NOT NULL," +
+                "newcomer BIT DEFAULT 1 NOT NULL," +
+                "xp INT DEFAULT 0 NOT NULL," +
+                "playtime BIGINT DEFAULT 0 NOT NULL," +
+                "perfectWalls INT DEFAULT 0 NOT NULL," +
+                "PRIMARY KEY (uuid));";
+        try {
+            conn.setAutoCommit(false);
+            PreparedStatement stmt = conn.prepareStatement(sqlScores);
+            stmt.executeUpdate();
+            stmt = conn.prepareStatement(sqlHotbars);
+            stmt.setString(1, PlayingField.DEFAULT_HOTBAR);
+            stmt.executeUpdate();
+            stmt = conn.prepareStatement(sqlPlayerInfo);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            try {
+                conn.rollback();
+            } catch (SQLException rollbackEx) {
+                rollbackEx.printStackTrace();
+            }
+            e.printStackTrace();
+        }
+
+        verifyColumn(conn, "playerInfo", "xp", "INT DEFAULT 0 NOT NULL");
+        for (StringSetting setting : StringSetting.values()) {
+            verifyColumn(conn, "playerInfo", setting.toString(), "VARCHAR(32) DEFAULT '" + setting.getDefault() + "' NOT NULL");
+        }
+        for (BooleanSetting setting : BooleanSetting.values()) {
+            // thanks copilot
+            verifyColumn(conn, "playerInfo", setting.toString(), "BIT DEFAULT " + (setting.getDefault() ? 1 : 0) + " NOT NULL");
+        }
+        verifyColumn(conn, "playerInfo", "playtime", "BIGINT DEFAULT 0 NOT NULL");
+        verifyColumn(conn, "playerInfo", "perfectWalls", "INT DEFAULT 0 NOT NULL");
+        verifyColumn(conn, "scores", Gamemode.CAPPED_MARATHON.toString(), "INT DEFAULT 0 NOT NULL");
+        verifyColumn(conn, "scores", "multiplayerScore", "INT DEFAULT 0 NOT NULL");
+
+        try {
+            conn.commit();
+        } catch (SQLException e) {
+            FillInTheWall.getInstance().getSLF4JLogger().error("Error while committing or closing the database connection");
+            e.printStackTrace();
+        }
+        offlineMode = false;
+        return true;
+    }
+
+    private static void verifyColumn(Connection conn, String table, String column, String modifiers) {
+        try {
+            DatabaseMetaData meta = conn.getMetaData();
+            try (ResultSet result = meta.getColumns(null, null, table, column)) {
+                if (!result.next()) {
+                    Statement stmt = conn.createStatement();
+                    stmt.execute("ALTER TABLE " + table + " ADD " + column + " " + modifiers);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            FillInTheWall.getInstance().getSLF4JLogger().error("Error while verifying column {} in table {}!", column, table);
+        }
+    }
+
+    public static Connection getSQLConnection() throws SQLException {
+        return dataSource.getConnection();
     }
 
     protected static void setOfflineMode(boolean boo) {
@@ -27,7 +142,7 @@ public class Database {
 
     private static void addPlayerToScores(UUID uuid) throws SQLException {
         // Adds a new UUID into the database
-        try (Connection connection = FillInTheWall.getSQLConnection();
+        try (Connection connection = getSQLConnection();
              PreparedStatement stmt1 = connection.prepareStatement(
                 "INSERT INTO scores(uuid) VALUES(?)"
         )) {
@@ -40,7 +155,7 @@ public class Database {
     }
 
     private static void addPlayerToHotbars(UUID uuid) throws SQLException {
-        try (Connection connection = FillInTheWall.getSQLConnection();
+        try (Connection connection = getSQLConnection();
              PreparedStatement stmt1 = connection.prepareStatement(
                      "INSERT INTO hotbars(uuid) VALUES(?)"
              )) {
@@ -55,7 +170,7 @@ public class Database {
     // The gamemode has to be concatenated into the SQL query, or else exceptions will be thrown:
     // https://www.spigotmc.org/threads/mysql-invalid-value-for-getint-mining.361748/
     public static int getRecord(UUID uuid, Gamemode gamemode) throws SQLException {
-        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "SELECT " + gamemode.toString() + " FROM scores WHERE uuid = ?"
         )) {
             stmt.setString(1, uuid.toString());
@@ -74,7 +189,7 @@ public class Database {
     }
 
     public static void updateRecord(UUID uuid, Gamemode gamemode, int score) {
-        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "UPDATE scores SET " + gamemode.toString() + " = ? WHERE uuid = ?"
         )) {
             stmt.setInt(1, score);
@@ -86,7 +201,7 @@ public class Database {
     }
 
     public static LinkedHashMap<UUID, Integer> getTopScores(Gamemode gamemode) throws SQLException {
-        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "SELECT uuid, " + gamemode.toString() + " FROM scores ORDER BY " + gamemode.toString() + " DESC LIMIT 10"
         )) {
             ResultSet result = stmt.executeQuery();
@@ -102,7 +217,7 @@ public class Database {
     }
 
     public static LinkedHashMap<UUID, Integer> getTopTimes(Gamemode gamemode) throws SQLException {
-        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "SELECT uuid, " + gamemode.toString() + " FROM scores ORDER BY " + gamemode.toString() + " ASC LIMIT 10"
         )) {
             ResultSet result = stmt.executeQuery();
@@ -117,8 +232,72 @@ public class Database {
         }
     }
 
+    public static LinkedHashMap<UUID, Integer> getTopXP() throws SQLException {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "SELECT uuid, xp FROM playerInfo ORDER BY xp DESC LIMIT 10"
+        )) {
+            ResultSet result = stmt.executeQuery();
+            LinkedHashMap<UUID, Integer> topScoresOrdered = new LinkedHashMap<>();
+            while (result.next()) {
+                topScoresOrdered.put(UUID.fromString(result.getString("uuid")), result.getInt("xp"));
+            }
+            return topScoresOrdered;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error while getting top XP from database!");
+        }
+    }
+
+    public static LinkedHashMap<UUID, Long> getTopPlaytime() throws SQLException {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "SELECT uuid, playtime FROM playerInfo ORDER BY playtime DESC LIMIT 10"
+        )) {
+            ResultSet result = stmt.executeQuery();
+            LinkedHashMap<UUID, Long> topTimeOrdered = new LinkedHashMap<>();
+            while (result.next()) {
+                topTimeOrdered.put(UUID.fromString(result.getString("uuid")), result.getLong("playtime"));
+            }
+            return topTimeOrdered;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error while getting top playtime from database!");
+        }
+    }
+
+    public static LinkedHashMap<UUID, Integer> getTopPerfectWalls() throws SQLException {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "SELECT uuid, perfectWalls FROM playerInfo ORDER BY perfectWalls DESC LIMIT 10"
+        )) {
+            ResultSet result = stmt.executeQuery();
+            LinkedHashMap<UUID, Integer> topPerfectWallsOrdered = new LinkedHashMap<>();
+            while (result.next()) {
+                topPerfectWallsOrdered.put(UUID.fromString(result.getString("uuid")), result.getInt("perfectWalls"));
+            }
+            return topPerfectWallsOrdered;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error while getting top perfect walls from database!");
+        }
+    }
+
+    public static LinkedHashMap<UUID, Integer> getTopMultiplayerScores() throws SQLException {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "SELECT uuid, multiplayerScore FROM scores ORDER BY multiplayerScore DESC LIMIT 10"
+        )) {
+            ResultSet result = stmt.executeQuery();
+            LinkedHashMap<UUID, Integer> topMultiplayerScoresOrdered = new LinkedHashMap<>();
+            while (result.next()) {
+                topMultiplayerScoresOrdered.put(UUID.fromString(result.getString("uuid")), result.getInt("multiplayerScore"));
+            }
+            return topMultiplayerScoresOrdered;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error while getting top multiplayer scores from database!");
+        }
+    }
+
     public static void updateHotbar(UUID uuid, String hotbar) {
-        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "UPDATE hotbars SET hotbar = ? WHERE uuid = ?"
         )) {
             stmt.setString(1, hotbar);
@@ -130,7 +309,7 @@ public class Database {
     }
 
     public static String getHotbar(UUID uuid) throws SQLException {
-        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "SELECT hotbar FROM hotbars WHERE uuid = ?"
         )) {
             stmt.setString(1, uuid.toString());
@@ -149,16 +328,16 @@ public class Database {
     }
 
     public static boolean isNewcomer(UUID uuid) throws SQLException {
-        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "SELECT newcomer FROM playerInfo WHERE uuid = ?"
         )) {
             stmt.setString(1, uuid.toString());
             ResultSet result = stmt.executeQuery();
-            if (result.next()){
+            if (result.next()) {
                 return result.getBoolean("newcomer");
             } else {
                 // If they didn't exist before, add them!
-                addNewcomer(uuid);
+                addPlayerInfo(uuid);
                 return true;
             }
         } catch (SQLException e) {
@@ -168,7 +347,7 @@ public class Database {
     }
 
     public static void setNewcomer(UUID uuid, boolean newcomer) {
-        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "UPDATE playerInfo SET newcomer = ? WHERE uuid = ?"
         )) {
             stmt.setBoolean(1, newcomer);
@@ -179,18 +358,8 @@ public class Database {
         }
     }
 
-    public static void addNewcomer(UUID uuid) {
-        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
-                "SELECT * FROM playerInfo WHERE uuid = ?"
-        )) {
-            stmt.setString(1, uuid.toString());
-            ResultSet result = stmt.executeQuery();
-            if (result.next()) return;
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        try (Connection connection = FillInTheWall.getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+    public static void addPlayerInfo(UUID uuid) {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
                 "INSERT INTO playerInfo(uuid, newcomer) VALUES(?, ?)"
         )) {
             stmt.setString(1, uuid.toString());
@@ -201,7 +370,36 @@ public class Database {
         }
     }
 
+    public static int getXP(UUID uuid) throws SQLException {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "SELECT xp FROM playerInfo WHERE uuid = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return result.getInt("xp");
+            } else {
+                // If they didn't exist before, add them!
+                addPlayerInfo(uuid);
+                return 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error while getting user XP from database!");
+        }
+    }
 
+    public static void setXP(UUID uuid, int amount) {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "UPDATE playerInfo SET xp = ? WHERE uuid = ?"
+        )) {
+            stmt.setInt(1, amount);
+            stmt.setString(2, uuid.toString());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static boolean isSupported(Gamemode gamemode) {
         return supportedGamemodes.contains(gamemode);
@@ -209,5 +407,160 @@ public class Database {
 
     public static Gamemode[] getSupportedGamemodes() {
         return supportedGamemodes.toArray(new Gamemode[0]);
+    }
+    
+    public static void setStringSetting(UUID uuid, StringSetting setting, String string) {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "UPDATE playerInfo SET " + setting.toString() + " = ? WHERE uuid = ?"
+        )) {
+            stmt.setString(1, string);
+            stmt.setString(2, uuid.toString());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void setBooleanSetting(UUID uuid, BooleanSetting setting, boolean value) {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "UPDATE playerInfo SET " + setting.toString() + " = ? WHERE uuid = ?"
+        )) {
+            stmt.setBoolean(1, value);
+            stmt.setString(2, uuid.toString());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static String getStringSetting(UUID uuid, StringSetting setting) throws SQLException {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "SELECT " + setting.toString() + " FROM playerInfo WHERE uuid = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return result.getString(setting.toString());
+            } else {
+                // If they didn't exist before, add them!
+                addPlayerInfo(uuid);
+                return setting.getDefault();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error while getting user setting from database!");
+        }
+    }
+
+    public static boolean getBooleanSetting(UUID uuid, BooleanSetting setting) throws SQLException {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "SELECT " + setting.toString() + " FROM playerInfo WHERE uuid = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return result.getBoolean(setting.toString());
+            } else {
+                // If they didn't exist before, add them!
+                addPlayerInfo(uuid);
+                return setting.getDefault();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error while getting user setting from database!");
+        }
+    }
+
+    public static void setPlaytime(UUID uuid, long playtime) {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "UPDATE playerInfo SET playtime = ? WHERE uuid = ?"
+        )) {
+            stmt.setLong(1, playtime);
+            stmt.setString(2, uuid.toString());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static long getPlaytime(UUID uuid) throws SQLException {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "SELECT playtime FROM playerInfo WHERE uuid = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return result.getLong("playtime");
+            } else {
+                // If they didn't exist before, add them!
+                addPlayerInfo(uuid);
+                return 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error while getting user playtime from database!");
+        }
+    }
+
+    public static void setPerfectWalls(UUID uuid, int perfectWalls) {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "UPDATE playerInfo SET perfectWalls = ? WHERE uuid = ?"
+        )) {
+            stmt.setInt(1, perfectWalls);
+            stmt.setString(2, uuid.toString());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static int getPerfectWalls(UUID uuid) throws SQLException {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "SELECT perfectWalls FROM playerInfo WHERE uuid = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return result.getInt("perfectWalls");
+            } else {
+                // If they didn't exist before, add them!
+                addPlayerInfo(uuid);
+                return 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error while getting user perfect walls from database!");
+        }
+    }
+
+    public static int getMultiplayerScore(UUID uuid) throws SQLException {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "SELECT multiplayerScore FROM scores WHERE uuid = ?"
+        )) {
+            stmt.setString(1, uuid.toString());
+            ResultSet result = stmt.executeQuery();
+            if (result.next()) {
+                return result.getInt("multiplayerScore");
+            } else {
+                // If they didn't exist before, add them!
+                addPlayerToScores(uuid);
+                return 0;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw new SQLException("Error while getting multiplayer score from database!");
+        }
+    }
+
+    public static void updateMultiplayerScore(UUID uuid, int score) {
+        try (Connection connection = getSQLConnection(); PreparedStatement stmt = connection.prepareStatement(
+                "UPDATE scores SET multiplayerScore = ? WHERE uuid = ?"
+        )) {
+            stmt.setInt(1, score);
+            stmt.setString(2, uuid.toString());
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -1,11 +1,9 @@
-package com.articreep.fillinthewall;
+package com.articreep.fillinthewall.game;
 
+import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
-import com.articreep.fillinthewall.modifiers.Rush;
 import com.articreep.fillinthewall.multiplayer.WallGenerator;
 import com.articreep.fillinthewall.utils.Utils;
-import org.bukkit.Bukkit;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
@@ -43,14 +41,16 @@ public class WallQueue {
     // Wall generation settings
     private WallGenerator generator;
     boolean hideBottomBorder = false;
+    boolean addBackBorder = false;
     private Material wallMaterial = Material.BLUE_CONCRETE;
 
-    public WallQueue(PlayingField field, Material defaultWallMaterial, WallGenerator generator, boolean hideBottomBorder) {
+    public WallQueue(PlayingField field, Material defaultWallMaterial, WallGenerator generator, boolean hideBottomBorder, boolean addBackBorder) {
         setWallMaterial(defaultWallMaterial);
         setHideBottomBorder(hideBottomBorder);
         this.field = field;
         this.generator = generator;
         this.generator.addQueue(this);
+        this.addBackBorder = addBackBorder;
     }
 
     public void addWall(Wall wall) {
@@ -114,7 +114,7 @@ public class WallQueue {
             updateEffectiveLength();
             // Recalculate wall time
             animatingWall.setTimeRemaining(calculateWallActiveTime(animatingWall.getTimeRemaining()));
-            animatingWall.spawnWall(field, this, WallState.ANIMATING, hideBottomBorder);
+            animatingWall.spawnWall(field, this, WallState.ANIMATING, hideBottomBorder, addBackBorder);
         }
 
         animatingWall.setDistanceToTraverse(effectiveLength);
@@ -148,18 +148,20 @@ public class WallQueue {
             }
         }
 
+        boolean frozen = field.eventActive() && field.getEvent().wallFreeze;
+
         // Animate the next wall when possible
         if (activeWalls.isEmpty() && !hiddenWalls.isEmpty()) {
             spawnCooldown = maxSpawnCooldown;
             spawnNextWall();
         // only decrement spawnCooldown if allowMultipleWalls is true
-        } else if (allowMultipleWalls && spawnCooldown-- <= 0) {
+        } else if (!frozen && allowMultipleWalls && spawnCooldown-- <= 0) {
             spawnCooldown = maxSpawnCooldown;
             spawnNextWall();
         }
 
         // If walls are frozen, make particles and return
-        if (field.eventActive() && field.getEvent().wallFreeze) {
+        if (frozen) {
             for (Wall wall : activeWalls) {
                 wall.frozenParticles();
             }
@@ -180,7 +182,7 @@ public class WallQueue {
                 field.matchAndScore(wall);
                 pauseTickLoop = field.getClearDelay();
             } else if (wall.getWallState() != WallState.VISIBLE) {
-                Bukkit.getLogger().severe(ChatColor.RED + "Attempted to tick wall before spawned..");
+                FillInTheWall.getInstance().getSLF4JLogger().error("Attempted to tick wall before spawned..");
             }
         }
     }
@@ -259,9 +261,25 @@ public class WallQueue {
         generator.setWallActiveTime(wallActiveTime);
     }
 
+    public int getWallActiveTime() {
+        return generator.getWallActiveTime();
+    }
+
     public void setRandomHoleCount(int randomHoleCount) {
         if (field.getScorer().getSettings().getBooleanAttribute(GamemodeAttribute.MULTIPLAYER)) return;
         generator.setRandomHoleCount(randomHoleCount);
+    }
+
+    public int getRandomHoleCount() {
+        return generator.getRandomHoleCount();
+    }
+
+    public int getConnectedHoleCount() {
+        return generator.getConnectedHoleCount();
+    }
+
+    public boolean isRandomizeFurther() {
+        return generator.isRandomizeFurther();
     }
 
     public void setConnectedHoleCount(int connectedHoleCount) {
@@ -272,6 +290,11 @@ public class WallQueue {
     public void setRandomizeFurther(boolean randomizeFurther) {
         if (field.getScorer().getSettings().getBooleanAttribute(GamemodeAttribute.MULTIPLAYER)) return;
         generator.setRandomizeFurther(randomizeFurther);
+    }
+
+    public void setMinimumHoleCount(int minimumHoleCount) {
+        if (field.getScorer().getSettings().getBooleanAttribute(GamemodeAttribute.MULTIPLAYER)) return;
+        generator.setWallHolesMin(minimumHoleCount);
     }
 
     public void clearHiddenWalls() {
@@ -339,12 +362,15 @@ public class WallQueue {
 
     /**
      * Takes a new wall and hardens it at the end of the queue.
+     * This is generally an internal method, use PlayingFieldScorer#addGarbageToQueue
+     * (bad code design again)
      * @param wall Wall to harden
      * @param hardness Resistance to positive judgements (perfect = 2, cool = 1)
      */
     public void hardenWall(Wall wall, int hardness) {
         if (wall.getWallState() != WallState.HIDDEN) {
-            Bukkit.getLogger().severe(ChatColor.RED + "Attempted to harden wall that is not hidden/new..");
+            FillInTheWall.getInstance().getSLF4JLogger().error(
+                    "Attempted to harden wall that is not hidden/new..");
             return;
         }
 
@@ -352,7 +378,7 @@ public class WallQueue {
         // Add to hardened walls list
         // Update effective length
 
-        wall.spawnWall(field, this, WallState.HARDENED, hideBottomBorder);
+        wall.spawnWall(field, this, WallState.HARDENED, hideBottomBorder, addBackBorder);
         wall.setHardness(hardness);
 
         hardenedWalls.push(wall);
@@ -387,5 +413,9 @@ public class WallQueue {
 
     public List<Wall> getActiveWalls() {
         return activeWalls;
+    }
+
+    public void pauseTicking(int ticks) {
+        pauseTickLoop = ticks;
     }
 }

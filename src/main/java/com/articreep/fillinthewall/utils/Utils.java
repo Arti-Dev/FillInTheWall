@@ -1,27 +1,28 @@
 package com.articreep.fillinthewall.utils;
 
+import com.articreep.fillinthewall.FillInTheWall;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
-import org.bukkit.util.BoundingBox;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.scoreboard.Team;
+import org.bukkit.util.Transformation;
 import org.bukkit.util.Vector;
+import org.joml.Vector3f;
 
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 
 public class Utils {
-    public static BoundingBox locationsToBoundingBox(Location corner1, Location corner2) {
-        return new BoundingBox(
-                Math.min(corner1.getX(), corner2.getX()),
-                Math.min(corner1.getY(), corner2.getY()),
-                Math.min(corner1.getZ(), corner2.getZ()),
-                Math.max(corner1.getX(), corner2.getX()),
-                Math.max(corner1.getY(), corner2.getY()),
-                Math.max(corner1.getZ(), corner2.getZ())
-        );
-    }
+    private final static MiniMessage miniMessage = MiniMessage.miniMessage();
 
     /**
      * Makes all components of this vector the absolute values of their current values.
@@ -73,7 +74,11 @@ public class Utils {
     }
 
     public static void resetScoreboard(Player player) {
-        player.setScoreboard(Bukkit.getScoreboardManager().getNewScoreboard());
+        player.setScoreboard(FillInTheWall.getBlankScoreboard());
+        Team team = FillInTheWall.getBlankScoreboard().getTeam(FillInTheWall.NO_COLLISION_TEAM_NAME);
+        if (team != null) {
+            team.addEntity(player);
+        }
     }
 
     public static String getFormattedTime(int ticks) {
@@ -107,5 +112,56 @@ public class Utils {
         } else {
             return material;
         }
+    }
+
+    // Nice little method to create a gui item with a custom name, and description
+    public static ItemStack createGuiItem(final Material material, final Component name, final Component... lore) {
+        final ItemStack item = new ItemStack(material, 1);
+        final ItemMeta meta = item.getItemMeta();
+
+        // Set the name of the item
+        meta.displayName(name);
+
+        // Set the lore of the item
+        meta.lore(Arrays.asList(lore));
+
+        item.setItemMeta(meta);
+
+        return item;
+    }
+
+    /**
+     * Transforms the given display up to the provided scale and keeps all other transformation
+     * vectors the same
+     * @param display The display to scale
+     * @param scale How much to scale by
+     */
+    public static void scaleDisplay(Display display, float scale) {
+        Transformation trans = display.getTransformation();
+        display.setTransformation(new Transformation(trans.getTranslation(),
+                trans.getLeftRotation(),
+                new Vector3f(scale, scale, scale),
+                trans.getRightRotation()));
+    }
+
+    public static Component statusComponent(boolean enabled) {
+        if (enabled) return miniMessage.deserialize("<green>ENABLED");
+        else return miniMessage.deserialize("<red>DISABLED");
+    }
+
+    public static void fillEmptySpace(Inventory inventory, ItemStack border) {
+        for (int i = 0; i < inventory.getSize(); i++) {
+            if (inventory.getItem(i) == null) {
+                inventory.setItem(i, border);
+            }
+        }
+    }
+
+    public static String secondsTohms(long seconds) {
+        long hours = seconds / 3600;
+        long minutes = (seconds % 3600) / 60;
+        long secs = seconds % 60;
+
+        return String.format("%02dh%02dm%02ds", hours, minutes, secs);
     }
 }

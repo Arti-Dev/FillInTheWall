@@ -1,26 +1,32 @@
-package com.articreep.fillinthewall;
+package com.articreep.fillinthewall.game;
 
-import com.articreep.fillinthewall.display.DisplayType;
+import com.articreep.fillinthewall.Database;
+import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.environments.Finals;
 import com.articreep.fillinthewall.environments.TheVoid;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.gamemode.GamemodeAttribute;
 import com.articreep.fillinthewall.gamemode.GamemodeSettings;
+import com.articreep.fillinthewall.lobby.LobbyItems;
 import com.articreep.fillinthewall.menu.EndScreen;
-import com.articreep.fillinthewall.menu.Menu;
+import com.articreep.fillinthewall.menu.SandboxMenu;
+import com.articreep.fillinthewall.menu.SelectMenu;
 import com.articreep.fillinthewall.modifiers.ModifierEvent;
 import com.articreep.fillinthewall.modifiers.PlayerInTheWall;
 import com.articreep.fillinthewall.modifiers.Rush;
 import com.articreep.fillinthewall.multiplayer.WallGenerator;
+import com.articreep.fillinthewall.playerinfo.PlayerSettings;
 import com.articreep.fillinthewall.utils.Utils;
 import com.articreep.fillinthewall.utils.WorldBoundingBox;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
-import net.md_5.bungee.api.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.title.Title;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Block;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
@@ -29,6 +35,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
@@ -49,13 +56,15 @@ import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
 import java.sql.SQLException;
+import java.time.Duration;
 import java.util.*;
 
 public class PlayingField implements Listener {
+    private static final MiniMessage miniMessage = MiniMessage.miniMessage();
     private final Set<Player> players = new HashSet<>();
     private final ArrayList<UUID> playerOrder = new ArrayList<>();
+    private final Set<Player> latePlayers = new HashSet<>();
     private final HashMap<Player, GameMode> previousGamemodes = new HashMap<>();
-    private final HashMap<Player, Double> previousBlockReach = new HashMap<>();
     /**
      * Must be the bottom left corner of the playing field (NOT including the border blocks)
      * The location is situated in the CENTER of the target block when it is set by the constructor.
@@ -86,32 +95,35 @@ public class PlayingField implements Listener {
     private final WorldBoundingBox boundingBox;
     private final WorldBoundingBox effectBox;
     private String environment;
+    private String defaultEnvironment;
 
     private final int displaySlotsLength = 6;
     private final DisplayType[] displaySlots = new DisplayType[displaySlotsLength];
     private final TextDisplay[] textDisplays = new TextDisplay[displaySlotsLength];
-    private Set<DisplayType> displayOverrides = new HashSet<>();
+    private final Set<DisplayType> displayOverrides = new HashSet<>();
 
     // Tip statistics
     private int ticksSinceFlying = 0;
     private boolean hasFlownBefore = false;
     private int ticksSinceOffhandSubmit = 0;
     private boolean hasSubmittedUsingOffhand = false;
-    private Set<TextDisplay> tipDisplays = new HashSet<>();
+    private boolean hotbarTipShown = false;
+    private final Set<TextDisplay> tipDisplays = new HashSet<>();
 
     private PlayingFieldScorer scorer;
     private ModifierEvent event = null;
 
     private WallQueue queue;
-    private Material wallMaterial;
-    private boolean hideBottomBorder;
+    private final Material wallMaterial;
+    private final boolean hideBottomBorder;
+    private final boolean addBackBorder;
 
     /** The scorer and queue should be reset before each game starts. */
     private boolean resetRecently = false;
 
     private BukkitTask countdown = null;
     private BukkitTask task = null;
-    private Menu menu = null;
+    private SelectMenu selectMenu = null;
     private EndScreen endScreen = null;
     private boolean confirmOnCooldown = false;
 
@@ -119,7 +131,14 @@ public class PlayingField implements Listener {
 
     private Sound currentlyPlayingTrack = null;
 
-    public static final String DEFAULT_HOTBAR = "PVCSM____";
+    public static final String DEFAULT_HOTBAR = "PVCM_____";
+
+    private boolean infiniteReach = false;
+    private static final NamespacedKey infiniteReachKey = new NamespacedKey(FillInTheWall.getInstance(), "infinite_reach");
+
+    private boolean highlightIncorrectBlocks = false;
+
+    private boolean allowOthersJoin = true;
 
     // Multiplayer settings
     /** Whether to prevent new players from joining and current players from leaving, AND prevent players from starting their own games
@@ -127,8 +146,8 @@ public class PlayingField implements Listener {
     private boolean multiplayerMode = false;
 
     public PlayingField(Location referencePoint, Vector direction, Vector incomingDirection, int standingDistance,
-                        WorldBoundingBox boundingBox, WorldBoundingBox effectBox, String environment, int length, int height,
-                        Material wallMaterial, Material playerMaterial, boolean hideBottomBorder) {
+                        WorldBoundingBox boundingBox, WorldBoundingBox effectBox, String defaultEnvironment, int length, int height,
+                        Material wallMaterial, Material playerMaterial, boolean hideBottomBorder, boolean addBackBorder) {
         // define playing field in a very scuffed way
         this.fieldReferencePoint = Utils.centralizeLocation(referencePoint);
         this.fieldDirection = direction;
@@ -136,15 +155,17 @@ public class PlayingField implements Listener {
         if (!fieldDirection.isZero()) fieldDirection.normalize();
         if (!incomingDirection.isZero()) incomingDirection.normalize();
         this.scorer = new PlayingFieldScorer(this);
-        this.queue = new WallQueue(this, wallMaterial, WallGenerator.defaultGenerator(length, height), hideBottomBorder);
+        this.queue = new WallQueue(this, wallMaterial, WallGenerator.defaultGenerator(length, height), hideBottomBorder, addBackBorder);
         this.boundingBox = boundingBox;
         this.effectBox = effectBox;
         this.playerMaterial = playerMaterial;
         this.height = height;
         this.length = length;
-        this.environment = environment;
+        this.defaultEnvironment = defaultEnvironment;
+        environment = defaultEnvironment;
         if (this.environment == null) this.environment = "";
         this.hideBottomBorder = hideBottomBorder;
+        this.addBackBorder = addBackBorder;
         this.wallMaterial = wallMaterial;
         this.standingDistance = standingDistance;
         setDefaultDisplaySlots();
@@ -170,9 +191,12 @@ public class PlayingField implements Listener {
         if (players.isEmpty()) return;
         if (hasMenu()) removeMenu();
         if (hasEndScreen()) removeEndScreen();
-        menu = new Menu(getCenter(true, false).add(0, 1, 0), this);
-        menu.display();
+        selectMenu = new SelectMenu(getCenter(true, false), this);
+        selectMenu.display();
     }
+
+    private static final Title.Times titleTimes = Title.Times.times(
+            Duration.ZERO, Duration.ofSeconds(1), Duration.ZERO);
 
     public void countdownStart(Gamemode mode) {
         countdown = new BukkitRunnable() {
@@ -180,20 +204,22 @@ public class PlayingField implements Listener {
             @Override
             public void run() {
                 if (i == 3) {
-                    sendTitleToPlayers(ChatColor.GREEN + "③", "", 0, 20, 0);
+                    sendTitleToPlayers(Title.title(miniMessage.deserialize("<green>③"), Component.empty(), titleTimes));
                     playSoundToPlayers(Sound.BLOCK_NOTE_BLOCK_BELL, 1);
                 } else if (i == 2) {
-                    sendTitleToPlayers(ChatColor.YELLOW + "②", "", 0, 20, 0);
+                    sendTitleToPlayers(Title.title(miniMessage.deserialize("<yellow>②"), Component.empty(), titleTimes));
                     playSoundToPlayers(Sound.BLOCK_NOTE_BLOCK_BELL, 1);
                 } else if (i == 1) {
-                    sendTitleToPlayers(ChatColor.RED + "①", "", 0, 20, 0);
+                    sendTitleToPlayers(Title.title(miniMessage.deserialize("<red>①"), Component.empty(), titleTimes));
                     playSoundToPlayers(Sound.BLOCK_NOTE_BLOCK_BELL, 1);
                 } else if (i == 0) {
                     // It's important that the countdown reference is removed before we start the game
                     // so that hasStarted() returns false
                     countdown = null;
                     start(mode);
-                    sendTitleToPlayers(ChatColor.GREEN + "GO!", "", 0, 5, 3);
+                    Title.Times goTimes = Title.Times.times(
+                            Duration.ZERO, Duration.ofMillis(250), Duration.ofMillis(150));
+                    sendTitleToPlayers(Title.title(miniMessage.deserialize("<green>GO!"), Component.empty(), goTimes));
                     playSoundToPlayers(Sound.BLOCK_BELL_USE, 0.5f);
                     cancel();
                 }
@@ -204,19 +230,20 @@ public class PlayingField implements Listener {
 
     public void reset() {
         scorer = new PlayingFieldScorer(this);
-        queue = new WallQueue(this, wallMaterial, WallGenerator.defaultGenerator(length, height), hideBottomBorder);
+        queue = new WallQueue(this, wallMaterial, WallGenerator.defaultGenerator(length, height), hideBottomBorder, addBackBorder);
         ticksSinceOffhandSubmit = 0;
         ticksSinceFlying = 0;
         hasFlownBefore = false;
         hasSubmittedUsingOffhand = false;
         resetRecently = true;
+        hotbarTipShown = false;
     }
 
     // Running this method will create new scorer and queue objects
     public void start(Gamemode mode, GamemodeSettings settings) {
         // Log fail if this is already running
         if (hasStarted()) {
-            Bukkit.getLogger().severe("Tried to start game that's already been started");
+            FillInTheWall.getInstance().getSLF4JLogger().error("Tried to start game that's already been started");
             return;
         }
         if (players.isEmpty()) {
@@ -229,26 +256,39 @@ public class PlayingField implements Listener {
         if (!resetRecently) reset();
         scorer.setGamemode(mode, settings);
         scorer.setPlayersOnGameStart(players.size());
+        if (scorer.getSettings().getBooleanAttribute(GamemodeAttribute.INFINITE_BLOCK_REACH)) infiniteReach = true;
+        if (scorer.getSettings().getBooleanAttribute(GamemodeAttribute.HIGHLIGHT_INCORRECT_BLOCKS)) highlightIncorrectBlocks = true;
         setDisplaySlots(settings);
         removeMenu();
+        clearField();
         removeEndScreen();
         spawnTextDisplays();
         for (Player player : players) {
+            scorer.startTrackingStats(player);
+            addSpecialaGamemodeItems(player);
             player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, -1, 0, false, false));
-            formatInventory(player);
             player.setGameMode(GameMode.CREATIVE);
-            setInfiniteReach(player);
-            try {
-                if (!Database.isOfflineMode() && Database.isNewcomer(player.getUniqueId())) {
-                    if (mode != Gamemode.TUTORIAL) Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () ->
-                            player.sendTitle(ChatColor.AQUA + "Place glass blocks", ChatColor.DARK_AQUA + "such that they" +
-                            ChatColor.AQUA + " fill in the " + ChatColor.DARK_AQUA + "incoming" + ChatColor.AQUA + " wall!",
-                                    10, 200, 20), 40);
-                    Database.setNewcomer(player.getUniqueId(), false);
+            if (infiniteReach) giveInfiniteReach(player);
+
+            // Newcomers will be shown a title - check asynchronously
+            Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> {
+                try {
+                    if (!Database.isOfflineMode() && Database.isNewcomer(player.getUniqueId())) {
+                        if (mode != Gamemode.TUTORIAL) {
+                            Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> {
+                                Title.Times times = Title.Times.times(
+                                        Duration.ofMillis(500), Duration.ofMillis(2000), Duration.ofMillis(1000));
+                                player.showTitle(Title.title(miniMessage.deserialize("<aqua>Place glass blocks"),
+                                        miniMessage.deserialize("<dark_aqua>such that they <aqua>fill in the <dark_aqua>incoming <aqua>wall!"),
+                                        times));
+                            }, 40);
+                        }
+                        Database.setNewcomer(player.getUniqueId(), false);
+                    }
+                } catch (SQLException e) {
+                    FillInTheWall.getInstance().getSLF4JLogger().error("Something went wrong while trying to fetch newcomer status.");
                 }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            });
         }
         task = tickLoop();
     }
@@ -258,29 +298,35 @@ public class PlayingField implements Listener {
     }
 
     /**
-     * Adds a player to the game. If locked is true, locks this playing field after the player is added.
+     * Adds a player to the game.
      * @param player Player to add
-     * @return
+     * @return Whether the player was added successfully
      */
     public boolean addPlayer(Player player, AddReason reason) {
         if (multiplayerMode && reason != AddReason.MULTIPLAYER) return false;
         if (player.getGameMode() == GameMode.SPECTATOR) return false;
+        if (!players.isEmpty() && !allowOthersJoin && reason == AddReason.IN_RANGE) return false;
         Gamemode mode = scorer.getGamemode();
         // Do not add extra players to singleplayer leaderboard games
         if (hasStarted() && !players.isEmpty() && Database.isSupported(mode) &&
                 !mode.getDefaultSettings().getBooleanAttribute(GamemodeAttribute.TEAM_EFFORT)) return false;
+
         players.add(player);
         playerOrder.add(player.getUniqueId());
         player.setInvulnerable(true);
         player.setAllowFlight(true);
         previousGamemodes.put(player, player.getGameMode());
+        Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> loadSavedHotbar(player));
         if (!hasStarted() && !hasMenu() && !multiplayerMode) {
             // Display a new menu
             createMenu();
+            allowOthersJoin = PlayerSettings.getBooleanSettingOrDefault(player.getUniqueId(), PlayerSettings.BooleanSetting.OTHERS_JOIN);
         } else if (hasStarted()) {
-            formatInventory(player);
+            latePlayers.add(player);
+            scorer.startTrackingStats(player);
+            addSpecialaGamemodeItems(player);
             player.setGameMode(GameMode.CREATIVE);
-            setInfiniteReach(player);
+            if (infiniteReach) giveInfiniteReach(player);
             player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, -1, 0, false, false));
             if (scorer.getScoreboard() != null) player.setScoreboard(scorer.getScoreboard());
             if (currentlyPlayingTrack != null)  player.playSound(player, currentlyPlayingTrack, 0.5f, 1);
@@ -300,25 +346,36 @@ public class PlayingField implements Listener {
     public boolean removePlayer(Player player, boolean force) {
         if (multiplayerMode && !force) return false;
         saveHotbar(player);
+        Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> {
+            scorer.updateStats(player);
+        });
 
-        // If this will be our last player, shut the game down
+        // If this will be our last player, shut the game down and mark the game as incomplete
         if (playerCount() == 1) {
+            allowOthersJoin = true;
             if (hasStarted()) {
+                scorer.setIncompleteGame(true);
                 stop();
             }
             else removeMenu();
+        } else if (hasStarted()) {
+            // If the player left mid-game, award XP
+            scorer.awardXP(player);
         }
 
         players.remove(player);
+        latePlayers.remove(player);
         playerOrder.remove(player.getUniqueId());
-        // do not recover the player's gamemode if in spectator
+        // things not to do if the player was a spectator
         if (previousGamemodes.containsKey(player) && player.getGameMode() != GameMode.SPECTATOR) {
             GameMode previousGamemode = previousGamemodes.get(player);
             if (previousGamemode != null) player.setGameMode(previousGamemode);
             if (previousGamemode != GameMode.CREATIVE) player.setAllowFlight(false);
+            LobbyItems.giveProfileMenuItem(player);
+            LobbyItems.giveGimmicklessMenuItem(player);
         }
         previousGamemodes.remove(player);
-        resetReach(player);
+        removeInfiniteReach(player);
         player.setInvulnerable(false);
         if (currentlyPlayingTrack != null) player.stopSound(currentlyPlayingTrack);
 
@@ -337,18 +394,32 @@ public class PlayingField implements Listener {
         return playerOrder.getFirst();
     }
 
-    public void formatInventory(Player player) {
-        player.getInventory().clear();
-        player.setItemOnCursor(null);
+    public void loadSavedHotbar(Player player) {
         String hotbar;
+        boolean altBlock;
         try {
             if (Database.isOfflineMode()) hotbar = DEFAULT_HOTBAR;
             else hotbar = Database.getHotbar(player.getUniqueId());
+            altBlock = PlayerSettings.getBooleanSetting(player.getUniqueId(), PlayerSettings.BooleanSetting.ALT_SUPPORT_BLOCK);
         } catch (SQLException e) {
+            FillInTheWall.getInstance().getSLF4JLogger().error("Something went wrong while trying to fetch saved hotbar.");
             e.printStackTrace();
             hotbar = DEFAULT_HOTBAR;
-
+            altBlock = false;
         }
+
+        String finalHotbar = hotbar;
+        boolean finalAltBlock = altBlock;
+        Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> formatInventory(player, finalHotbar, finalAltBlock));
+    }
+
+    private void formatInventory(Player player, String hotbar, boolean altSupportBlock) {
+        player.getInventory().clear();
+        player.setItemOnCursor(null);
+        ItemStack supportBlock;
+        if (altSupportBlock) supportBlock = stoneSupportItem();
+        else supportBlock = copperSupportItem();
+
         for (int i = 0; i < hotbar.length(); i++) {
             char c = hotbar.charAt(i);
             if (c == 'P') {
@@ -356,11 +427,9 @@ public class PlayingField implements Listener {
             } else if (c == 'V') {
                 player.getInventory().setItem(i, variableItem());
             } else if (c == 'C') {
-                player.getInventory().setItem(i, copperSupportItem());
-            } else if (c == 'S') {
-                player.getInventory().setItem(i, stoneSupportItem());
+                player.getInventory().setItem(i, supportBlock);
             } else if (c == 'M') {
-                player.getInventory().setItem(i, meterItem());
+                player.getInventory().setItem(i, chargeItem());
             } else {
                 player.getInventory().setItem(i, new ItemStack(Material.AIR));
             }
@@ -372,36 +441,69 @@ public class PlayingField implements Listener {
         } if (!hotbar.contains("V")) {
             player.getInventory().addItem(variableItem());
         } if (!hotbar.contains("C")) {
-            player.getInventory().addItem(copperSupportItem());
-        } if (!hotbar.contains("S")) {
-            player.getInventory().addItem(stoneSupportItem());
+            player.getInventory().addItem(supportBlock);
         } if (!hotbar.contains("M")) {
-            player.getInventory().addItem(meterItem());
+            player.getInventory().addItem(chargeItem());
+        }
+    }
+
+    private void addSpecialaGamemodeItems(Player player) {
+        if (scorer.getGamemode() == Gamemode.SANDBOX) {
+            player.getInventory().setItem(7, sandboxMenuItem());
+            Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () ->
+                    sendTitleToPlayers(miniMessage.deserialize("<gradient:green:dark_green>Sandbox Mode"),
+                            Component.text("Right click the nether star in your inventory to customize!"),
+                            10, 80, 20), 40);
         }
         // todo temporary
         if (scorer.getSettings().getBooleanAttribute(GamemodeAttribute.DO_CLEARING_MODES)) {
             player.getInventory().addItem(new ItemStack(Material.FIREWORK_STAR));
         }
-
     }
 
-    public void setInfiniteReach(Player player) {
-        if (!scorer.getSettings().getBooleanAttribute(GamemodeAttribute.INFINITE_BLOCK_REACH)) return;
+    private void giveInfiniteReach(Player player) {
         AttributeInstance attribute = player.getAttribute(Attribute.BLOCK_INTERACTION_RANGE);
-        previousBlockReach.put(player, attribute.getBaseValue());
-        attribute.setBaseValue(64);
+        attribute.addModifier(new AttributeModifier(infiniteReachKey, 64, AttributeModifier.Operation.ADD_NUMBER));
     }
 
-    public void resetReach(Player player) {
-        if (previousBlockReach.containsKey(player)) {
-            player.getAttribute(Attribute.BLOCK_INTERACTION_RANGE).setBaseValue(previousBlockReach.get(player));
-            previousBlockReach.remove(player);
+    private void removeInfiniteReach(Player player) {
+        AttributeInstance attribute = player.getAttribute(Attribute.BLOCK_INTERACTION_RANGE);
+        attribute.removeModifier(infiniteReachKey);
+    }
+
+    public void setInfiniteReach(boolean enabled) {
+        infiniteReach = enabled;
+        for (Player player : getPlayers()) {
+            if (enabled) {
+                giveInfiniteReach(player);
+            } else {
+                removeInfiniteReach(player);
+            }
         }
+    }
+
+    public boolean infiniteReachEnabled() {
+        return infiniteReach;
+    }
+
+    public void setHighlightIncorrectBlocks(boolean enabled) {
+        highlightIncorrectBlocks = enabled;
+        if (enabled) refreshIncorrectBlockHighlights(queue.getFrontmostWall()); // todo this doesn't work
+        else {
+            for (BlockDisplay display : incorrectBlockHighlights.values()) {
+                display.remove();
+            }
+            incorrectBlockHighlights.clear();
+        }
+    }
+
+    public boolean highlightIncorrectBlocksEnabled() {
+        return highlightIncorrectBlocks;
     }
 
     public void stop(boolean submitFinalWall, boolean showEndScreen) {
         if (!hasStarted()) {
-            Bukkit.getLogger().severe("Tried to stop game that's already been stopped");
+            FillInTheWall.getInstance().getSLF4JLogger().error("Tried to stop game that's already been stopped");
             return;
         }
 
@@ -415,20 +517,29 @@ public class PlayingField implements Listener {
         for (TextDisplay display : textDisplays) {
             display.remove();
         }
+        if (PlayingFieldManager.isSoloPlayingField(this) && !environment.equalsIgnoreCase(defaultEnvironment)) {
+            BuildSwapper.swapBuild(this, defaultEnvironment, false);
+        }
         if (!tipDisplays.isEmpty()) clearTipDisplays();
         multiplayerMode = false;
+        allowOthersJoin = true;
         stopMusic();
         queue.clearAllWalls();
         queue.allowMultipleWalls(false);
         for (Player player : getPlayers()) {
-            resetReach(player);
+            removeInfiniteReach(player);
         }
+        infiniteReach = false;
+        highlightIncorrectBlocks = false;
         if (event != null) {
             event.end();
             event = null;
         }
         scorer.removeScoreboard();
         scorer.announceFinalScore();
+        for (Player player : getPlayers()) {
+            scorer.awardXP(player);
+        }
         if (showEndScreen) {
             endScreen = scorer.createEndScreen();
             endScreen.display();
@@ -476,18 +587,18 @@ public class PlayingField implements Listener {
         Player player = event.getPlayer();
         if (!isInField(event.getBlock().getLocation())) {
             event.setCancelled(true);
-            player.sendMessage(ChatColor.RED + "Can't place blocks here!");
+            player.sendMessage(miniMessage.deserialize("<red>Can't place blocks here!"));
             return;
         } else {
             event.setCancelled(false);
         }
 
-        if (event.getBlockPlaced().getType() == Material.CRACKED_STONE_BRICKS) {
+        if (event.getBlockPlaced().getType() == stoneSupportItem().getType()) {
             Random random = new Random();
             player.playSound(player.getLocation(), Sound.BLOCK_CHAIN_PLACE, 0.7f, random.nextFloat(0.5f, 2));
         }
 
-        if (scorer.getSettings().getBooleanAttribute(GamemodeAttribute.HIGHLIGHT_INCORRECT_BLOCKS)) {
+        if (highlightIncorrectBlocks) {
             Block block = event.getBlockPlaced();
             if (block.getType() != copperSupportItem().getType()) {
                 Pair<Integer, Integer> coordinates = blockToCoordinates(block);
@@ -507,7 +618,7 @@ public class PlayingField implements Listener {
         Block block = event.getBlock();
         if (!isInField(block.getLocation())) {
             event.setCancelled(true);
-            player.sendMessage(ChatColor.RED + "Can't break blocks here!");
+            player.sendMessage(miniMessage.deserialize("<red>Can't break blocks here!"));
         } else {
             event.setCancelled(false);
             if (incorrectBlockHighlights.containsKey(block)) {
@@ -526,6 +637,7 @@ public class PlayingField implements Listener {
         if (item.getType() == Material.AIR) return;
 
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            if (!hasStarted()) event.setCancelled(true);
             if (event.getClickedBlock().getType() == Material.CRACKED_STONE_BRICKS) {
                 Block clickedBlock = event.getClickedBlock();
                 // Check to make sure the block placement wasn't an accident
@@ -554,7 +666,7 @@ public class PlayingField implements Listener {
                     || event.getAction() == Action.RIGHT_CLICK_AIR
                     || event.getAction() == Action.LEFT_CLICK_AIR) {
                 event.setCancelled(true);
-                scorer.onMeterActivate(player);
+                scorer.onChargeActivate(player);
             }
         }
 
@@ -568,6 +680,24 @@ public class PlayingField implements Listener {
                 scorer.onClearingModeChange(player);
             }
         }
+
+        if (item.getType() == Material.NETHER_STAR && scorer.getGamemode() == Gamemode.SANDBOX) {
+            if (event.getAction() == Action.RIGHT_CLICK_BLOCK
+                    || event.getAction() == Action.LEFT_CLICK_BLOCK
+                    || event.getAction() == Action.RIGHT_CLICK_AIR
+                    || event.getAction() == Action.LEFT_CLICK_AIR) {
+                event.setCancelled(true);
+                SandboxMenu.sandboxInventory(event.getPlayer(), this);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent event) {
+        if (event.getClickedInventory() instanceof PlayerInventory && !hotbarTipShown) {
+            hotbarTipShown = true;
+            setTipDisplay(miniMessage.deserialize("<yellow>Tip: If you delete an item, use /fitw hotbar to restore it!"));
+        }
     }
 
     @EventHandler
@@ -575,7 +705,7 @@ public class PlayingField implements Listener {
         if (!players.contains(event.getPlayer())) return;
         Player player = event.getPlayer();
         event.setCancelled(true);
-        scorer.onMeterActivate(player);
+        scorer.onChargeActivate(player);
     }
 
     public void refreshIncorrectBlockHighlights(Wall wall) {
@@ -616,6 +746,10 @@ public class PlayingField implements Listener {
     }
 
     // todo add the option to get this reference point in the center of the block or in the natural corner
+    /**
+     * Returns the corner of the playing field (NOT including the border blocks)
+     * The location is situated in the CENTER of the target block.
+     */
     public Location getReferencePoint() {
         return fieldReferencePoint.clone();
     }
@@ -645,11 +779,6 @@ public class PlayingField implements Listener {
 
     public Set<Player> getPlayers() {
         return players;
-    }
-
-    public void setQueue(WallQueue queue) {
-        // todo this method might be used for swapping two players' queues in the future
-        this.queue = queue;
     }
 
     public WallQueue getQueue() {
@@ -724,6 +853,7 @@ public class PlayingField implements Listener {
 
         if (scorer.getSettings().getIntAttribute(GamemodeAttribute.PERFECT_WALL_CAP) > 0) {
             if (scorer.getPerfectWallsCleared() >= scorer.getSettings().getIntAttribute(GamemodeAttribute.PERFECT_WALL_CAP)) {
+                scorer.playGameEnd();
                 stop(false, true);
             }
         }
@@ -823,16 +953,16 @@ public class PlayingField implements Listener {
                 if (ticksSinceFlying % (20*20) == 0 && !hasFlownBefore) {
                     // one exception
                     if (!eventActive() || !(event instanceof PlayerInTheWall)) {
-                        setTipDisplay(ChatColor.GRAY + "Tip: " + ChatColor.YELLOW + "You can fly!");
+                        setTipDisplay(miniMessage.deserialize("<gray>Tip: <yellow>You can fly!"));
                     }
                 } else if (ticksSinceOffhandSubmit % (30*20) == 0 && !hasSubmittedUsingOffhand) {
-                    setTipDisplay(ChatColor.GRAY + "Tip: " + ChatColor.YELLOW + "Submit walls by pressing offhand (usually [F])!");
+                    setTipDisplay(miniMessage.deserialize("<gray>Tip: <yellow>Submit walls by pressing <key:key.swapOffhand>!"));
                 }
 
                 if (eventActive() && event.actionBarOverride() != null) {
-                    sendActionBarToPlayers(new TextComponent(event.actionBarOverride()));
+                    sendActionBarToPlayers(event.actionBarOverride());
                 } else {
-                    sendActionBarToPlayers(scorer.getFormattedMeter());
+                    actionBar();
                 }
                 queue.tick();
                 if (eventActive()) {
@@ -890,6 +1020,16 @@ public class PlayingField implements Listener {
         }.runTaskTimer(FillInTheWall.getInstance(), 0, 1);
     }
 
+    public void actionBar() {
+        PlayingFieldScorer.ActionBarType type = scorer.getSettings().getActionBarTypeAttribute(GamemodeAttribute.ACTIONBAR_DISPLAY);
+        switch (type) {
+            case LEVEL_PROGRESS -> sendActionBarToPlayers(scorer.getLevelProgressActionbar());
+            case ENDLESS_LEVEL_PROGRESS -> sendActionBarToPlayers(scorer.getEndlessLevelProgressActionbar());
+            case PERFECT_WALLS -> sendActionBarToPlayers(scorer.getPerfectWallsActionbar());
+            case CHARGES -> sendActionBarToPlayers(scorer.getChargesActionbar());
+        }
+    }
+
     public boolean arePlayersFlying() {
         for (Player player : players) {
             if (player.isFlying()) return true;
@@ -897,10 +1037,11 @@ public class PlayingField implements Listener {
         return false;
     }
 
+    // Generally, don't use this method: create an event and then use its built-in activate()
+    // bad code design moment
     public void setEvent(ModifierEvent newEvent) {
         if (event != null && newEvent != null) {
             if (newEvent.shelveEvent) {
-                Bukkit.getLogger().info("Shelving event " + event);
                 newEvent.setShelvedEvent(event);
                 event.end();
             } else {
@@ -911,10 +1052,12 @@ public class PlayingField implements Listener {
     }
 
     public void endEvent() {
+        if (event == null) return;
         event.end();
         if (event.shelveEvent) {
             // todo this line prevents infinite recursion - kind of scary
             event = event.getShelvedEvent();
+
             if (event != null) {
                 event.activate();
             }
@@ -923,6 +1066,7 @@ public class PlayingField implements Listener {
         }
         if (scorer.getSettings().getIntAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP) > 0) {
             if (scorer.getEventCount() >= (int) scorer.getSettings().getAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP)) {
+                scorer.playGameEnd();
                 stop();
             }
         }
@@ -979,62 +1123,59 @@ public class PlayingField implements Listener {
                     new AxisAngle4f(0, 0, 0, 1),
                     new Vector3f(size, size, size),
                     new AxisAngle4f(0, 0, 0, 1)));
-            textDisplays[i].setText(ChatColor.DARK_GRAY + "Loading...");
+            textDisplays[i].text(miniMessage.deserialize("<gray>Loading..."));
         }
     }
 
     public void updateTextDisplays() {
         // todo in theory we don't need to tick the gamemode/name displays, but we can for now
         for (int i = 0; i < displaySlotsLength; i++) {
-            // todo we definitely need to refactor this
-            Object data = null;
+            Component component = null;
+            ArrayList<Component> compArray = new ArrayList<>();
             DisplayType type = displaySlots[i];
             if (displayOverrides.contains(type)) continue;
             switch (type) {
-                case NONE -> data = "";
-                case SCORE -> data = scorer.getScore();
-                case ACCURACY -> data = "null";
-                case SPEED -> data = scorer.getFormattedBlocksPerSecond();
+                case NONE -> component = Component.empty();
+                case SCORE -> component = Component.text(scorer.getScore());
+                case ACCURACY -> component = Component.text("null");
+                case SPEED -> component = Component.text(scorer.getFormattedBlocksPerSecond());
                 case PERFECT_WALLS -> {
-                    ArrayList<Object> array = new ArrayList<>();
-                    array.add(scorer.getPerfectWallsCleared());
+                    compArray.add(Component.text(scorer.getPerfectWallsCleared()));
                     if (scorer.getSettings().getIntAttribute(GamemodeAttribute.PERFECT_WALL_CAP) > 0) {
-                        array.add("/" + scorer.getSettings().getAttribute(GamemodeAttribute.PERFECT_WALL_CAP));
+                        compArray.add(miniMessage.deserialize(
+                                "/" + scorer.getSettings().getAttribute(GamemodeAttribute.PERFECT_WALL_CAP)));
                     } else {
-                        array.add("");
+                        compArray.add(Component.empty());
                     }
-                    data = array;
                 }
-                case TIME -> data = scorer.getFormattedTime();
-                case LEVEL -> data = scorer.getLevel();
+                case TIME -> component = scorer.getFormattedTime();
+                case LEVEL -> component = Component.text(scorer.getLevel());
                 case POSITION -> {
-                    ArrayList<Object> array = new ArrayList<>();
                     if (scorer.getPointsBehind() == -1) {
-                        array.add("Way to go!");
-                        array.add("");
+                        compArray.add(Component.text("Way to go!"));
+                        compArray.add(Component.empty());
                     } else {
-                        array.add(scorer.getPointsBehind());
-                        array.add("#" + (scorer.getPosition() - 1));
+                        compArray.add(Component.text(scorer.getPointsBehind()));
+                        compArray.add(miniMessage.deserialize("#" + (scorer.getPosition() - 1)));
                     }
-                    data = array;
                 }
-                case NAME -> data = Utils.playersToString(players);
-                case GAMEMODE -> data = scorer.getGamemode().getTitle();
+                case NAME -> component = Component.text(Utils.playersToString(players));
+                case GAMEMODE -> component = scorer.getGamemode().getTitle();
                 case EVENTS -> {
-                    ArrayList<Object> array = new ArrayList<>();
-                    array.add(scorer.getEventCount());
+                    compArray.add(Component.text(scorer.getEventCount()));
                     if (scorer.getSettings().getIntAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP) > 0) {
-                        array.add("/" + scorer.getSettings().getAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP));
+                        compArray.add(miniMessage.deserialize(
+                                "/" + scorer.getSettings().getAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP)));
                     } else {
-                        array.add("");
+                        compArray.add(Component.empty());
                     }
-                    data = array;
                 }
+                case SCORE_TO_NEXT_LEVEL -> component = Component.text(scorer.getScoreToNextLevel());
             }
-            if (data instanceof ArrayList<?> list) {
-                textDisplays[i].setText(type.getFormattedText(list));
+            if (!compArray.isEmpty()) {
+                textDisplays[i].text(type.getFormattedText(compArray));
             } else {
-                textDisplays[i].setText(type.getFormattedText(data));
+                textDisplays[i].text(type.getFormattedText(component));
             }
         }
     }
@@ -1063,11 +1204,11 @@ public class PlayingField implements Listener {
      * @param ticks Amount of ticks to override
      * @param message Message to display
      */
-    public void overrideDisplay(DisplayType type, int ticks, String message) {
+    public void overrideDisplay(DisplayType type, int ticks, Component message) {
         displayOverrides.add(type);
         for (int i = 0; i < displaySlotsLength; i++) {
             if (displaySlots[i] == type) {
-                textDisplays[i].setText(message);
+                textDisplays[i].text(message);
             }
         }
         Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), () -> displayOverrides.remove(type), ticks);
@@ -1079,11 +1220,11 @@ public class PlayingField implements Listener {
      * @param type DisplayType to affect
      * @param message Message to display
      */
-    public void modifyOverridenDisplayText(DisplayType type, String message) {
+    public void modifyOverridenDisplayText(DisplayType type, Component message) {
         if (!displayOverrides.contains(type)) return;
         for (int i = 0; i < displaySlotsLength; i++) {
             if (displaySlots[i] == type) {
-                textDisplays[i].setText(message);
+                textDisplays[i].text(message);
             }
         }
     }
@@ -1116,13 +1257,23 @@ public class PlayingField implements Listener {
         return environment;
     }
 
+    public void setEnvironment(String environment) {
+        if (environment == null) return;
+        this.environment = environment;
+    }
+
     public void removeMenu() {
-        if (menu != null) this.menu.despawn();
-        this.menu = null;
+        if (selectMenu != null) this.selectMenu.despawn();
+        this.selectMenu = null;
+    }
+
+    public void forceRemoveMenu() {
+        if (selectMenu != null) this.selectMenu.despawn(true);
+        this.selectMenu = null;
     }
 
     public boolean hasMenu() {
-        return menu != null;
+        return selectMenu != null;
     }
 
     public void removeEndScreen() {
@@ -1157,7 +1308,8 @@ public class PlayingField implements Listener {
     public static ItemStack buildingItem(Material material) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        meta.setLore(Collections.singletonList(ChatColor.GRAY + "Fill the holes in the incoming wall with this!"));
+        meta.lore(Collections.singletonList(miniMessage.deserialize(
+                "<gray>Fill the holes in the incoming wall with this!")));
         meta.getPersistentDataContainer().set(gameKey, PersistentDataType.BOOLEAN, true);
         item.setItemMeta(meta);
         return item;
@@ -1166,11 +1318,11 @@ public class PlayingField implements Listener {
     public static ItemStack stoneSupportItem() {
         ItemStack item = new ItemStack(Material.CRACKED_STONE_BRICKS);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.GRAY + "Stone Support Block");
-        meta.setLore(Arrays.asList(ChatColor.GRAY + "- place this block on the field",
-                ChatColor.GRAY + "- place another block against this block",
-                ChatColor.YELLOW + "" + ChatColor.BOLD + "- ???",
-                ChatColor.AQUA + "- floating block"));
+        meta.displayName(miniMessage.deserialize("<gray>Stone Support Block"));
+        meta.lore(Arrays.asList(miniMessage.deserialize("<gray>- place this block on the field"),
+                miniMessage.deserialize("<gray>- place another block against this block"),
+                miniMessage.deserialize("<yellow><bold>- ???"),
+                miniMessage.deserialize("<aqua>- floating block")));
         meta.getPersistentDataContainer().set(gameKey, PersistentDataType.BOOLEAN, true);
         item.setItemMeta(meta);
         return item;
@@ -1179,22 +1331,22 @@ public class PlayingField implements Listener {
     public static ItemStack copperSupportItem() {
         ItemStack item = new ItemStack(Material.WAXED_COPPER_GRATE);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.of(new java.awt.Color(154, 95, 74)) + "Copper Support Block");
-        meta.setLore(Arrays.asList(ChatColor.GRAY + "- place this block on the field",
-                ChatColor.GRAY + "- block breaks right before wall is submitted",
-                ChatColor.YELLOW + "" + ChatColor.BOLD + "- ???",
-                ChatColor.AQUA + "- no left clicks required"));
+        meta.displayName(miniMessage.deserialize("<color:#9A5F4A>Copper Support Block"));
+        meta.lore(Arrays.asList(miniMessage.deserialize("<gray>- place this block on the field"),
+                miniMessage.deserialize("<gray>- block breaks right before wall is submitted"),
+                miniMessage.deserialize("<yellow><bold>- ???"),
+                miniMessage.deserialize("<aqua>- no left clicks required")));
         meta.getPersistentDataContainer().set(gameKey, PersistentDataType.BOOLEAN, true);
         item.setItemMeta(meta);
         return item;
     }
 
-    public static ItemStack meterItem() {
+    public static ItemStack chargeItem() {
         ItemStack item = new ItemStack(Material.FIREWORK_ROCKET);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "Special Ability");
-        meta.setLore(Arrays.asList(ChatColor.GRAY + "When your meter is full enough, hold this item",
-                ChatColor.GRAY + "and click to activate a" + ChatColor.GOLD + " special ability" + ChatColor.GRAY + "!"));
+        meta.displayName(miniMessage.deserialize("<gold><bold>Special Ability"));
+        meta.lore(Arrays.asList(miniMessage.deserialize("<gray>Right-clicking this item uses a <aqua>charge"),
+                miniMessage.deserialize("<gray>to <aqua>freeze all active walls!")));
         meta.getPersistentDataContainer().set(meterKey, PersistentDataType.BOOLEAN, true);
         meta.getPersistentDataContainer().set(gameKey, PersistentDataType.BOOLEAN, true);
         item.setItemMeta(meta);
@@ -1204,14 +1356,24 @@ public class PlayingField implements Listener {
     public static ItemStack variableItem() {
         ItemStack item = new ItemStack(Material.GRAY_DYE);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.WHITE + "Variable Item");
-        meta.setLore(Arrays.asList(ChatColor.GRAY + "This is replaced with special items during specific events!",
-                ChatColor.DARK_GRAY + "Feel free to move this anywhere in your inventory!"));
+        meta.displayName(Component.text("Variable Item"));
+        meta.lore(Arrays.asList(miniMessage.deserialize("<gray>This is replaced with special items during specific events!"),
+                miniMessage.deserialize("<dark_gray>Feel free to move this anywhere in your inventory!")));
         meta.getPersistentDataContainer().set(variableKey, PersistentDataType.BOOLEAN, true);
         meta.getPersistentDataContainer().set(gameKey, PersistentDataType.BOOLEAN, true);
         item.setItemMeta(meta);
         return item;
 
+    }
+
+    public static ItemStack sandboxMenuItem() {
+        ItemStack item = new ItemStack(Material.NETHER_STAR);
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(miniMessage.deserialize("<!italic><gradient:green:dark_green>Sandbox Settings"));
+        meta.lore(List.of(miniMessage.deserialize("<!italic><gray>Right click to open!")));
+        meta.getPersistentDataContainer().set(gameKey, PersistentDataType.BOOLEAN, true);
+        item.setItemMeta(meta);
+        return item;
     }
 
     public void sendMessageToPlayers(String message) {
@@ -1220,15 +1382,38 @@ public class PlayingField implements Listener {
         }
     }
 
-    public void sendTitleToPlayers(String title, String subtitle, int fadeIn, int stay, int fadeOut) {
+    public void sendMessageToPlayers(Component message) {
         for (Player player : players) {
-            player.sendTitle(title, subtitle, fadeIn, stay, fadeOut);
+            player.sendMessage(message);
         }
     }
 
-    public void sendActionBarToPlayers(BaseComponent component) {
+    public void sendTitleToPlayers(Title title) {
         for (Player player : players) {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, component);
+            player.showTitle(title);
+        }
+    }
+
+    /**
+     * Sends a title to all players in the playing field
+     * @param title Title
+     * @param subtitle Subtitle
+     * @param fadeIn Fadein time (in ticks)
+     * @param stay Stay time (in ticks)
+     * @param fadeOut Fadeout time (in ticks)
+     */
+    public void sendTitleToPlayers(Component title, Component subtitle, int fadeIn, int stay, int fadeOut) {
+        for (Player player : players) {
+            player.showTitle(Title.title(title, subtitle, Title.Times.times(
+                    Duration.ofMillis(fadeIn * 50L),
+                    Duration.ofMillis(stay * 50L),
+                    Duration.ofMillis(fadeOut * 50L))));
+        }
+    }
+
+    public void sendActionBarToPlayers(Component component) {
+        for (Player player : players) {
+            player.sendActionBar(component);
         }
     }
 
@@ -1261,23 +1446,24 @@ public class PlayingField implements Listener {
     }
 
     public void flashScore(int ticks) {
-        overrideDisplay(DisplayType.SCORE, ticks, "");
+        overrideDisplay(DisplayType.SCORE, ticks, Component.empty());
         final int rate = 4;
         new BukkitRunnable() {
             int elapsed = 0;
             int cover = 0;
             int flash = 5;
-            final ChatColor primary = ChatColor.AQUA;
-            final ChatColor accent = ChatColor.DARK_AQUA;
+            final TextColor primary = NamedTextColor.AQUA;
+            final TextColor accent = NamedTextColor.DARK_AQUA;
             @Override
             public void run() {
                 if (elapsed >= ticks) {
                     cancel();
                     return;
                 }
-                String text = DisplayType.SCORE.getFormattedText(scorer.getScore());
-                text = flashTextFormat(text, cover, flash, primary, accent);
-                modifyOverridenDisplayText(DisplayType.SCORE, text);
+                Component component = DisplayType.SCORE.getFormattedText(Component.text(scorer.getScore()));
+                String text = ((net.kyori.adventure.text.TextComponent) component).content();
+                Component formattedComponent = flashTextFormat(text, cover, flash, primary, accent);
+                modifyOverridenDisplayText(DisplayType.SCORE, formattedComponent);
 
                 if (flash == 0) cover++;
                 else flash--;
@@ -1291,23 +1477,24 @@ public class PlayingField implements Listener {
     }
 
     public void flashLevel(int ticks) {
-        overrideDisplay(DisplayType.LEVEL, ticks, "");
+        overrideDisplay(DisplayType.LEVEL, ticks, Component.empty());
         final int rate = 4;
         new BukkitRunnable() {
             int elapsed = 0;
             int cover = 0;
             int flash = 5;
-            final ChatColor primary = ChatColor.AQUA;
-            final ChatColor accent = ChatColor.DARK_AQUA;
+            final TextColor primary = NamedTextColor.AQUA;
+            final TextColor accent = NamedTextColor.DARK_AQUA;
             @Override
             public void run() {
                 if (elapsed >= ticks) {
                     cancel();
                     return;
                 }
-                String text = DisplayType.LEVEL.getFormattedText(scorer.getLevel());
-                text = flashTextFormat(text, cover, flash, primary, accent);
-                modifyOverridenDisplayText(DisplayType.LEVEL, text);
+                Component component = DisplayType.LEVEL.getFormattedText(Component.text(scorer.getLevel()));
+                String text = ((net.kyori.adventure.text.TextComponent) component).content();
+                Component formattedComponent = flashTextFormat(text, cover, flash, primary, accent);
+                modifyOverridenDisplayText(DisplayType.LEVEL, formattedComponent);
 
                 if (flash == 0) cover++;
                 else flash--;
@@ -1320,19 +1507,19 @@ public class PlayingField implements Listener {
         }.runTaskTimer(FillInTheWall.getInstance(), 10, rate);
     }
 
-    private String flashTextFormat(String text, int cover, int flash, ChatColor primary, ChatColor accent) {
-        text = ChatColor.stripColor(text);
+    private Component flashTextFormat(String text, int cover, int flash, TextColor primary, TextColor accent) {
+        Component finalText;
         // Flash takes priority
         if (flash > 0) {
-            if (flash % 2 == 0) text = accent + text;
-            else text = primary + "" + ChatColor.BOLD + text;
+            if (flash % 2 == 0) finalText = Component.text(text, accent);
+            else finalText = miniMessage.deserialize("<" + primary + "><bold>" + text);
         } else {
             cover = Integer.min(cover, text.length() - 1);
             String front = text.substring(0, cover);
             String back = text.substring(cover);
-            text = primary + front + accent + back;
+            finalText = miniMessage.deserialize("<" + primary + ">" + front + "<" + accent + ">" + back);
         }
-        return text;
+        return finalText;
     }
 
     public Material getWallMaterial() {
@@ -1348,16 +1535,23 @@ public class PlayingField implements Listener {
     }
 
     public Location getSpawnLocation() {
-        Location spawn = getReferencePoint().subtract(0.5, 0.5, 0.5);
+        Location spawn = getReferencePoint();
+        spawn.subtract(0, 0.5, 0);
         spawn.add(getFieldDirection()
-                .multiply(getLength() / 2.0));
+                .multiply(getLength() / 2.0 - 0.5));
         spawn.add(getIncomingDirection().multiply(getStandingDistance() / 2.0));
         spawn.setDirection(getIncomingDirection().multiply(-1));
         return spawn;
     }
 
     // todo maybe the display could slide across the floor?
-    public void setTipDisplay(String tip) {
+    public void setTipDisplay(Component tip, boolean force) {
+        UUID uuid = playerOrder.getFirst();
+        if (!PlayerSettings.getBooleanSettingOrDefault(uuid, PlayerSettings.BooleanSetting.TIPS)
+                && !force) {
+            return;
+        }
+
         if (!tipDisplays.isEmpty()) clearTipDisplays();
         Location bottomLocation = getCenter(true, false)
                 .subtract(0, 0.45, 0)
@@ -1370,26 +1564,28 @@ public class PlayingField implements Listener {
                 .add(0, height-0.1, 0);
         topLocation.setPitch(90);
 
-        TextDisplay bottomDisplay = (TextDisplay) getWorld().spawnEntity(bottomLocation, EntityType.TEXT_DISPLAY);
-        bottomDisplay.setText(tip);
-        bottomDisplay.setTransformation(new Transformation(
-                new Vector3f(0, 0, 0),
-                new AxisAngle4f(0, 0, 0, 1),
-                new Vector3f(1.3f, 1.3f, 1.3f),
-                new AxisAngle4f(0, 0, 0, 1)));
-
-        TextDisplay topDisplay = (TextDisplay) getWorld().spawnEntity(topLocation, EntityType.TEXT_DISPLAY);
-        topDisplay.setText(tip);
-        topDisplay.setTransformation(new Transformation(
-                new Vector3f(0, 0, 0),
-                new AxisAngle4f(0, 0, 0, 1),
-                new Vector3f(1.3f, 1.3f, 1.3f),
-                new AxisAngle4f(0, 0, 0, 1)));
+        TextDisplay bottomDisplay = tipSetTextandTransform(tip, bottomLocation);
+        TextDisplay topDisplay = tipSetTextandTransform(tip, topLocation);
 
         tipDisplays.add(bottomDisplay);
         tipDisplays.add(topDisplay);
 
         Bukkit.getScheduler().runTaskLater(FillInTheWall.getInstance(), this::clearTipDisplays, 20*10);
+    }
+
+    public void setTipDisplay(Component tip) {
+        setTipDisplay(tip, false);
+    }
+
+    private TextDisplay tipSetTextandTransform(Component tip, Location location) {
+        TextDisplay display = (TextDisplay) getWorld().spawnEntity(location, EntityType.TEXT_DISPLAY);
+        display.text(tip);
+        display.setTransformation(new Transformation(
+                new Vector3f(0, 0, 0),
+                new AxisAngle4f(0, 0, 0, 1),
+                new Vector3f(1.3f, 1.3f, 1.3f),
+                new AxisAngle4f(0, 0, 0, 1)));
+        return display;
     }
 
     public void clearTipDisplays() {
@@ -1421,6 +1617,8 @@ public class PlayingField implements Listener {
         stopMusic();
         currentlyPlayingTrack = sound;
         for (Player player : players) {
+            if (!PlayerSettings.getBooleanSettingOrDefault(
+                    player.getUniqueId(), PlayerSettings.BooleanSetting.MUSIC)) continue;
             player.playSound(player, currentlyPlayingTrack, 0.5f, 1);
         }
     }
@@ -1458,8 +1656,7 @@ public class PlayingField implements Listener {
 
     public void saveHotbar(Player player) {
         if (Database.isOfflineMode()) {
-            player.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(
-                    ChatColor.GRAY + "Database is down - your hotbar will not be saved"));
+            player.sendActionBar(miniMessage.deserialize("<gray>Database is down - your hotbar will not be saved"));
             return;
         }
         StringBuilder hotbar = new StringBuilder();
@@ -1477,10 +1674,8 @@ public class PlayingField implements Listener {
 
             if (item.getType() == playerMaterial) {
                 hotbar.append("P");
-            } else if (item.getType() == copperSupportItem().getType()) {
+            } else if (item.getType() == copperSupportItem().getType() || item.getType() == stoneSupportItem().getType()) {
                 hotbar.append("C");
-            } else if (item.getType() == stoneSupportItem().getType()) {
-                hotbar.append("S");
             } else if (container != null && container.has(meterKey, PersistentDataType.BOOLEAN)) {
                 hotbar.append("M");
             } else if (container != null && container.has(variableKey, PersistentDataType.BOOLEAN)) {
@@ -1490,6 +1685,25 @@ public class PlayingField implements Listener {
             }
         }
 
-        Database.updateHotbar(player.getUniqueId(), hotbar.toString());
+        Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> {
+            Database.updateHotbar(player.getUniqueId(), hotbar.toString());
+        });
+    }
+
+    public boolean isLatePlayer(Player player) {
+        return latePlayers.contains(player);
+    }
+
+    public DisplayType[] getDisplaySlots() {
+        return Arrays.copyOf(displaySlots, displaySlotsLength);
+    }
+
+    public void setDisplaySlot(int index, DisplayType displayType) {
+        if (displayType == null) return;
+        if (index < 0 || index >= displaySlotsLength) {
+            throw new IndexOutOfBoundsException("Display slot index out of bounds: " + index);
+        }
+
+        displaySlots[index] = displayType;
     }
 }

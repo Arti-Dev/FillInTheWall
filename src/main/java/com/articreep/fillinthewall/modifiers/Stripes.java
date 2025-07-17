@@ -1,11 +1,13 @@
 package com.articreep.fillinthewall.modifiers;
 
-import com.articreep.fillinthewall.Judgement;
-import com.articreep.fillinthewall.PlayingField;
-import com.articreep.fillinthewall.PlayingFieldScorer;
-import com.articreep.fillinthewall.Wall;
+import com.articreep.fillinthewall.game.Judgement;
+import com.articreep.fillinthewall.game.PlayingField;
+import com.articreep.fillinthewall.game.PlayingFieldScorer;
+import com.articreep.fillinthewall.game.Wall;
 import com.articreep.fillinthewall.utils.Utils;
-import net.md_5.bungee.api.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.title.Title;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
@@ -30,7 +32,8 @@ public class Stripes extends ModifierEvent {
         Wall wall = field.getQueue().getFrontmostWall();
         if (wall != null) wall.setStripes(true);
         addTemporaryItemToPlayers(altWallMaterial());
-        field.sendTitleToPlayers(ChatColor.DARK_AQUA + "Stripes!", "Match colors for bonus points!", 0, 40, 10);
+        field.sendTitleToPlayers(miniMessage.deserialize("<dark_aqua>Stripes!"),
+                miniMessage.deserialize("Match colors for bonus points!"), 0, 40, 10);
     }
 
     @Override
@@ -58,11 +61,12 @@ public class Stripes extends ModifierEvent {
     @Override
     public void displayScoreTitle(Judgement judgement, int score, HashMap<PlayingFieldScorer.BonusType, Integer> bonus) {
         int stripeBonus = bonus.get(PlayingFieldScorer.BonusType.STRIPE);
-        field.sendTitleToPlayers(
-                judgement.getColor() + judgement.getText(),
-                judgement.getColor() + "" + (score + bonus.get(PlayingFieldScorer.BonusType.PERFECT)) +
-                        ChatColor.DARK_PURPLE + "+" + stripeBonus + judgement.getColor() + " points",
-                0, 10, 5);
+        Title title = Title.title(judgement.getFormattedText(),
+                Component.text(score + bonus.get(PlayingFieldScorer.BonusType.PERFECT), judgement.getColor())
+                        .append(Component.text("+" + stripeBonus, NamedTextColor.DARK_PURPLE))
+                        .append(Component.text(" points", judgement.getColor())),
+                PlayingFieldScorer.getScoreTitleTimes());
+        field.sendTitleToPlayers(title);
     }
 
     @Override
@@ -70,7 +74,7 @@ public class Stripes extends ModifierEvent {
         super.end();
         Wall wall = field.getQueue().getFrontmostWall();
         if (wall != null) wall.setStripes(false);
-        field.sendTitleToPlayers("", "Stripes are gone!", 0, 20, 10);
+        field.sendTitleToPlayers(Component.empty(), Component.text("Stripes are gone!"), 0, 20, 10);
     }
 
     @Override

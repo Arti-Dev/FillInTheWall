@@ -1,10 +1,12 @@
 package com.articreep.fillinthewall.modifiers;
 
-import com.articreep.fillinthewall.Judgement;
-import com.articreep.fillinthewall.PlayingField;
-import com.articreep.fillinthewall.PlayingFieldScorer;
-import com.articreep.fillinthewall.Wall;
-import net.md_5.bungee.api.ChatColor;
+import com.articreep.fillinthewall.game.Judgement;
+import com.articreep.fillinthewall.game.PlayingField;
+import com.articreep.fillinthewall.game.PlayingFieldScorer;
+import com.articreep.fillinthewall.game.Wall;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.title.Title;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
@@ -14,6 +16,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.javatuples.Pair;
 
+import java.time.Duration;
 import java.util.*;
 
 
@@ -29,8 +32,10 @@ public class FireInTheHole extends ModifierEvent {
     @Override
     public void activate() {
         super.activate();
-        field.sendTitleToPlayers(ChatColor.GREEN + "FIRE IN THE HOLE", "Fill holes with " +
-                ChatColor.RED + "fire" + ChatColor.RESET + " for bonus points!", 0, 40, 10);
+        Title.Times times = Title.Times.times(Duration.ZERO, Duration.ofMillis(2000), Duration.ofMillis(500));
+        field.sendTitleToPlayers(Title.title(miniMessage.deserialize("<green>FIRE IN THE HOLE"),
+                        miniMessage.deserialize( "Fill holes with <red>fire</red> for bonus points!"),
+                        times));
         addTemporaryItemToPlayers(flintAndSteel());
     }
 
@@ -69,11 +74,12 @@ public class FireInTheHole extends ModifierEvent {
     @Override
     public void displayScoreTitle(Judgement judgement, int score, HashMap<PlayingFieldScorer.BonusType, Integer> bonus) {
         int fireBonus = bonus.get(PlayingFieldScorer.BonusType.FIRE);
-        field.sendTitleToPlayers(
-                judgement.getColor() + judgement.getText(),
-                judgement.getColor() + "" + (score + bonus.get(PlayingFieldScorer.BonusType.PERFECT)) +
-                        ChatColor.RED + "+" + fireBonus + judgement.getColor() + " points",
-                0, 10, 5);
+        Title title = Title.title(judgement.getFormattedText(),
+                Component.text(score + bonus.get(PlayingFieldScorer.BonusType.PERFECT), judgement.getColor())
+                        .append(Component.text("+" + fireBonus, NamedTextColor.RED))
+                        .append(Component.text(" points", judgement.getColor())),
+                PlayingFieldScorer.getScoreTitleTimes());
+        field.sendTitleToPlayers(title);
     }
 
     @Override
@@ -110,14 +116,14 @@ public class FireInTheHole extends ModifierEvent {
     @Override
     public void end() {
         super.end();
-        field.sendTitleToPlayers("", "Fire no longer gives a point bonus!", 0, 20, 10);
+        field.sendTitleToPlayers(Component.empty(), Component.text("Fire no longer gives a point bonus!"), 0, 20, 10);
     }
 
     private static ItemStack flintAndSteel() {
         ItemStack item = new ItemStack(Material.FLINT_AND_STEEL);
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(PlayingField.variableKey, PersistentDataType.BOOLEAN, true);
-        meta.setLore(Collections.singletonList(ChatColor.GRAY + "Temporary item"));
+        meta.lore(Collections.singletonList(miniMessage.deserialize("<gray>Temporary item")));
         item.setItemMeta(meta);
         return item;
     }

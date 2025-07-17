@@ -1,13 +1,21 @@
 package com.articreep.fillinthewall;
 
+import com.articreep.fillinthewall.commands.FITWCommand;
+import com.articreep.fillinthewall.commands.PairUp;
+import com.articreep.fillinthewall.commands.RegisterPlayingField;
 import com.articreep.fillinthewall.environments.Finals;
 import com.articreep.fillinthewall.environments.TheVoid;
+import com.articreep.fillinthewall.game.PlayingField;
+import com.articreep.fillinthewall.game.PlayingFieldManager;
 import com.articreep.fillinthewall.gamemode.Gamemode;
+import com.articreep.fillinthewall.infodisplay.Leaderboards;
+import com.articreep.fillinthewall.lobby.LobbyItems;
+import com.articreep.fillinthewall.lobby.NBSMusic;
+import com.articreep.fillinthewall.menu.SandboxMenu;
 import com.articreep.fillinthewall.multiplayer.Pregame;
-import com.articreep.fillinthewall.multiplayer.SettingsMenu;
-import com.mysql.cj.jdbc.MysqlConnectionPoolDataSource;
-import com.mysql.cj.jdbc.MysqlDataSource;
-import net.md_5.bungee.api.ChatColor;
+import com.articreep.fillinthewall.commands.PregameSettingsMenu;
+import com.articreep.fillinthewall.playerinfo.InventoryMenus;
+import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -21,21 +29,22 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Transformation;
 import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.*;
 
 public final class FillInTheWall extends JavaPlugin implements Listener {
+    public static final String NO_COLLISION_TEAM_NAME = "fitw_no_collision";
+    private static Scoreboard blankScoreboard;
     private static FillInTheWall instance = null;
     private FileConfiguration playingFieldConfig;
-    private Set<Entity> displays = new HashSet<>();
-    private NamespacedKey interactionKey = new NamespacedKey(this, "singleplayerPortal");
+    private final Set<Entity> displays = new HashSet<>();
+    private final NamespacedKey interactionKey = new NamespacedKey(this, "singleplayerPortal");
     private Display singleplayerDisplay = null;
     private Display multiplayerDisplay = null;
     private Location multiplayerSpawn = null;
@@ -43,13 +52,11 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
 
     private BukkitTask leaderboardUpdateTask = null;
 
-    private final static MysqlDataSource dataSource = new MysqlConnectionPoolDataSource();
-
     @Override
     public void onEnable() {
         instance = this;
         RegisterPlayingField registerPlayingField = new RegisterPlayingField();
-        SettingsMenu settingsMenu = new SettingsMenu();
+        PregameSettingsMenu settingsMenu = new PregameSettingsMenu();
         getCommand("fillinthewall").setExecutor(new FITWCommand());
         getCommand("registerplayingfield").setExecutor(registerPlayingField);
         getCommand("settingsmenu").setExecutor(settingsMenu);
@@ -60,10 +67,18 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
         getServer().getPluginManager().registerEvents(this, this);
         getServer().getPluginManager().registerEvents(settingsMenu, this);
         getServer().getPluginManager().registerEvents(new GlobalListeners(), this);
+        getServer().getPluginManager().registerEvents(new InventoryMenus(), this);
+        getServer().getPluginManager().registerEvents(new LobbyItems(), this);
+        getServer().getPluginManager().registerEvents(new SandboxMenu(), this);
+        getServer().getPluginManager().registerEvents(new PairUp(), this);
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(this, () -> {
             loadPlayingFieldConfig();
             saveDefaultConfig();
+
+            blankScoreboard = Bukkit.getScoreboardManager().getNewScoreboard();
+            Team team = blankScoreboard.registerNewTeam(FillInTheWall.NO_COLLISION_TEAM_NAME);
+            team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
 
             // Create directories
             File customWallFolder = new File(getDataFolder(), "custom");
@@ -77,31 +92,28 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
                 defaultMusic.renameTo(new File(musicFolder, "fortress hill.nbs"));
             }
 
-            if (!loadSQL()) {
-                Database.setOfflineMode(true);
-            }
+            Database.loadSQL();
 
             if (getServer().getPluginManager().getPlugin("NoteBlockAPI") != null)
                 NBSMusic.loadConfig(getConfig());
             else {
-                Bukkit.getLogger().info("NoteBlockAPI not found - note block music disabled");
+                getSLF4JLogger().info("NoteBlockAPI not found - note block music disabled");
                 NBSMusic.enabled = false;
             }
 
-            // todo should be replaced with a more flexible system
             PlayingFieldManager.pregame = new Pregame(Bukkit.getWorld("multi"), Gamemode.MULTIPLAYER_SCORE_ATTACK,
-                    2, 30);
+                    2, 60);
             PlayingFieldManager.pregame.startCountdown();
             PlayingFieldManager.vsPregame = new Pregame(Bukkit.getWorld("versus"), Gamemode.VERSUS, 2, 15);
             PlayingFieldManager.parseConfig(getPlayingFieldConfig());
             spawnPortals();
             Leaderboards.spawnLeaderboards(getConfig());
-            leaderboardUpdateTask = Bukkit.getScheduler().runTaskTimer(this, Leaderboards::updateLeaderboards, 0, 20 * 30);
+            leaderboardUpdateTask = Bukkit.getScheduler().runTaskTimerAsynchronously(this, Leaderboards::updateLeaderboards, 0, 20 * 30);
             multiplayerSpawn = getConfig().getLocation("multiplayer-spawn");
             spectatorFinalsSpawn = getConfig().getLocation("spectator-finals-spawn");
         }, 1);
 
-        Bukkit.getLogger().info(ChatColor.BLUE + "FillInTheWall has been enabled!");
+        getSLF4JLogger().info("FillInTheWall has been enabled!");
 
     }
 
@@ -124,7 +136,7 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
         for (PlayingField field : PlayingFieldManager.playingFieldLocations.values()) {
             if (field.hasStarted()) field.stop(false, false);
             else {
-                field.removeMenu();
+                field.forceRemoveMenu();
                 field.removeEndScreen();
             }
         }
@@ -149,7 +161,7 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
             itemDisplay.setBillboard(Display.Billboard.VERTICAL);
             TextDisplay textDisplay = (TextDisplay) singleplayerLocation.getWorld().spawnEntity(
                     singleplayerLocation.clone().add(0, size/2, 0), EntityType.TEXT_DISPLAY);
-            textDisplay.setText(singleplayerText);
+            textDisplay.text(Component.text(singleplayerText));
             textDisplay.setBillboard(Display.Billboard.VERTICAL);
             Interaction interaction = (Interaction) singleplayerLocation.getWorld().spawnEntity(
                     singleplayerLocation.clone().add(0, -size/2, 0), EntityType.INTERACTION);
@@ -174,7 +186,7 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
             itemDisplay.setBillboard(Display.Billboard.VERTICAL);
             TextDisplay textDisplay = (TextDisplay) multiplayerLocation.getWorld().spawnEntity(
                     multiplayerLocation.clone().add(0, size/2, 0), EntityType.TEXT_DISPLAY);
-            textDisplay.setText(multiplayerText);
+            textDisplay.text(Component.text(multiplayerText));
             textDisplay.setBillboard(Display.Billboard.VERTICAL);
             Interaction interaction = (Interaction) multiplayerLocation.getWorld().spawnEntity(
                     multiplayerLocation.clone().add(0, -size/2, 0), EntityType.INTERACTION);
@@ -223,10 +235,12 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
         }
         displays.clear();
         NBSMusic.loadConfig(getConfig());
-        Database.setOfflineMode(!loadSQL());
         spawnPortals();
         Leaderboards.spawnLeaderboards(getConfig());
-        leaderboardUpdateTask = Bukkit.getScheduler().runTaskTimer(this, Leaderboards::updateLeaderboards, 0, 20 * 30);
+        if (leaderboardUpdateTask != null) {
+            leaderboardUpdateTask.cancel();
+        }
+        leaderboardUpdateTask = Bukkit.getScheduler().runTaskTimerAsynchronously(this, Leaderboards::updateLeaderboards, 0, 20 * 30);
         multiplayerSpawn = getConfig().getLocation("multiplayer-spawn");
         spectatorFinalsSpawn = getConfig().getLocation("spectator-finals-spawn");
         loadPlayingFieldConfig();
@@ -243,69 +257,15 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
         playingFieldConfig = YamlConfiguration.loadConfiguration(playingFieldFile);
     }
 
-    private boolean loadSQL() {
-        FileConfiguration config = getConfig();
-        dataSource.setServerName(config.getString("database.host"));
-        dataSource.setPortNumber(config.getInt("database.port"));
-        dataSource.setDatabaseName(config.getString("database.database"));
-        dataSource.setUser(config.getString("database.username"));
-        dataSource.setPassword(config.getString("database.password"));
-
-
-        // Test the connection
-        try {
-            Connection conn = dataSource.getConnection();
-            if (!conn.isValid(1)) {
-                throw new SQLException("Could not establish database connection.");
-            }
-        } catch (SQLException e) {
-            Bukkit.getLogger().severe("FillInTheWall: Could not establish database connection. " +
-                    "Please make sure you are using a MySQL server and that the config.yml is set up correctly." +
-                    "\nThe plugin will still work, but leaderboards will be disabled, scores will not submit, and player-saved " +
-                    "hotbars will not load");
-            e.printStackTrace();
-            return false;
-        }
-
-        String sql1 = "CREATE TABLE IF NOT EXISTS scores(" +
-                "uuid CHAR(36) NOT NULL," +
-                "SCORE_ATTACK INT DEFAULT 0 NOT NULL," +
-                "RUSH_SCORE_ATTACK INT DEFAULT 0 NOT NULL," +
-                "MARATHON INT DEFAULT 0 NOT NULL," +
-                "SPRINT INT DEFAULT 12000 NOT NULL," +
-                "MEGA INT DEFAULT 12000 NOT NULL," +
-                "PRIMARY KEY (uuid));";
-        String sql2 = "CREATE TABLE IF NOT EXISTS hotbars(" +
-                "uuid CHAR(36) NOT NULL," +
-                "hotbar CHAR(9) DEFAULT ? NOT NULL," +
-                "FOREIGN KEY (uuid) REFERENCES scores(uuid) ON DELETE CASCADE);";
-        String sql3 = "CREATE TABLE IF NOT EXISTS playerInfo(" +
-                "uuid CHAR(36) NOT NULL," +
-                "newcomer BIT DEFAULT 1 NOT NULL," +
-                "FOREIGN KEY (uuid) REFERENCES scores(uuid) ON DELETE CASCADE);";
-        try (Connection conn = dataSource.getConnection()) {
-            PreparedStatement stmt = conn.prepareStatement(sql1);
-            stmt.executeUpdate();
-            stmt = conn.prepareStatement(sql2);
-            stmt.setString(1, PlayingField.DEFAULT_HOTBAR);
-            stmt.executeUpdate();
-            stmt = conn.prepareStatement(sql3);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return true;
-    }
-
-    public static Connection getSQLConnection() throws SQLException {
-        return dataSource.getConnection();
-    }
-
     public Location getMultiplayerSpawn() {
         return multiplayerSpawn.clone();
     }
 
     public Location getSpectatorFinalsSpawn() {
         return spectatorFinalsSpawn.clone();
+    }
+
+    public static Scoreboard getBlankScoreboard() {
+        return blankScoreboard;
     }
 }

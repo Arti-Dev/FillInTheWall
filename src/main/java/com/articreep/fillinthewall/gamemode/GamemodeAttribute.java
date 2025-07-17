@@ -1,6 +1,7 @@
 package com.articreep.fillinthewall.gamemode;
 
-import com.articreep.fillinthewall.display.DisplayType;
+import com.articreep.fillinthewall.game.DisplayType;
+import com.articreep.fillinthewall.game.PlayingFieldScorer;
 import com.articreep.fillinthewall.modifiers.ModifierEvent;
 
 public enum GamemodeAttribute {
@@ -13,14 +14,13 @@ public enum GamemodeAttribute {
     RANDOM_HOLE_COUNT(Integer.class, 2),
     CONNECTED_HOLE_COUNT(Integer.class, 4),
     STARTING_WALL_ACTIVE_TIME(Integer.class, 160),
-    METER_MAX(Integer.class, 10),
     DISPLAY_SLOT_0(DisplayType.class, DisplayType.TIME),
     DISPLAY_SLOT_1(DisplayType.class, DisplayType.PERFECT_WALLS),
     DISPLAY_SLOT_2(DisplayType.class, DisplayType.LEVEL),
     DISPLAY_SLOT_3(DisplayType.class, DisplayType.SCORE),
+    ACTIONBAR_DISPLAY(PlayingFieldScorer.ActionBarType.class, PlayingFieldScorer.ActionBarType.NONE),
     SINGLEPLAYER(Boolean.class, false),
     MULTIPLAYER(Boolean.class, false),
-    AUTOMATIC_METER(Boolean.class, false),
     DO_GARBAGE_WALLS(Boolean.class, false),
     DO_GARBAGE_ATTACK(Boolean.class, false),
     GARBAGE_WALL_HARDNESS(Integer.class, 3),
@@ -31,9 +31,11 @@ public enum GamemodeAttribute {
     MODIFIER_EVENT_CAP(Integer.class, -1),
     HIGHLIGHT_INCORRECT_BLOCKS(Boolean.class, false),
     INFINITE_BLOCK_REACH(Boolean.class, false),
-    ABILITY_EVENT(ModifierEvent.Type.class, ModifierEvent.Type.NONE),
+    CHARGE_EVENT(ModifierEvent.Type.class, ModifierEvent.Type.NONE),
+    CHARGES(Integer.class, 0),
     MULTI_EVENT_0(ModifierEvent.Type.class, ModifierEvent.Type.NONE),
     MULTI_EVENT_1(ModifierEvent.Type.class, ModifierEvent.Type.NONE),
+    MULTI_EVENT_FINALS(ModifierEvent.Type.class, ModifierEvent.Type.NONE),
     SINGULAR_EVENT(ModifierEvent.Type.class, ModifierEvent.Type.NONE),
     /**
      * Whether to generate co-op walls. If enabled, the consistent and random hole counts are combined to form
@@ -41,6 +43,7 @@ public enum GamemodeAttribute {
      */
     COOP(Boolean.class, false),
     PERFECT_WALL_CAP(Integer.class, -1),
+    LEVEL_CAP(Integer.class, -1),
     SCORE_BY_TIME(Boolean.class, false),
     REFUSE_IMPERFECT_WALLS(Boolean.class, false),
     /**

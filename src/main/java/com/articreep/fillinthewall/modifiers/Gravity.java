@@ -1,8 +1,9 @@
 package com.articreep.fillinthewall.modifiers;
 
 import com.articreep.fillinthewall.FillInTheWall;
-import com.articreep.fillinthewall.Wall;
+import com.articreep.fillinthewall.game.Wall;
 import com.articreep.fillinthewall.utils.Utils;
+import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.BlockDisplay;
@@ -32,8 +33,9 @@ public class Gravity extends ModifierEvent {
     public void activate() {
         super.activate();
         assignVector();
-        field.sendTitleToPlayers(ChatColor.DARK_PURPLE + "Gravity!", "Blocks fall "
-                + ChatColor.YELLOW + directionName + ChatColor.RESET + "!", 0, 40, 10);
+        field.sendTitleToPlayers(miniMessage.deserialize("<dark_purple>Gravity!"),
+                miniMessage.deserialize("Blocks fall <yellow>" + directionName + "</yellow>!"),
+                0, 40, 10);
     }
 
     private void assignVector() {
@@ -116,7 +118,7 @@ public class Gravity extends ModifierEvent {
                         if (field.isInField(target.getBlock().getLocation())) {
                             target.getBlock().setType(material);
                         } else {
-                            Bukkit.getLogger().warning("Gravity block fell out of bounds!");
+                            FillInTheWall.getInstance().getSLF4JLogger().warn("Gravity block fell out of bounds!");
                         }
                         display.remove();
                         blockDisplays.remove(display);
@@ -133,7 +135,7 @@ public class Gravity extends ModifierEvent {
     @Override
     public void end() {
         super.end();
-        field.sendTitleToPlayers("", "Placed blocks are back to normal!", 0, 20, 10);
+        field.sendTitleToPlayers(Component.empty(), Component.text("Placed blocks are back to normal!"), 0, 20, 10);
     }
 
     public Gravity copy() {

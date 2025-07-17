@@ -1,9 +1,9 @@
 package com.articreep.fillinthewall.modifiers;
 
 import com.articreep.fillinthewall.FillInTheWall;
-import com.articreep.fillinthewall.PlayingField;
-import com.articreep.fillinthewall.Wall;
-import com.articreep.fillinthewall.WallBundle;
+import com.articreep.fillinthewall.game.Wall;
+import com.articreep.fillinthewall.game.WallBundle;
+import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.BlockDisplay;
@@ -36,7 +36,8 @@ public class Multiplace extends ModifierEvent implements Listener {
     public void activate() {
         super.activate();
         Bukkit.getPluginManager().registerEvents(this, FillInTheWall.getInstance());
-        field.sendTitleToPlayers(ChatColor.GOLD + "Multiplace!", "Your blocks are 2x2 now!", 0, 40, 10);
+        field.sendTitleToPlayers(miniMessage.deserialize("<gold>Multiplace!"),
+                Component.text("Your blocks are 2x2 now!"), 0, 40, 10);
         if (priorityWallBundle == null) {
             priorityWallBundle = generatePriorityWallBundle(field.getLength(), field.getHeight());
         }
@@ -137,7 +138,7 @@ public class Multiplace extends ModifierEvent implements Listener {
         blockDisplays.clear();
 
         HandlerList.unregisterAll(this);
-        field.sendTitleToPlayers("", "Block placements are back to normal!", 0, 20, 10);
+        field.sendTitleToPlayers(Component.empty(), Component.text("Block placements are back to normal!"), 0, 20, 10);
         field.getQueue().clearPriorityHiddenWalls();
     }
 
@@ -171,8 +172,10 @@ public class Multiplace extends ModifierEvent implements Listener {
     public WallBundle generatePriorityWallBundle(int length, int height) {
         WallBundle bundle = new WallBundle();
         Random random = new Random();
+        int wallsToGenerate = 3;
+        if (doublePriorityWalls) wallsToGenerate *= 2;
         // A simpler algorithm without wall kicking
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < wallsToGenerate; i++) {
             // Choose a random hole
             // Expand it to a 2x2 hole
             // 50/50 chance to remove one of the holes at random
@@ -198,6 +201,7 @@ public class Multiplace extends ModifierEvent implements Listener {
         return bundle;
     }
 
+    // todo this needs better docs since you have to remember to run this
     @Override
     public void additionalInit(int length, int height) {
         priorityWallBundle = generatePriorityWallBundle(length, height);

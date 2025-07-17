@@ -1,4 +1,4 @@
-package com.articreep.fillinthewall;
+package com.articreep.fillinthewall.game;
 
 public enum WallState {
     HIDDEN,

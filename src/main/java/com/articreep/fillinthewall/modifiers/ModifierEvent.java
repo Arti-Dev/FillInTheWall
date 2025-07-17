@@ -1,6 +1,8 @@
 package com.articreep.fillinthewall.modifiers;
 
-import com.articreep.fillinthewall.*;
+import com.articreep.fillinthewall.game.*;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -34,6 +36,13 @@ public abstract class ModifierEvent {
     public boolean fillFieldAfterSubmission = false;
     public boolean modifyWalls = false;
     public boolean allowMeterAccumulation = true;
+    public boolean isChargeEvent = false;
+    /**
+     * For use with endless mode. Some events (like Multiplace) come with specially designed walls
+     * This setting tells them to double the amount of priority walls added to the queue
+     * todo currently have to set this before calling additionalInit() which is stupid
+     */
+    public boolean doublePriorityWalls = false;
 
     public boolean shelveEvent = false;
     protected ModifierEvent shelvedEvent;
@@ -46,6 +55,8 @@ public abstract class ModifierEvent {
     protected final int DEFAULT_TICKS = 20*20;
 
     protected boolean active = false;
+
+    protected final static MiniMessage miniMessage = MiniMessage.miniMessage();
 
 
     protected ModifierEvent() {
@@ -71,6 +82,8 @@ public abstract class ModifierEvent {
 
     // Register all modifier events here
     public enum Type {
+        CHAIN(Chain.class),
+        CHEESE(Cheese.class),
         FIREINTHEHOLE(FireInTheHole.class),
         FLIP(Flip.class),
         FREEZE(Freeze.class, 0.5),
@@ -83,9 +96,14 @@ public abstract class ModifierEvent {
         RUSH(Rush.class),
         SCALE(Scale.class),
         STRIPES(Stripes.class),
+        SPEEDUP(SpeedUp.class),
         // The tutorial uses a fake meter
         TUTORIAL(Tutorial.class, 0),
+        UNSUPPORTED(Unsupported.class),
         RANDOM(null),
+        // Exclusively for endless mode
+        RANDOM_ENDLESS(null),
+        RANDOM_FINALS(null),
         NONE(null);
 
         final Class<? extends ModifierEvent> clazz;
@@ -105,6 +123,29 @@ public abstract class ModifierEvent {
                 types.remove(RANDOM);
                 types.remove(TUTORIAL);
                 types.remove(FREEZE);
+                types.remove(UNSUPPORTED);
+                types.remove(CHEESE);
+                types.remove(CHAIN);
+                types.remove(NONE);
+                Type type = types.get((int) (Math.random() * types.size()));
+                return type.createEvent();
+            } else if (this == RANDOM_ENDLESS) {
+                ArrayList<Type> types = new ArrayList<>(List.of(values()));
+                types.remove(RANDOM);
+                types.remove(TUTORIAL);
+                types.remove(FREEZE);
+                types.remove(NONE);
+                types.remove(RUSH);
+                Type type = types.get((int) (Math.random() * types.size()));
+                return type.createEvent();
+            } else if (this == RANDOM_FINALS) {
+                // 50% chance of no event
+                if (Math.random() < 0.5) return null;
+                ArrayList<Type> types = new ArrayList<>();
+                types.add(FIREINTHEHOLE);
+                types.add(INVERTED);
+                types.add(POPIN);
+                types.add(SCALE);
                 Type type = types.get((int) (Math.random() * types.size()));
                 return type.createEvent();
             }
@@ -129,10 +170,13 @@ public abstract class ModifierEvent {
     }
 
     /** If returns null, the default action bar will be used. */
-    public String actionBarOverride() {
+    public Component actionBarOverride() {
         return null;
     }
 
+    /**
+     * Set the playing field before doing this with setPlayingField()
+     */
     public void activate() {
         if (field == null) return;
         field.setEvent(this);
@@ -269,5 +313,9 @@ public abstract class ModifierEvent {
      */
     public void additionalInit(int length, int height) {
         // override
+    }
+
+    public void setDoublePriorityWalls(boolean bool) {
+        this.doublePriorityWalls = bool;
     }
 }

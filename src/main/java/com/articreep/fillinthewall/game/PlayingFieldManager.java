@@ -1,5 +1,6 @@
-package com.articreep.fillinthewall;
+package com.articreep.fillinthewall.game;
 
+import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.multiplayer.ScoreAttackGame;
 import com.articreep.fillinthewall.multiplayer.Pregame;
 import com.articreep.fillinthewall.multiplayer.VersusGame;
@@ -30,6 +31,7 @@ public class PlayingFieldManager implements Listener {
     public static VersusGame vsGame = null;
     public static Pregame vsPregame = null;
     public static final ArrayList<PlayingField> finalStageBoards = new ArrayList<>();
+    private static final ArrayList<PlayingField> soloPlayingFields = new ArrayList<>();
 
     @EventHandler
     public void onPlayerEnterField(PlayerMoveEvent event) {
@@ -101,8 +103,7 @@ public class PlayingFieldManager implements Listener {
     }
 
     /**
-     * Attempts to remove a player from their game.
-     * Returns true if the removal was successful, false if the player can't be removed or was never in one to begin with.
+     * Attempts to remove a player from their game and mark their game as incomplete.
      *
      * @param player Player to check
      */
@@ -153,6 +154,7 @@ public class PlayingFieldManager implements Listener {
             int fieldHeight = config.getInt(key + ".field_height");
             String environment = config.getString(key + ".environment");
             boolean hideBottomBorder = config.getBoolean(key + ".hide_bottom_border");
+            boolean addBackBorder = config.getBoolean(key + ".add_back_border");
             String wallMaterialName = config.getString(key + ".wall_material");
             String playerMaterialName = config.getString(key + ".player_material");
             Material wallMaterial;
@@ -174,7 +176,7 @@ public class PlayingFieldManager implements Listener {
             WorldBoundingBox effectBox = effectBox(refPoint, incomingDirection, fieldDirection, queueLength, fieldLength, fieldHeight);
 
             PlayingField field = new PlayingField(
-                    refPoint, fieldDirection, incomingDirection, standingDistance, box, effectBox, environment, fieldLength, fieldHeight, wallMaterial, playerMaterial, hideBottomBorder);
+                    refPoint, fieldDirection, incomingDirection, standingDistance, box, effectBox, environment, fieldLength, fieldHeight, wallMaterial, playerMaterial, hideBottomBorder, addBackBorder);
             playingFieldLocations.put(box, field);
 
             // todo temporary
@@ -184,10 +186,16 @@ public class PlayingFieldManager implements Listener {
                 vsPregame.addAvailablePlayingField(field);
             } else if (key.startsWith("field_finals")) {
                 finalStageBoards.add(field);
+            } else if (field.getLength() == 7 && field.getHeight() == 4) {
+                soloPlayingFields.add(field);
             }
 
 
         }
+    }
+
+    public static boolean isSoloPlayingField(PlayingField field) {
+        return soloPlayingFields.contains(field);
     }
 
     public static WorldBoundingBox playingFieldActivationBox(Location refPoint,
@@ -227,11 +235,11 @@ public class PlayingFieldManager implements Listener {
         box.getBoundingBox().expand(fieldDirection.clone().multiply(-1), 7);
 
         Location exclusionPoint1 = refPoint.clone()
-                .subtract(fieldDirection.clone().multiply(2));
+                .subtract(fieldDirection.clone().multiply(3));
         Location exclusionPoint2 = refPoint.clone()
                 .subtract(incomingDirection.clone().multiply(queueLength))
-                .add(fieldDirection.clone().multiply(fieldLength + 2))
-                .add(new Vector(0, fieldHeight * 1.5, 0));
+                .add(fieldDirection.clone().multiply(fieldLength + 3))
+                .add(new Vector(0, fieldHeight * 1.75, 0));
         box.addExclusionBox(exclusionPoint1, exclusionPoint2);
 
         return box;

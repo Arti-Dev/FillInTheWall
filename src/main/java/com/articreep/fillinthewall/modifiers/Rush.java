@@ -1,8 +1,11 @@
 package com.articreep.fillinthewall.modifiers;
 
-import com.articreep.fillinthewall.Wall;
+import com.articreep.fillinthewall.game.Wall;
 import com.articreep.fillinthewall.environments.TheVoid;
-import net.md_5.bungee.api.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
@@ -19,6 +22,7 @@ public class Rush extends ModifierEvent {
     private boolean firstWallCleared = false;
     private Wall nextWall;
     private int wallSpeed = 200;
+    private final int maxWallSpeed = 12;
     private int boardsCleared = 0;
     public Rush() {
         super();
@@ -34,7 +38,7 @@ public class Rush extends ModifierEvent {
         nextWall = generateNextWall();
         toAdd.setTimeRemaining(wallSpeed);
         wallSpeed -= 9;
-        if (wallSpeed < 7) wallSpeed = 7;
+        if (wallSpeed < maxWallSpeed) wallSpeed = maxWallSpeed;
 
         queue.addWall(toAdd);
     }
@@ -92,9 +96,8 @@ public class Rush extends ModifierEvent {
         super.activate();
         // Override whatever custom time we have
         ticksRemaining = 600;
-        for (Player player : field.getPlayers()) {
-            player.sendTitle(ChatColor.RED + "RUSH!", ChatColor.RED + "Clear as many walls as you can!", 0, 40, 10);
-        }
+        field.sendTitleToPlayers(miniMessage.deserialize("<red>RUSH!"),
+                miniMessage.deserialize("<red>Clear as many walls as you can!"), 0, 40, 10);
         field.clearField();
 
         queue.clearAllWalls();
@@ -121,28 +124,30 @@ public class Rush extends ModifierEvent {
 //        if (field.getEnvironment().equalsIgnoreCase("VOID")) {
 //            TheVoid.resetTime(field);
 //        }
+        field.sendTitleToPlayers(miniMessage.deserialize("<green>RUSH OVER!"),
+                miniMessage.deserialize("<green>" + boardsCleared + " walls cleared"), 0, 40, 10);
         for (Player player : field.getPlayers()) {
             player.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, player.getLocation(), 1);
-            player.sendTitle(ChatColor.GREEN + "RUSH OVER!", ChatColor.GREEN + "" + boardsCleared + " walls cleared", 0, 40, 10);
         }
     }
 
     @Override
-    public String actionBarOverride() {
-        ChatColor color;
+    public Component actionBarOverride() {
+        TextColor color;
         int cleared = boardsCleared;
         if (cleared <= 3) {
-            color = ChatColor.GRAY;
+            color = NamedTextColor.GRAY;
         } else if (cleared <= 7) {
-            color = ChatColor.YELLOW;
+            color = NamedTextColor.YELLOW;
         } else {
-            color = ChatColor.GREEN;
+            color = NamedTextColor.GREEN;
         }
 
-        ChatColor timerColor = ChatColor.GOLD;
-        if (ticksRemaining < 100) timerColor = ChatColor.RED;
+        TextColor timerColor = NamedTextColor.GOLD;
+        if (ticksRemaining < 100) timerColor = NamedTextColor.RED;
 
-        return color + "" + ChatColor.BOLD + "Walls Cleared: " + cleared + " " + timerColor + ticksRemaining / 20 + "s left";
+        return MiniMessage.miniMessage().deserialize(
+                "<" + color + "><bold>Walls Cleared: " + cleared + " <" + timerColor + ">" + ticksRemaining / 20 + "s left");
     }
 
     @Override

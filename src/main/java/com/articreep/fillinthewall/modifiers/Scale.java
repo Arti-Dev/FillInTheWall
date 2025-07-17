@@ -1,8 +1,9 @@
 package com.articreep.fillinthewall.modifiers;
 
 import com.articreep.fillinthewall.FillInTheWall;
-import com.articreep.fillinthewall.PlayingField;
-import net.md_5.bungee.api.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
@@ -36,11 +37,11 @@ public class Scale extends ModifierEvent implements Listener {
     public void activate() {
         super.activate();
         Bukkit.getPluginManager().registerEvents(this, FillInTheWall.getInstance());
-        ChatColor color;
+        TextColor color;
         if (scale < 1) {
-            color = ChatColor.RED;
+            color = NamedTextColor.RED;
         } else {
-            color = ChatColor.BLUE;
+            color = NamedTextColor.BLUE;
         }
 
         new BukkitRunnable() {
@@ -54,8 +55,9 @@ public class Scale extends ModifierEvent implements Listener {
                 double diff = scale - 1;
                 double toDisplay = 1 + (diff * i/20.0);
 
-                field.sendTitleToPlayers("Scale!", "Your player model has been scaled by " +
-                        color + String.format("%.2f", toDisplay) + ChatColor.RESET + "!", 0, 40, 10);
+                field.sendTitleToPlayers(Component.text("Scale!"),
+                        miniMessage.deserialize("Your player model has been scaled by <" +
+                        color + ">" + String.format("%.2f", toDisplay) + "</" + color +">" + "!"), 0, 40, 10);
                 i++;
             }
         }.runTaskTimer(FillInTheWall.getInstance(), 0, 1);
@@ -94,7 +96,7 @@ public class Scale extends ModifierEvent implements Listener {
         for (Player player : field.getPlayers()) {
             resetPlayer(player);
         }
-        field.sendTitleToPlayers("", "Your player model has been reset!", 0, 20, 10);
+        field.sendTitleToPlayers(Component.empty(), Component.text("Your player model has been reset!"), 0, 20, 10);
     }
 
     @Override

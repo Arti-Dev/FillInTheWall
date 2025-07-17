@@ -1,9 +1,9 @@
 package com.articreep.fillinthewall.multiplayer;
 
-import com.articreep.fillinthewall.Wall;
-import com.articreep.fillinthewall.WallBundle;
-import com.articreep.fillinthewall.WallQueue;
-import org.bukkit.Bukkit;
+import com.articreep.fillinthewall.FillInTheWall;
+import com.articreep.fillinthewall.game.Wall;
+import com.articreep.fillinthewall.game.WallBundle;
+import com.articreep.fillinthewall.game.WallQueue;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -25,6 +25,7 @@ public class WallGenerator {
     private int wallTimeMinimum = 80;
 
     private int wallHolesIncreaseInterval = -1;
+    private int wallHolesMin = 3;
     private int wallHolesMax = 6;
 
     private int randomHoleCount;
@@ -51,10 +52,13 @@ public class WallGenerator {
     public void addNewWallToQueues() {
         Wall wall = new Wall(wallLength, wallHeight);
         if (coop) wall.generateCoopHoles(randomHoleCount + connectedHoleCount);
-        else wall.generateHoles(randomHoleCount, connectedHoleCount, randomizeFurther);
+        else wall.generateHoles(randomHoleCount, connectedHoleCount, randomizeFurther, wallHolesMin);
         wall.setTimeRemaining(wallActiveTime);
+//        // debug
+//        FillInTheWall.getInstance().getSLF4JLogger().info("R{}C{}, T{}",
+//                randomHoleCount, connectedHoleCount, wallActiveTime);
         if (queues.isEmpty()) {
-            Bukkit.getLogger().warning("No queues to add walls to..?");
+            FillInTheWall.getInstance().getSLF4JLogger().warn("No queues to add walls to..?");
         } else {
             wallCount++;
             if (wallCount % 3 == 0 && customWallBundle != null) {
@@ -91,6 +95,10 @@ public class WallGenerator {
         this.randomHoleCount = randomHoleCount;
     }
 
+    public int getRandomHoleCount() {
+        return randomHoleCount;
+    }
+
     public void setWallActiveTime(int wallActiveTime) {
         this.wallActiveTime = wallActiveTime;
     }
@@ -99,8 +107,16 @@ public class WallGenerator {
         this.connectedHoleCount = connectedHoleCount;
     }
 
+    public int getConnectedHoleCount() {
+        return connectedHoleCount;
+    }
+
     public void setRandomizeFurther(boolean randomizeFurther) {
         this.randomizeFurther = randomizeFurther;
+    }
+
+    public boolean isRandomizeFurther() {
+        return randomizeFurther;
     }
 
     public int getLength() {
@@ -122,6 +138,10 @@ public class WallGenerator {
 
     public void setWallHolesMax(int wallHolesMax) {
         this.wallHolesMax = wallHolesMax;
+    }
+
+    public void setWallHolesMin(int wallHolesMin) {
+        this.wallHolesMin = wallHolesMin;
     }
 
     public void setWallHolesIncreaseInterval(int wallHolesIncreaseInterval) {

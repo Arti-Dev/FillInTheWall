@@ -1,8 +1,11 @@
-package com.articreep.fillinthewall;
+package com.articreep.fillinthewall.commands;
 
+import com.articreep.fillinthewall.FillInTheWall;
+import com.articreep.fillinthewall.game.*;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.modifiers.ModifierEvent;
-import net.md_5.bungee.api.ChatColor;
+import com.articreep.fillinthewall.multiplayer.Pregame;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.minecraft.network.protocol.game.ClientboundGameEventPacket;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -13,6 +16,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.util.StringUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,15 +24,16 @@ import java.util.List;
 public class FITWCommand implements CommandExecutor, TabCompleter {
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, String[] args) {
+        MiniMessage miniMessage = MiniMessage.miniMessage();
         if (args.length >= 1) {
             if (args[0].equalsIgnoreCase("reload") && sender.isOp()) {
                 FillInTheWall.getInstance().reload();
-                sender.sendMessage(ChatColor.GREEN + "Config reloaded!");
+                sender.sendMessage(miniMessage.deserialize("<green>Config reloaded!"));
                 return true;
             } else if (args[0].equalsIgnoreCase("abort") && sender.isOp()) {
-                // todo everything from this line forth is temporary
                 if (PlayingFieldManager.game != null) {
+                    PlayingFieldManager.game.setIncompleteGame(true);
                     PlayingFieldManager.game.stop();
                     PlayingFieldManager.game = null;
                     sender.sendMessage("Score attack game aborted");
@@ -37,6 +42,7 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                 }
 
                 if (PlayingFieldManager.vsGame != null) {
+                    PlayingFieldManager.vsGame.setIncompleteGame(true);
                     PlayingFieldManager.vsGame.stop();
                     PlayingFieldManager.vsGame = null;
                     sender.sendMessage("Versus game aborted");
@@ -88,19 +94,18 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
             } else if (args[0].equalsIgnoreCase("custom")) {
                 if (args.length == 2 && sender instanceof Player player && PlayingFieldManager.isInGame(player)) {
                     PlayingField field = PlayingFieldManager.activePlayingFields.get(player);
-                    if (field.getScorer().getGamemode() == Gamemode.CUSTOM) {
+                    if (field.getScorer().getGamemode() == Gamemode.SANDBOX) {
                         WallBundle bundle = WallBundle.getWallBundle(args[1]);
                         if (bundle.size() == 0) {
-                            sender.sendMessage(ChatColor.RED + "Something went wrong loading custom walls!");
+                            sender.sendMessage(miniMessage.deserialize("<red>Something went wrong loading custom walls!"));
                         } else {
                             List<Wall> walls = bundle.getWalls();
                             field.getQueue().clearAllWalls();
                             walls.forEach(field.getQueue()::addWall);
-                            sender.sendMessage(ChatColor.GREEN + "Imported " + walls.size() + " walls");
-                            field.getScorer().setHasImportedCustomWalls(true);
+                            sender.sendMessage(miniMessage.deserialize("<green>Imported " + walls.size() + " walls"));
                         }
                     } else {
-                        sender.sendMessage(ChatColor.RED + "You can only use this command in custom mode");
+                        sender.sendMessage(miniMessage.deserialize("<red>You can only use this command in custom mode."));
                     }
                 } else {
                     sender.sendMessage("Wrong syntax... I won't tell you how though! >:)");
@@ -124,7 +129,7 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                         event = ModifierEvent.Type.valueOf(args[2].toUpperCase()).createEvent();
                         if (event == null) return true;
                     } catch (IllegalArgumentException e) {
-                        sender.sendMessage(ChatColor.RED + "Unknown modifier");
+                        sender.sendMessage(miniMessage.deserialize("<red>Unknown modifier"));
                         return true;
                     }
 
@@ -178,11 +183,11 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
 
                     WallBundle bundle = WallBundle.getWallBundle(args[2]);
                     if (bundle.size() == 0) {
-                        sender.sendMessage(ChatColor.RED + "Something went wrong loading custom walls!");
+                        sender.sendMessage(miniMessage.deserialize("<red>Something went wrong loading custom walls!"));
                     } else {
                         List<Wall> walls = bundle.getWalls();
                         walls.forEach(field.getQueue()::addPriorityWall);
-                        sender.sendMessage(ChatColor.GREEN + "Imported " + walls.size() + " walls");
+                        sender.sendMessage(miniMessage.deserialize("<green>Imported " + walls.size() + " walls"));
                     }
                 } else {
                     sender.sendMessage("/fitw bundle <player> <bundlename>");
@@ -207,7 +212,7 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                         tip.append(" ");
                     }
 
-                    field.setTipDisplay(tip.toString());
+                    field.setTipDisplay(MiniMessage.miniMessage().deserialize(tip.toString()), true);
                 }
             } else if (args[0].equalsIgnoreCase("demomode") && sender.isOp()) {
                 if (args.length >= 2) {
@@ -231,6 +236,74 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                     ClientboundGameEventPacket packet = new ClientboundGameEventPacket(ClientboundGameEventPacket.WIN_GAME, 1);
                     ((CraftPlayer) player).getHandle().connection.send(packet);
                 }
+            } else if (args[0].equalsIgnoreCase("swap") && sender.isOp()) {
+                if (args.length >= 2) {
+                    String name = args[1];
+                    PlayingField field = PlayingFieldManager.activePlayingFields.get((Player) sender);
+                    if (field == null) {
+                        sender.sendMessage("This player isn't in a game!");
+                        return true;
+                    }
+                    if (PlayingFieldManager.isSoloPlayingField(field)) {
+                        BuildSwapper.swapBuild(field, name);
+                        sender.sendMessage("Attempted a swap!");
+                    } else {
+                        sender.sendMessage("This playing field doesn't support swapping builds!");
+                    }
+                } else {
+                    sender.sendMessage("/fitw swap <buildname>");
+                }
+            } else if (args[0].equalsIgnoreCase("hotbar")) {
+                if (sender instanceof Player player) {
+                    if (PlayingFieldManager.isInGame(player)) {
+                        PlayingField field = PlayingFieldManager.activePlayingFields.get(player);
+                        field.loadSavedHotbar(player);
+                    } else {
+                        sender.sendMessage("You are not in a game!");
+                    }
+                } else {
+                    sender.sendMessage("This command can only be used by players!");
+                }
+            } else if (args[0].equalsIgnoreCase("pair")) {
+                if (!(sender instanceof Player player)) {
+                    sender.sendMessage("This command can only be used by players!");
+                    return true;
+                }
+                // Commands: any player - send them a request, cannot do this if already paired, and any new requests overwrite old ones
+                // Check if the argument is a player who's sent them a request, and if so, pair them up
+                // "leave": leave any pairing
+                if (args.length >= 2) {
+                    Player otherPlayer = Bukkit.getPlayer(args[1]);
+
+                    if (player.equals(otherPlayer)) {
+                        sender.sendMessage("bruh");
+                        return true;
+                    }
+                    if (otherPlayer == null && !args[1].equalsIgnoreCase("leave")) {
+                        sender.sendMessage("/fitw pair <player>/leave");
+                        return true;
+
+                    } else if (args[1].equalsIgnoreCase("leave")) {
+                        PairUp.leave(player);
+                        return true;
+                    }
+
+                    PairUp.request(player, otherPlayer);
+                } else {
+                    sender.sendMessage("/fitw pair <player>/leave");
+                }
+            } else if (args[0].equalsIgnoreCase("spectate")) {
+                if (sender instanceof Player player) {
+                    Pregame pregame = PlayingFieldManager.pregame;
+                    if (pregame.isExcludedPlayer(player)) {
+                        pregame.removeExcludedPlayer(player);
+                        player.sendMessage(miniMessage.deserialize("<green>You are now participating in multiplayer games."));
+                    } else {
+                        pregame.addExcludedPlayer(player);
+                        player.sendMessage(miniMessage.deserialize("<yellow>You are now spectating multiplayer games."));
+                        player.sendMessage(miniMessage.deserialize("<yellow>Run /fitw spectate to rejoin"));
+                    }
+                }
             } else {
                 return false;
             }
@@ -239,12 +312,15 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+    public List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String alias, String[] args) {
         List<String> completions = new ArrayList<>();
         ArrayList<String> strings = new ArrayList<>();
         if (args.length == 1) {
             strings.add("spawn");
             strings.add("custom");
+            strings.add("hotbar");
+            strings.add("pair");
+            strings.add("spectate");
 
             if (sender.isOp()) {
                 strings.add("reload");
@@ -258,6 +334,7 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                 strings.add("modifier");
                 strings.add("demomode");
                 strings.add("endcredits");
+                strings.add("swap");
             }
             StringUtil.copyPartialMatches(args[0], strings, completions);
         } else if (args.length == 2) {
@@ -269,6 +346,14 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     strings.add(player.getName());
                 }
+                StringUtil.copyPartialMatches(args[1], strings, completions);
+            } else if (args[0].equalsIgnoreCase("swap")) {
+                StringUtil.copyPartialMatches(args[1], BuildSwapper.getAvailableSchematics(), completions);
+            } else if (args[0].equalsIgnoreCase("pair")) {
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    strings.add(player.getName());
+                }
+                strings.add("leave");
                 StringUtil.copyPartialMatches(args[1], strings, completions);
             }
         } else if (args.length == 3) {

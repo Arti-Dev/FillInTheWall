@@ -1,10 +1,11 @@
 package com.articreep.fillinthewall.modifiers;
 
-import com.articreep.fillinthewall.Judgement;
-import com.articreep.fillinthewall.PlayingField;
-import com.articreep.fillinthewall.PlayingFieldScorer;
-import com.articreep.fillinthewall.Wall;
-import net.md_5.bungee.api.ChatColor;
+import com.articreep.fillinthewall.game.Judgement;
+import com.articreep.fillinthewall.game.PlayingFieldScorer;
+import com.articreep.fillinthewall.game.Wall;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.title.Title;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -31,10 +32,11 @@ public class PlayerInTheWall extends ModifierEvent {
     public void activate() {
         super.activate();
         setBarriers(Material.BARRIER);
+        field.sendTitleToPlayers(miniMessage.deserialize("<green>Player in the Wall"),
+                miniMessage.deserialize("Fit yourself into the holes for bonus points!"), 0, 40, 10);
         for (Player player : field.getPlayers()) {
             player.setAllowFlight(false);
             player.teleport(field.getReferencePoint().setDirection(field.getIncomingDirection().multiply(-1)));
-            player.sendTitle(ChatColor.GREEN + "PLAYER IN THE WALL", "Fit yourself into the holes for bonus points!", 0, 40, 10);
         }
     }
 
@@ -54,11 +56,12 @@ public class PlayerInTheWall extends ModifierEvent {
     @Override
     public void displayScoreTitle(Judgement judgement, int score, HashMap<PlayingFieldScorer.BonusType, Integer> bonus) {
         int playerBonus = bonus.get(PlayingFieldScorer.BonusType.PLAYER);
-        field.sendTitleToPlayers(
-                judgement.getColor() + judgement.getText(),
-                judgement.getColor() + "" + (score + bonus.get(PlayingFieldScorer.BonusType.PERFECT)) +
-                        ChatColor.AQUA + "+" + playerBonus + judgement.getColor() + " points",
-                0, 10, 5);
+        Title title = Title.title(judgement.getFormattedText(),
+                Component.text(score + bonus.get(PlayingFieldScorer.BonusType.PERFECT), judgement.getColor())
+                        .append(Component.text("+" + playerBonus, NamedTextColor.AQUA))
+                        .append(Component.text(" points", judgement.getColor())),
+                PlayingFieldScorer.getScoreTitleTimes());
+        field.sendTitleToPlayers(title);
     }
 
     private int countPlayerBlocksInHoles(Wall wall) {
@@ -97,10 +100,11 @@ public class PlayerInTheWall extends ModifierEvent {
     public void end() {
         super.end();
         setBarriers(Material.AIR);
+        field.sendTitleToPlayers(Component.empty(),
+                miniMessage.deserialize("You're free!"), 0, 20, 10);
         for (Player player : field.getPlayers()) {
             player.teleport(field.getSpawnLocation());
             player.setAllowFlight(true);
-            player.sendTitle("", "You're free!", 0, 20, 10);
         }
     }
 

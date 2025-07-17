@@ -2,10 +2,11 @@ package com.articreep.fillinthewall.multiplayer;
 
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.FillInTheWall;
-import com.articreep.fillinthewall.PlayingField;
+import com.articreep.fillinthewall.game.PlayingField;
 import com.articreep.fillinthewall.utils.Utils;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -34,7 +35,7 @@ public class VersusGame extends MultiplayerGame {
         super.startGame();
         // for now, there can only be two players
         if (playingFields.size() != 2) {
-            Bukkit.getLogger().severe("Tried to start a versus game with more than two players");
+            FillInTheWall.getInstance().getSLF4JLogger().error("Tried to start a versus game with more than two players");
         } else {
             // set each playing field opponent to be the other
             Iterator<PlayingField> iterator = playingFields.iterator();
@@ -79,19 +80,21 @@ public class VersusGame extends MultiplayerGame {
 
     @Override
     protected void broadcastResults() {
-        Bukkit.broadcastMessage(ChatColor.AQUA + "Fill In The Wall " + ChatColor.BLUE + "VERSUS" + ChatColor.AQUA + " - Results");
-        Bukkit.broadcastMessage("");
+        MiniMessage miniMessage = MiniMessage.miniMessage();
+        Bukkit.broadcast(miniMessage.deserialize("<aqua>Fill In The Wall <blue>VERSUS</blue> - Results"));
+        Bukkit.broadcast(Component.empty());
         if (remainingFields.isEmpty()) {
-            Bukkit.broadcastMessage("Victor: " + ChatColor.ITALIC + "It's a tie...?");
+            Bukkit.broadcast(miniMessage.deserialize("Victor: <italic>It's a tie...?"));
         } else {
-            Bukkit.broadcastMessage("Victor: " + ChatColor.GREEN + Utils.playersToString(remainingFields.getFirst().getPlayers()));
+            Bukkit.broadcast(miniMessage.deserialize("Victor: <green>" +
+                    Utils.playersToString(remainingFields.getFirst().getPlayers())));
         }
-        Bukkit.broadcastMessage("");
+        Bukkit.broadcast(Component.empty());
         for (int i = 0; i < rankings.size(); i++) {
             time = timeKOed.get(rankings.get(i));
-            Bukkit.broadcastMessage("#" + (i+2) + " - " + ChatColor.GREEN + Utils.playersToString(rankings.get(i)) + " survived for " + Utils.getFormattedTime(time));
+            Bukkit.broadcast(miniMessage.deserialize("#" + (i+2) + " - <green>" + Utils.playersToString(rankings.get(i)) + " survived for " + Utils.getFormattedTime(time)));
         }
-        Bukkit.broadcastMessage("");
-        Bukkit.broadcastMessage("---");
+        Bukkit.broadcast(Component.empty());
+        Bukkit.broadcast(Component.text("---"));
     }
 }
