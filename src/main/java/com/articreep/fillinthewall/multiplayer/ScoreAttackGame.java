@@ -32,7 +32,7 @@ public class ScoreAttackGame extends MultiplayerGame {
     private final int eventTime1;
     private final int eventTimeFinals;
     private final Sound[] possibleQualificationsMusic = {Sound.MUSIC_DISC_BLOCKS, Sound.MUSIC_DISC_CHIRP, Sound.MUSIC_DISC_FAR,
-    Sound.MUSIC_DISC_STAL, Sound.MUSIC_DISC_WAIT, Sound.MUSIC_DISC_LAVA_CHICKEN};
+    Sound.MUSIC_DISC_STAL, Sound.MUSIC_DISC_WAIT};
     private final Sound[] possibleFinalsMusic = {Sound.MUSIC_DISC_PRECIPICE};
     private final WallBundle customWallBundle = WallBundle.getWallBundle("finals");
     private final static MiniMessage miniMessage = MiniMessage.miniMessage();
