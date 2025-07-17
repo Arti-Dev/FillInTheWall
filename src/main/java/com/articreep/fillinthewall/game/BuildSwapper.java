@@ -32,6 +32,7 @@ import java.util.List;
 
 public class BuildSwapper {
 
+    /** Name is case-sensitive on some machines **/
     public static void swapBuild(PlayingField playingField, String name, boolean teleportPlayers) {
         Clipboard clipboard;
         try {
