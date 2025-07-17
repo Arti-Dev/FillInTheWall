@@ -121,9 +121,11 @@ public class Pregame implements Listener {
             return;
         }
 
+        List<Player> players = getAvailablePlayers();
+        if (players.isEmpty()) return;
+
         cancelCountdown();
 
-        List<Player> players = getAvailablePlayers();
         // Attempt to remove all players from any games
         for (Player player : players) {
             if (PlayingFieldManager.isInGame(player)) {
