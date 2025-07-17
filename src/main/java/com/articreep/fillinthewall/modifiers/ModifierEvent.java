@@ -127,6 +127,7 @@ public abstract class ModifierEvent {
                 types.remove(CHEESE);
                 types.remove(CHAIN);
                 types.remove(NONE);
+                types.remove(RUSH);
                 Type type = types.get((int) (Math.random() * types.size()));
                 return type.createEvent();
             } else if (this == RANDOM_ENDLESS) {
