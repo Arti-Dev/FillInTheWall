@@ -37,7 +37,7 @@ public class BuildSwapper {
         try {
             clipboard = getClipboard(name);
         } catch (IOException e) {
-            FillInTheWall.getInstance().getSLF4JLogger().error("Unable to import schematic");
+            FillInTheWall.getInstance().getSLF4JLogger().error("Unable to import schematic", e);
             return;
         }
 
