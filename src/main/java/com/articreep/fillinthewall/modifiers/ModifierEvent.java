@@ -121,6 +121,8 @@ public abstract class ModifierEvent {
             if (this == RANDOM) {
                 ArrayList<Type> types = new ArrayList<>(List.of(values()));
                 types.remove(RANDOM);
+                types.remove(RANDOM_ENDLESS);
+                types.remove(RANDOM_FINALS);
                 types.remove(TUTORIAL);
                 types.remove(FREEZE);
                 types.remove(UNSUPPORTED);
@@ -133,6 +135,8 @@ public abstract class ModifierEvent {
             } else if (this == RANDOM_ENDLESS) {
                 ArrayList<Type> types = new ArrayList<>(List.of(values()));
                 types.remove(RANDOM);
+                types.remove(RANDOM_ENDLESS);
+                types.remove(RANDOM_FINALS);
                 types.remove(TUTORIAL);
                 types.remove(FREEZE);
                 types.remove(NONE);
