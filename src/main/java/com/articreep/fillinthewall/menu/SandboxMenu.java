@@ -85,8 +85,8 @@ public class SandboxMenu implements Listener {
             double seconds;
             try {
                 seconds = Double.parseDouble(message);
-                if (seconds < 0) {
-                    player.sendMessage(minimessage.deserialize("<red>Time cannot be negative!"));
+                if (seconds <= 0.05) {
+                    player.sendMessage(minimessage.deserialize("<red>Time cannot be less than 0.05s!"));
                     pendingWallTimeInputs.remove(player);
                     pendingGimmickTimeInputs.remove(player);
                     return;
