@@ -46,6 +46,7 @@ public class ChatAnnouncements {
                         syncSendMessage(player, message);
                     }
                 }
+                i++;
             }
         }.runTaskTimerAsynchronously(FillInTheWall.getInstance(), 0, 20 * 60);
     }
