@@ -135,7 +135,7 @@ public class Finals implements Listener {
                             waterStack.push(block);
                             if (!playedWaterSound) {
                                 playedWaterSound = true;
-                                world.playSound(location, Sound.BLOCK_BUBBLE_COLUMN_UPWARDS_INSIDE, 5, 0.5f);
+                                world.playSound(location, Sound.BLOCK_BUBBLE_COLUMN_UPWARDS_INSIDE, 0.7f, 0.5f);
                             }
                         } else {
                             phase = 2;
