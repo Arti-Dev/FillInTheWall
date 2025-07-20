@@ -39,6 +39,9 @@ public class Freeze extends ModifierEvent {
             // todo ground movement speed is impeded for the time being - should fix that
             // todo add particle effects to the walls to show that they're frozen
         }
+        if (ticksRemaining <= 0) {
+            end();
+        }
     }
 
     @Override

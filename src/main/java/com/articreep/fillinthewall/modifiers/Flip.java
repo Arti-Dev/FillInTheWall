@@ -12,12 +12,14 @@ public class Flip extends ModifierEvent {
 
     @Override
     public void modifyWall(Wall wall) {
-        wall.setDoFlip(true);
+        if (ticksRemaining <= 0) wall.setDoFlip(false);
+        else wall.setDoFlip(true);
     }
 
     @Override
     public void activate() {
         super.activate();
+        field.sendTitleToPlayers(Component.text("Flip!"), Component.text("\uD83D\uDD04\uD83D\uDD04\uD83D\uDD04"), 0, 40, 10);
         for (Wall wall : field.getQueue().getActiveWalls()) {
             wall.flip();
         }
@@ -38,11 +40,11 @@ public class Flip extends ModifierEvent {
 
     @Override
     public void playActivateSound() {
-        field.playSoundToPlayers(Sound.ENTITY_BREEZE_WHIRL, 1);
+        field.playSoundToPlayers(Sound.ENTITY_BREEZE_CHARGE, 1);
     }
 
     @Override
     public void playDeactivateSound() {
-
+        field.playSoundToPlayers(Sound.ENTITY_BREEZE_DEFLECT, 1);
     }
 }

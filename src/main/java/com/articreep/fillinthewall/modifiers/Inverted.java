@@ -50,6 +50,10 @@ public class Inverted extends ModifierEvent {
         for (Wall wall : field.getQueue().getActiveWalls()) {
             if (wall.isInverted()) wall.invert();
         }
+        Wall wall = field.getQueue().getFrontmostWall();
+        if (wall != null && wall.isInverted()) {
+            wall.invert();
+        }
         field.clearField();
         super.end();
         field.sendTitleToPlayers(Component.empty(), Component.text("Walls are back to normal!"), 0, 20, 10);
@@ -57,6 +61,7 @@ public class Inverted extends ModifierEvent {
 
     @Override
     public void modifyWall(Wall wall) {
+        if (ticksRemaining <= 0) return;
         wall.invert();
     }
 

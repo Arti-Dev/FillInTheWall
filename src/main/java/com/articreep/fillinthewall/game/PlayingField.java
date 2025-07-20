@@ -838,6 +838,12 @@ public class PlayingField implements Listener {
             resetBorder();
             clearDelayActive = false;
 
+            if (eventActive()) {
+                if (event.getTicksRemaining() <= 0) {
+                    endEvent();
+                }
+            }
+
             // Rush jank
             // todo might move to rush class
             if (eventActive() && event instanceof Rush rush) {
@@ -967,9 +973,6 @@ public class PlayingField implements Listener {
                 queue.tick();
                 if (eventActive()) {
                     event.tick();
-                    if (event.getTicksRemaining() <= 0) {
-                        endEvent();
-                    }
                 }
                 if (!multiplayerMode) scorer.tick();
 

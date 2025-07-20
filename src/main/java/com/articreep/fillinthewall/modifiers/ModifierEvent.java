@@ -171,6 +171,7 @@ public abstract class ModifierEvent {
     }
 
     public void tick() {
+        if (ticksRemaining <= 0) return;
         if (!infinite) ticksRemaining--;
     }
 
