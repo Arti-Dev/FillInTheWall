@@ -15,7 +15,7 @@ public enum Gamemode {
     RUSH_SCORE_ATTACK("<red>Rush Score Attack", "Use Rush Attacks to score as much as you can!", Material.REDSTONE_BLOCK),
     SPRINT("<aqua>Sprint", "Perfect clear 20 walls as fast as you can!", Material.DIAMOND_BLOCK),
     MULTIPLAYER_SCORE_ATTACK("<aqua>Multiplayer Score Attack", "Hypixel-style game", Material.BAMBOO_BLOCK),
-    CAPPED_MARATHON("<gray>Marathon", "Aim to clear level 15!", Material.COBBLESTONE),
+    CAPPED_MARATHON("<gray>Marathon", "Aim to clear level 15 as quickly as possible!", Material.COBBLESTONE),
     MARATHON("<gray>Endless Survival", "Survive as long as you can!", Material.COBBLED_DEEPSLATE),
     VERSUS("<blue>2-player Versus", "Experimental versus system with garbage walls", Material.TNT),
     SANDBOX("<gradient:green:dark_green>Sandbox", "...like the video game Minecraft?", Material.CHAIN_COMMAND_BLOCK),
@@ -132,6 +132,7 @@ public enum Gamemode {
         CAPPED_MARATHON.addAttribute(GamemodeAttribute.WALL_TIME_DECREASE_AMOUNT, 12);
         CAPPED_MARATHON.addAttribute(GamemodeAttribute.ACTIONBAR_DISPLAY, PlayingFieldScorer.ActionBarType.LEVEL_PROGRESS);
         CAPPED_MARATHON.addAttribute(GamemodeAttribute.LEVEL_CAP, 15);
+        CAPPED_MARATHON.addAttribute(GamemodeAttribute.SCORE_BY_TIME, true);
 
         VERSUS.addAttribute(GamemodeAttribute.CONSISTENT_HOLE_COUNT, false);
         VERSUS.addAttribute(GamemodeAttribute.STARTING_WALL_ACTIVE_TIME, 2000);
