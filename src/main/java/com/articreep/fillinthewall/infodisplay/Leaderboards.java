@@ -64,7 +64,7 @@ public class Leaderboards {
         if (marathonLocation != null) {
             TextDisplay marathonDisplay = (TextDisplay) marathonLocation.getWorld().spawnEntity(
                     marathonLocation, EntityType.TEXT_DISPLAY);
-            marathonDisplay.text(Component.text("Endless Survival Leaderboard"));
+            marathonDisplay.text(Component.text("Survival Leaderboard"));
             marathonDisplay.setBillboard(Display.Billboard.VERTICAL);
             scoreLeaderboards.put(marathonDisplay, Gamemode.MARATHON);
         }
