@@ -86,6 +86,7 @@ public class Stripes extends ModifierEvent {
         ItemStack item = new ItemStack(Utils.getAlternateMaterial(field.getWallMaterial()));
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(PlayingField.variableKey, PersistentDataType.BOOLEAN, true);
+        meta.getPersistentDataContainer().set(PlayingField.gameKey, PersistentDataType.BOOLEAN, true);
         item.setItemMeta(meta);
         return item;
     }
