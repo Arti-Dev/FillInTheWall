@@ -1037,17 +1037,23 @@ public class PlayingFieldScorer {
     public String getFormattedBlocksPerSecond() {
         return String.format("%.2f", getBlocksPerSecond());
     }
-    
+
     public void addGarbageToQueue(Wall wall) {
-        garbageQueue.push(wall);
+        if (garbageQueue.size() < field.getLength() * 2) {
+            garbageQueue.push(wall);
+        }
     }
     
     public void setOpponent(PlayingField field) {
         opponent = field;
     }
 
-    public Deque<Wall> getGarbageQueue() {
-        return garbageQueue;
+    public boolean isGarbageQueueEmpty() {
+        return garbageQueue.isEmpty();
+    }
+
+    public Wall removeFirstGarbageFromQueue() {
+        return garbageQueue.pollFirst();
     }
 
     public int getEventCount() {

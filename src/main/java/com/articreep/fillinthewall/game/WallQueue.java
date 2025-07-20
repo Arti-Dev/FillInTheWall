@@ -71,7 +71,7 @@ public class WallQueue {
 
     public void spawnNextWall() {
         if (animatingWall != null) return;
-        if (!field.getScorer().getGarbageQueue().isEmpty()) {
+        if (!field.getScorer().isGarbageQueueEmpty()) {
             spawnGarbageWall();
             return;
         }
@@ -85,8 +85,8 @@ public class WallQueue {
     }
 
     public void spawnGarbageWall() {
-        if (field.getScorer().getGarbageQueue().isEmpty()) return;
-        Wall wall = field.getScorer().getGarbageQueue().removeFirst();
+        if (field.getScorer().isGarbageQueueEmpty()) return;
+        Wall wall = field.getScorer().removeFirstGarbageFromQueue();
         field.playSoundToPlayers(Sound.BLOCK_NETHER_BRICKS_STEP, 0.5F);
         int hardness = (int) field.getScorer().getSettings().getAttribute(GamemodeAttribute.GARBAGE_WALL_HARDNESS);
         hardenWall(wall, hardness);

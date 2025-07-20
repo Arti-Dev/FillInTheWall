@@ -160,7 +160,7 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                     int amount = Integer.parseInt(args[2]);
 
                     for (int i = 0; i < amount; i++) {
-                        field.getScorer().getGarbageQueue().add(new Wall(field.getLength(), field.getHeight()));
+                        field.getScorer().addGarbageToQueue(new Wall(field.getLength(), field.getHeight()));
                     }
 
                     sender.sendMessage("Sent " + amount + " garbage walls to " + player.getName());

@@ -123,6 +123,7 @@ public class FireInTheHole extends ModifierEvent {
         ItemStack item = new ItemStack(Material.FLINT_AND_STEEL);
         ItemMeta meta = item.getItemMeta();
         meta.getPersistentDataContainer().set(PlayingField.variableKey, PersistentDataType.BOOLEAN, true);
+        meta.getPersistentDataContainer().set(PlayingField.gameKey, PersistentDataType.BOOLEAN, true);
         meta.lore(Collections.singletonList(miniMessage.deserialize("<gray>Temporary item")));
         item.setItemMeta(meta);
         return item;
