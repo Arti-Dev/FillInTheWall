@@ -9,6 +9,7 @@ import com.articreep.fillinthewall.game.PlayingField;
 import com.articreep.fillinthewall.game.PlayingFieldManager;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.infodisplay.Leaderboards;
+import com.articreep.fillinthewall.lobby.ChatAnnouncements;
 import com.articreep.fillinthewall.lobby.LobbyItems;
 import com.articreep.fillinthewall.lobby.NBSMusic;
 import com.articreep.fillinthewall.menu.SandboxMenu;
@@ -111,6 +112,7 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
             leaderboardUpdateTask = Bukkit.getScheduler().runTaskTimerAsynchronously(this, Leaderboards::updateLeaderboards, 0, 20 * 30);
             multiplayerSpawn = getConfig().getLocation("multiplayer-spawn");
             spectatorFinalsSpawn = getConfig().getLocation("spectator-finals-spawn");
+            ChatAnnouncements.startAnnouncements();
         }, 1);
 
         getSLF4JLogger().info("FillInTheWall has been enabled!");
