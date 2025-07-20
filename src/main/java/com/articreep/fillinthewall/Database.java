@@ -100,7 +100,7 @@ public class Database {
         }
         verifyColumn(conn, "playerInfo", "playtime", "BIGINT DEFAULT 0 NOT NULL");
         verifyColumn(conn, "playerInfo", "perfectWalls", "INT DEFAULT 0 NOT NULL");
-        verifyColumn(conn, "scores", Gamemode.CAPPED_MARATHON.toString(), "INT DEFAULT 0 NOT NULL");
+        verifyColumn(conn, "scores", Gamemode.CAPPED_MARATHON.toString(), "INT DEFAULT 36000 NOT NULL");
         verifyColumn(conn, "scores", "multiplayerScore", "INT DEFAULT 0 NOT NULL");
 
         try {
