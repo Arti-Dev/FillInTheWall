@@ -387,7 +387,7 @@ public class PlayingFieldScorer {
         }
 
         ModifierEvent event = field.getEvent();
-        if (event != null && event.isChargeEvent) return;
+        if (event != null && event.isActive() && event.isChargeEvent) return;
 
         if (chargesAvailable > 0) {
             ModifierEvent newEvent = activateEvent(settings.getModifierEventTypeAttribute(GamemodeAttribute.CHARGE_EVENT));
@@ -750,6 +750,9 @@ public class PlayingFieldScorer {
                 return;
             }
             if (eventCount < gamemode.getDefaultSettings().getIntAttribute(GamemodeAttribute.MODIFIER_EVENT_CAP)) {
+                return;
+            }
+            if (level < gamemode.getDefaultSettings().getIntAttribute(GamemodeAttribute.LEVEL_CAP)) {
                 return;
             }
         }
