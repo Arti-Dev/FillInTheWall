@@ -931,7 +931,15 @@ public class PlayingField implements Listener {
     }
 
     public void resetBorder() {
-        changeBorderBlocks(defaultBorderMaterial);
+        String string = FillInTheWall.getInstance().getConfig().getString("environments." + environment + ".border");
+        Material borderMaterial;
+        try {
+            borderMaterial = Material.valueOf(string);
+        } catch (IllegalArgumentException | NullPointerException e) {
+            changeBorderBlocks(defaultBorderMaterial);
+            return;
+        }
+        changeBorderBlocks(borderMaterial);
     }
 
     // Events, ticking, and effects

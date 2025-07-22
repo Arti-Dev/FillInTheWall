@@ -134,3 +134,7 @@ lobby-music:
     z: 0.5
     pitch: 0.0
     yaw: 0.0
+
+environments:
+  startrek:
+    border: 'POLISHED_ANDESITE'
