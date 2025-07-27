@@ -186,7 +186,7 @@ public class PlayingFieldManager implements Listener {
                 vsPregame.addAvailablePlayingField(field);
             } else if (key.startsWith("field_finals")) {
                 finalStageBoards.add(field);
-            } else if (field.getLength() == 7 && field.getHeight() == 4) {
+            } else if (key.startsWith("field_void") && field.getLength() == 7 && field.getHeight() == 4) {
                 soloPlayingFields.add(field);
             }
 

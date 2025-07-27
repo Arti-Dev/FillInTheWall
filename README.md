@@ -35,6 +35,7 @@ To fix this, in the config file that's generated at plugins/FillInTheWall/config
 Playing fields with names that start with certain things will be included in multiplayer games:
 - if name starts with "field_multi" it will be used in multiplayer qualification rounds
 - if name starts with "field_finals" it will be used in multiplayer finals rounds
+- if name starts with "field_void" it will alter the physical build during Endless mode
 
 *This will also change in the future!*
 
