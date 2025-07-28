@@ -276,6 +276,7 @@ public abstract class MultiplayerGame implements Listener {
     }
 
     protected void deployEvent(ModifierEvent.Type type, boolean infinite) {
+        if (playingFields.isEmpty()) return;
         PlayingField sampleField = playingFields.iterator().next();
         ModifierEvent event = type.createEvent();
         if (event == null) return;
@@ -291,6 +292,7 @@ public abstract class MultiplayerGame implements Listener {
     }
 
     protected void deployEventWithSignals(ModifierEvent.Type type) {
+        if (playingFields.isEmpty()) return;
         PlayingField sampleField = playingFields.iterator().next();
         ModifierEvent event = type.createEvent();
         if (event == null) return;
