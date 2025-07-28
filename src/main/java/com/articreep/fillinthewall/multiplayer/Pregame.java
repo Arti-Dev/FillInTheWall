@@ -88,7 +88,7 @@ public class Pregame implements Listener {
             songPlayer.destroy();
         }
 
-        if (NBSMusic.enabled && NBSMusic.getLobbyMusic() != null) {
+        if (NBSMusic.enabled && NBSMusic.getLobbyMusic() != null && NBSMusic.getLobbyMusicLocation() != null) {
             songPlayer = new PositionSongPlayer(NBSMusic.getLobbyMusic());
             songPlayer.setTargetLocation(NBSMusic.getLobbyMusicLocation());
             songPlayer.setRepeatMode(RepeatMode.ALL);

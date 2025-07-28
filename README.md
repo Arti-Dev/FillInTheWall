@@ -12,11 +12,14 @@ Originally for [HooHacks 2024](https://devpost.com/software/hole-in-the-wall-rus
 [![Fill in the Wall Video](https://img.youtube.com/vi/ARJ5J_cZsdk/0.jpg)](https://www.youtube.com/watch?v=ARJ5J_cZsdk)
 
 # Building
+
+Please keep in mind that this plugin was designed for my personal purposes, so there may be some hiccups if you want to run it on your own server.
+
 You'll need:
 - A Paper server
 - A MySQL server (can be run without, but highly recommended)
 
-*At the time of writing this, this plugin is for 1.21.5!*
+*At the time of writing this, this plugin is for 1.21.7!*
 
 Clone this repository onto your machine and build the Gradle project with `./gradlew build`. You can also open IntelliJ and do it from there.
 
@@ -25,6 +28,8 @@ Grab the jar file from the /build/libs/ folder and place it in your Spigot/Paper
 If you try to load the plugin in this state, the plugin will load, but it will say that it failed to connect to a SQL database and that personal bests will not persist and leaderboards will not work.
 
 To fix this, in the config file that's generated at plugins/FillInTheWall/config.yml, configure the database settings. You'll need to manually create a database in the MySQL server you're connecting to, as the plugin will not do this for you. *May change in the future!*
+
+You will also likely see a bunch of errors regarding "unknown world". This is because you need to configure `config.yml` below.
 
 # Config
 
