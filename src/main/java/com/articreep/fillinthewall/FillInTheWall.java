@@ -249,6 +249,13 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
     }
 
     public void reloadPlayingFields() {
+        for (PlayingField field : PlayingFieldManager.playingFieldLocations.values()) {
+            if (field.hasStarted()) field.stop(false, false);
+            else {
+                field.forceRemoveMenu();
+                field.removeEndScreen();
+            }
+        }
         loadPlayingFieldConfig();
         PlayingFieldManager.removeAllGames();
         PlayingFieldManager.parseConfig(getPlayingFieldConfig());
