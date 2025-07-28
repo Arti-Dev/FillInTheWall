@@ -14,6 +14,7 @@ Originally for [HooHacks 2024](https://devpost.com/software/hole-in-the-wall-rus
 # Building
 
 Please keep in mind that this plugin was designed for my personal purposes, so there may be some hiccups if you want to run it on your own server.
+A version designed for other uses can be found over at [FillInTheWallLite](https://github.com/Arti-Dev/FillInTheWallLite)
 
 You'll need:
 - A Paper server
