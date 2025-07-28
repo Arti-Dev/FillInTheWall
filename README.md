@@ -38,6 +38,7 @@ You will also likely see a bunch of errors regarding "unknown world". This is be
 - The `spectator-finals-spawn` location defines where eliminated players will spawn to spectate during the finals of a multiplayer game.
 - The locations in the `leaderboards` section define where leaderboards will spawn.
 - The `playingfields.yml` file holds the parameters of each playing field. To add a new playing field, run `/registerplayingfield` in-game and follow the instructions.
+- The `lobby-music` section defines the music that'll play in the lobby and where. You should configure the location.
 
 Playing fields with names that start with certain things will be included in multiplayer games:
 - if name starts with "field_multi" it will be used in multiplayer qualification rounds
