@@ -30,6 +30,8 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
             if (args[0].equalsIgnoreCase("reload") && sender.isOp()) {
                 FillInTheWall.getInstance().reload();
                 sender.sendMessage(miniMessage.deserialize("<green>Config reloaded!"));
+                sender.sendMessage(miniMessage.deserialize("<red>If there are errors in the console, " +
+                        "please make sure you've updated your config.yml with correct location information."));
                 return true;
             } else if (args[0].equalsIgnoreCase("abort") && sender.isOp()) {
                 if (PlayingFieldManager.game != null) {

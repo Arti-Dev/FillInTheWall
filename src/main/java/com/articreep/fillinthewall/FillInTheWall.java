@@ -245,6 +245,10 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
         leaderboardUpdateTask = Bukkit.getScheduler().runTaskTimerAsynchronously(this, Leaderboards::updateLeaderboards, 0, 20 * 30);
         multiplayerSpawn = getConfig().getLocation("multiplayer-spawn");
         spectatorFinalsSpawn = getConfig().getLocation("spectator-finals-spawn");
+        reloadPlayingFields();
+    }
+
+    public void reloadPlayingFields() {
         loadPlayingFieldConfig();
         PlayingFieldManager.removeAllGames();
         PlayingFieldManager.parseConfig(getPlayingFieldConfig());

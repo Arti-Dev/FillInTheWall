@@ -248,7 +248,7 @@ public class RegisterPlayingField implements CommandExecutor, Listener {
                 config.set(key + "." + entry.getKey(), entry.getValue());
             }
             FillInTheWall.getInstance().savePlayingFieldConfig();
-            FillInTheWall.getInstance().reload();
+            FillInTheWall.getInstance().reloadPlayingFields();
         }
 
     }
