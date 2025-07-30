@@ -299,7 +299,7 @@ public class Pregame implements Listener {
 
     private void asyncMusicSettingCheck(Player player) {
         Bukkit.getScheduler().runTaskAsynchronously(FillInTheWall.getInstance(), () -> {
-
+            if (songPlayer == null) return;
             if (!PlayerSettings.getBooleanSettingOrDefault(
                     player.getUniqueId(), PlayerSettings.BooleanSetting.MUSIC)) {
                 Bukkit.getScheduler().runTask(FillInTheWall.getInstance(), () -> {
