@@ -914,7 +914,7 @@ public class PlayingFieldScorer {
     }
 
     public enum ActionBarType {
-        LEVEL_PROGRESS, PERFECT_WALLS, ENDLESS_LEVEL_PROGRESS, CHARGES, NONE
+        LEVEL_PROGRESS, PERFECT_WALLS, ENDLESS_LEVEL_PROGRESS, CHARGES, MEGA, NONE
     }
 
     public Component getLevelProgressActionbar() {
@@ -953,6 +953,37 @@ public class PlayingFieldScorer {
             return miniMessage.deserialize("<red>Out of charges!");
         }
         return miniMessage.deserialize("<aqua>" + event + " Charges: " + "✦".repeat(chargesAvailable)  + " <blue><bold>Press <key:key.drop>");
+    }
+
+    private int cooldown = 0;
+    private Component cache = Component.empty();
+    public Component getMegaActionbar() {
+        if (cooldown > 0) {
+            cooldown--;
+            return cache;
+        }
+        Wall wall = field.getQueue().getFrontmostWall();
+        if (wall == null) return Component.empty();
+        int holes = wall.getHoles().size();
+        Map<Pair<Integer, Integer>, Block> extraBlocks = wall.getExtraBlocks(field);
+        Map<Pair<Integer, Integer>, Block> correctBlocks = wall.getCorrectBlocks(field);
+        Map<Pair<Integer, Integer>, Block> missingBlocks = wall.getMissingBlocks(field);
+        String message = "<aqua>" + correctBlocks.size() + "/" + holes + " ";
+        if (!extraBlocks.isEmpty()) {
+            message += " <gold>" + extraBlocks.size() + " extra ";
+        }
+
+        if (!extraBlocks.isEmpty()) {
+            Pair<Integer, Integer> extraBlock = Utils.randomSetElement(extraBlocks.keySet());
+            message += "<red>(" + extraBlock.getValue0() + ", " + extraBlock.getValue1() + ")";
+        } else if (missingBlocks.size() < 5 && !missingBlocks.isEmpty()) {
+            Pair<Integer, Integer> missingBlock = Utils.randomSetElement(missingBlocks.keySet());
+            message += "<green>(" + missingBlock.getValue0() + ", " + missingBlock.getValue1() + ")";
+        }
+
+        cooldown = 20;
+        Component componentMessage = miniMessage.deserialize(message);
+        return cache = componentMessage;
     }
 
 

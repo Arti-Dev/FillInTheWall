@@ -512,7 +512,7 @@ public class PlayingField implements Listener {
         }
         else clearField();
 
-        task.cancel();
+        if (task != null) task.cancel();
         task = null;
         for (TextDisplay display : textDisplays) {
             display.remove();
@@ -1038,6 +1038,7 @@ public class PlayingField implements Listener {
             case ENDLESS_LEVEL_PROGRESS -> sendActionBarToPlayers(scorer.getEndlessLevelProgressActionbar());
             case PERFECT_WALLS -> sendActionBarToPlayers(scorer.getPerfectWallsActionbar());
             case CHARGES -> sendActionBarToPlayers(scorer.getChargesActionbar());
+            case MEGA -> sendActionBarToPlayers(scorer.getMegaActionbar());
         }
     }
 
