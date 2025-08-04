@@ -81,7 +81,6 @@ public enum Gamemode {
         MEGA.addAttribute(GamemodeAttribute.HIGHLIGHT_INCORRECT_BLOCKS, true);
         MEGA.addAttribute(GamemodeAttribute.REFUSE_IMPERFECT_WALLS, true);
         MEGA.addAttribute(GamemodeAttribute.TEAM_EFFORT, true);
-        MEGA.addAttribute(GamemodeAttribute.ACTIONBAR_DISPLAY, PlayingFieldScorer.ActionBarType.NONE);
         MEGA.addAttribute(GamemodeAttribute.ACTIONBAR_DISPLAY, PlayingFieldScorer.ActionBarType.MEGA);
 
         MULTIPLAYER_SCORE_ATTACK.addAttribute(GamemodeAttribute.TIME_LIMIT, 20*150);
