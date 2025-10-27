@@ -53,6 +53,13 @@ public class Database {
             return false;
         }
 
+        String sqlPlayerInfo = "CREATE TABLE IF NOT EXISTS playerInfo(" +
+                "uuid CHAR(36) NOT NULL," +
+                "newcomer BIT DEFAULT 1 NOT NULL," +
+                "xp INT DEFAULT 0 NOT NULL," +
+                "playtime BIGINT DEFAULT 0 NOT NULL," +
+                "perfectWalls INT DEFAULT 0 NOT NULL," +
+                "PRIMARY KEY (uuid));";
         String sqlScores = "CREATE TABLE IF NOT EXISTS scores(" +
                 "uuid CHAR(36) NOT NULL," +
                 "SCORE_ATTACK INT DEFAULT 0 NOT NULL," +
@@ -65,21 +72,15 @@ public class Database {
                 "uuid CHAR(36) NOT NULL," +
                 "hotbar CHAR(9) DEFAULT ? NOT NULL," +
                 "FOREIGN KEY (uuid) REFERENCES playerInfo(uuid) ON DELETE CASCADE);";
-        String sqlPlayerInfo = "CREATE TABLE IF NOT EXISTS playerInfo(" +
-                "uuid CHAR(36) NOT NULL," +
-                "newcomer BIT DEFAULT 1 NOT NULL," +
-                "xp INT DEFAULT 0 NOT NULL," +
-                "playtime BIGINT DEFAULT 0 NOT NULL," +
-                "perfectWalls INT DEFAULT 0 NOT NULL," +
-                "PRIMARY KEY (uuid));";
+
         try {
             conn.setAutoCommit(false);
-            PreparedStatement stmt = conn.prepareStatement(sqlScores);
+            PreparedStatement stmt = conn.prepareStatement(sqlPlayerInfo);
+            stmt.executeUpdate();
+            stmt = conn.prepareStatement(sqlScores);
             stmt.executeUpdate();
             stmt = conn.prepareStatement(sqlHotbars);
             stmt.setString(1, PlayingField.DEFAULT_HOTBAR);
-            stmt.executeUpdate();
-            stmt = conn.prepareStatement(sqlPlayerInfo);
             stmt.executeUpdate();
         } catch (SQLException e) {
             try {
