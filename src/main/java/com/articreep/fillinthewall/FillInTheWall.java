@@ -102,10 +102,10 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
                 NBSMusic.enabled = false;
             }
 
-            PlayingFieldManager.pregame = new Pregame(Bukkit.getWorld("multi"), Gamemode.MULTIPLAYER_SCORE_ATTACK,
-                    2, 60);
-            PlayingFieldManager.pregame.startCountdown();
-            PlayingFieldManager.vsPregame = new Pregame(Bukkit.getWorld("versus"), Gamemode.VERSUS, 2, 15);
+            createMultiPregame();
+            createVersusPregame();
+            if (PlayingFieldManager.pregame != null)
+                PlayingFieldManager.pregame.startCountdown();
             PlayingFieldManager.parseConfig(getPlayingFieldConfig());
             spawnPortals();
             Leaderboards.spawnLeaderboards(getConfig());
@@ -117,6 +117,48 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
 
         getSLF4JLogger().info("FillInTheWall has been enabled!");
 
+    }
+
+    public void createMultiPregame() {
+        if (!getConfig().getBoolean("pregame.enabled")) {
+            getSLF4JLogger().info("Multiplayer pregame is disabled in config.");
+            return;
+        }
+        String worldname = getConfig().getString("pregame.world");
+        if (worldname == null) {
+            getSLF4JLogger().warn("No world specified for multiplayer game.");
+            return;
+        }
+        World world = Bukkit.getWorld(worldname);
+        if (world == null) {
+            getSLF4JLogger().warn("Could not find world {} for multiplayer game.", worldname);
+            return;
+        }
+
+        PlayingFieldManager.pregame = new Pregame(world, Gamemode.MULTIPLAYER_SCORE_ATTACK,
+                getConfig().getInt("pregame.min-players"),
+                getConfig().getInt("pregame.countdown"));
+    }
+
+    public void createVersusPregame() {
+        if (!getConfig().getBoolean("versus-pregame.enabled")) {
+            return;
+        }
+
+        String worldname = getConfig().getString("versus-pregame.world");
+        if (worldname == null) {
+            getSLF4JLogger().warn("No world specified for versus game.");
+            return;
+        }
+        World world = Bukkit.getWorld(worldname);
+        if (world == null) {
+            getSLF4JLogger().warn("Could not find world {} for versus game.", worldname);
+            return;
+        }
+
+        PlayingFieldManager.vsPregame = new Pregame(world, Gamemode.VERSUS,
+                getConfig().getInt("versus-pregame.min-players"),
+                getConfig().getInt("versus-pregame.countdown"));
     }
 
     @EventHandler
@@ -236,6 +278,21 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
             display.remove();
         }
         displays.clear();
+
+        if (PlayingFieldManager.vsPregame != null) {
+            PlayingFieldManager.vsPregame.cancelCountdown();
+            PlayingFieldManager.vsPregame = null;
+        }
+        if (PlayingFieldManager.pregame != null) {
+            PlayingFieldManager.pregame.cancelCountdown();
+            PlayingFieldManager.pregame = null;
+        }
+        createMultiPregame();
+        createVersusPregame();
+        if (PlayingFieldManager.pregame != null)
+            PlayingFieldManager.pregame.startCountdown();
+
+
         NBSMusic.loadConfig(getConfig());
         spawnPortals();
         Leaderboards.spawnLeaderboards(getConfig());
@@ -245,6 +302,7 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
         leaderboardUpdateTask = Bukkit.getScheduler().runTaskTimerAsynchronously(this, Leaderboards::updateLeaderboards, 0, 20 * 30);
         multiplayerSpawn = getConfig().getLocation("multiplayer-spawn");
         spectatorFinalsSpawn = getConfig().getLocation("spectator-finals-spawn");
+
         reloadPlayingFields();
     }
 

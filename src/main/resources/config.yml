@@ -138,3 +138,16 @@ lobby-music:
 environments:
   startrek:
     border: 'POLISHED_ANDESITE'
+
+pregame:
+  enabled: true
+  world: multi
+  min-players: 2
+  countdown: 60
+
+# unused/scrapped versus mode
+versus-pregame:
+  enabled: false
+  world: versus
+  min-players: 2
+  countdown: 15

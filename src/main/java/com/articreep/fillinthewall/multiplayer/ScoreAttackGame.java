@@ -123,7 +123,9 @@ public class ScoreAttackGame extends MultiplayerGame {
             for (PlayingField field : playingFields) {
                 submitScores(field);
             }
-            PlayingFieldManager.pregame.startCountdown();
+            if (PlayingFieldManager.pregame != null) {
+                PlayingFieldManager.pregame.startCountdown();
+            }
         }
     }
 

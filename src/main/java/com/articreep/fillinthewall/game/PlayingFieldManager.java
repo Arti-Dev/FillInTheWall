@@ -18,6 +18,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,9 +28,9 @@ public class PlayingFieldManager implements Listener {
     public static Map<WorldBoundingBox, PlayingField> playingFieldLocations = new HashMap<>();
     private static final Map<Player, BukkitTask> removalTasks = new HashMap<>();
     public static ScoreAttackGame game = null;
-    public static Pregame pregame = null;
+    @Nullable public static Pregame pregame = null;
     public static VersusGame vsGame = null;
-    public static Pregame vsPregame = null;
+    @Nullable public static Pregame vsPregame = null;
     public static final ArrayList<PlayingField> finalStageBoards = new ArrayList<>();
     private static final ArrayList<PlayingField> soloPlayingFields = new ArrayList<>();
 
@@ -179,10 +180,10 @@ public class PlayingFieldManager implements Listener {
                     refPoint, fieldDirection, incomingDirection, standingDistance, box, effectBox, environment, fieldLength, fieldHeight, wallMaterial, playerMaterial, hideBottomBorder, addBackBorder);
             playingFieldLocations.put(box, field);
 
-            // todo temporary
-            if (key.startsWith("field_multi")) {
+            // todo not temporary
+            if (key.startsWith("field_multi") && pregame != null) {
                 pregame.addAvailablePlayingField(field);
-            } else if (key.startsWith("field_versus")) {
+            } else if (key.startsWith("field_versus") && vsPregame != null) {
                 vsPregame.addAvailablePlayingField(field);
             } else if (key.startsWith("field_finals")) {
                 finalStageBoards.add(field);
