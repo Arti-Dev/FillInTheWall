@@ -187,8 +187,20 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
     }
 
     private void spawnPortals() {
-        Location singleplayerLocation = getConfig().getLocation("singleplayer-portal.location");
-        Location multiplayerLocation = getConfig().getLocation("multiplayer-portal.location");
+        Location singleplayerLocation;
+        if (!getConfig().getBoolean("singleplayer-portal.enabled")) {
+            singleplayerLocation = null;
+        } else {
+            singleplayerLocation = getConfig().getLocation("singleplayer-portal.location");
+        }
+
+        Location multiplayerLocation;
+        if (!getConfig().getBoolean("multiplayer-portal.enabled")) {
+            multiplayerLocation = null;
+        } else {
+            multiplayerLocation = getConfig().getLocation("multiplayer-portal.location");
+        }
+
         String singleplayerText = getConfig().getString("singleplayer-portal.text");
         String multiplayerText = getConfig().getString("multiplayer-portal.text");
 
