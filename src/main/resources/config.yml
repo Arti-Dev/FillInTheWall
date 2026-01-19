@@ -1,8 +1,3 @@
-pregame-worlds:
-  multiplayer: 'multi'
-  versus: 'versus'
-pregame-countdown: 60
-
 singleplayer-portal:
   location:
     ==: org.bukkit.Location

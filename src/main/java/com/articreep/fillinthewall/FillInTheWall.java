@@ -101,13 +101,11 @@ public final class FillInTheWall extends JavaPlugin implements Listener {
                 getSLF4JLogger().info("NoteBlockAPI not found - note block music disabled");
                 NBSMusic.enabled = false;
             }
-            String multiplayerWorldName = getConfig().getString("pregame-worlds.multiplayer", "multi");
-            String versusWorldName = getConfig().getString("pregame-worlds.versus", "versus");
-            int countdownMax = getConfig().getInt("pregame-countdown", 60);
-            PlayingFieldManager.pregame = new Pregame(Bukkit.getWorld(multiplayerWorldName), Gamemode.MULTIPLAYER_SCORE_ATTACK,
-                    2, countdownMax);
+
+            PlayingFieldManager.pregame = new Pregame(Bukkit.getWorld("multi"), Gamemode.MULTIPLAYER_SCORE_ATTACK,
+                    2, 60);
             PlayingFieldManager.pregame.startCountdown();
-            PlayingFieldManager.vsPregame = new Pregame(Bukkit.getWorld(versusWorldName), Gamemode.VERSUS, 2, countdownMax);
+            PlayingFieldManager.vsPregame = new Pregame(Bukkit.getWorld("versus"), Gamemode.VERSUS, 2, 15);
             PlayingFieldManager.parseConfig(getPlayingFieldConfig());
             spawnPortals();
             Leaderboards.spawnLeaderboards(getConfig());
