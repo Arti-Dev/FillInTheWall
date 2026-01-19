@@ -4,7 +4,6 @@ import com.articreep.fillinthewall.FillInTheWall;
 import com.articreep.fillinthewall.game.*;
 import com.articreep.fillinthewall.gamemode.Gamemode;
 import com.articreep.fillinthewall.modifiers.ModifierEvent;
-import com.articreep.fillinthewall.multiplayer.Pregame;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.minecraft.network.protocol.game.ClientboundGameEventPacket;
 import org.bukkit.Bukkit;
@@ -20,6 +19,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.articreep.fillinthewall.game.PlayingFieldManager.pregame;
+import static com.articreep.fillinthewall.game.PlayingFieldManager.vsPregame;
 
 public class FITWCommand implements CommandExecutor, TabCompleter {
 
@@ -52,41 +54,49 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                     sender.sendMessage("No versus game to abort");
                 }
             } else if (args[0].equalsIgnoreCase("timer") && sender.isOp()) {
-                if (PlayingFieldManager.pregame.isActive()) {
-                    PlayingFieldManager.pregame.cancelCountdown();
+                if (pregame == null) {
+                    sender.sendMessage("There is no multiplayer game! Check your config for errors.");
+                    return true;
+                }
+                if (pregame.isActive()) {
+                    pregame.cancelCountdown();
                     sender.sendMessage("Score attack timer cancelled");
                 } else {
-                    PlayingFieldManager.pregame.startCountdown();
+                    pregame.startCountdown();
                     sender.sendMessage("Score attack timer started");
                 }
-
-                if (PlayingFieldManager.vsPregame.isActive()) {
-                    PlayingFieldManager.vsPregame.cancelCountdown();
-                    sender.sendMessage("Versus timer cancelled");
-                } else {
-                    PlayingFieldManager.vsPregame.startCountdown();
-                    sender.sendMessage("Versus timer started");
-                }
             } else if (args[0].equalsIgnoreCase("versus") && sender.isOp()) {
-                if (PlayingFieldManager.vsPregame.isActive()) {
-                    PlayingFieldManager.vsPregame.cancelCountdown();
+                if (vsPregame == null) {
+                    sender.sendMessage("There is no versus game! Check your config for errors.");
+                    return true;
+                }
+                if (vsPregame.isActive()) {
+                    vsPregame.cancelCountdown();
                     sender.sendMessage("Timer cancelled");
                 } else {
-                    PlayingFieldManager.vsPregame.startCountdown();
+                    vsPregame.startCountdown();
                     sender.sendMessage("Timer started");
                 }
             } else if (args[0].equalsIgnoreCase("start") && sender.isOp()) {
                 if (args.length >= 2 && args[1].equalsIgnoreCase("versus")) {
-                    if (PlayingFieldManager.vsPregame.isActive()) {
-                        PlayingFieldManager.vsPregame.startGame();
+                    if (vsPregame == null) {
+                        sender.sendMessage("There is no versus game! Check your config for errors.");
+                        return true;
+                    }
+                    if (vsPregame.isActive()) {
+                        vsPregame.startGame();
                         sender.sendMessage("Starting versus game");
                     } else {
                         sender.sendMessage("Start a timer with /fillinthewall versus first");
                     }
                     return true;
                 } else {
-                    if (PlayingFieldManager.pregame.isActive()) {
-                        PlayingFieldManager.pregame.startGame();
+                    if (pregame == null) {
+                        sender.sendMessage("There is no multiplayer game! Check your config for errors.");
+                        return true;
+                    }
+                    if (pregame.isActive()) {
+                        pregame.startGame();
                         sender.sendMessage("Starting game");
                     } else {
                         sender.sendMessage("Start a timer with /fillinthewall timer first");
@@ -296,7 +306,10 @@ public class FITWCommand implements CommandExecutor, TabCompleter {
                 }
             } else if (args[0].equalsIgnoreCase("spectate")) {
                 if (sender instanceof Player player) {
-                    Pregame pregame = PlayingFieldManager.pregame;
+                    if (pregame == null) {
+                        sender.sendMessage("There is no multiplayer game! Check your config for errors.");
+                        return true;
+                    }
                     if (pregame.isExcludedPlayer(player)) {
                         pregame.removeExcludedPlayer(player);
                         player.sendMessage(miniMessage.deserialize("<green>You are now participating in multiplayer games."));
