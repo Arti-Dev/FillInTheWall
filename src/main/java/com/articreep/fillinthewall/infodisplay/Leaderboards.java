@@ -36,6 +36,10 @@ public class Leaderboards {
     public static void spawnLeaderboards(FileConfiguration config) {
         removeLeaderboards();
 
+        if (!config.getBoolean("leaderboards.enabled")) {
+            return;
+        }
+
         Location scoreAttackLocation = config.getLocation("leaderboards.score-attack");
         Location rushScoreAttackLocation = config.getLocation("leaderboards.rush-score-attack");
         Location marathonLocation = config.getLocation("leaderboards.marathon");

@@ -1,4 +1,5 @@
 singleplayer-portal:
+  enabled: true
   location:
     ==: org.bukkit.Location
     world: multi
@@ -9,6 +10,7 @@ singleplayer-portal:
     yaw: 0.0
   text: 'Right-click me to go to the singleplayer lobby'
 multiplayer-portal:
+  enabled: true
   location:
     ==: org.bukkit.Location
     world: void
@@ -36,6 +38,7 @@ spectator-finals-spawn:
   yaw: -135.0
 
 leaderboards:
+  enabled: true
   score-attack:
     ==: org.bukkit.Location
     world: void
